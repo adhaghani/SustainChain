@@ -1,274 +1,239 @@
-'use client';
+"use client";
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
-import {
-  TrendingDown,
-  TrendingUp,
-  Leaf,
-  Target,
-  BarChart3,
-  Upload,
-  ArrowRight,
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import Link from 'next/link';
-import BillUploader from '@/components/dashboard/bill-uploader';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { Separator } from "@/components/ui/separator";
+import { IconLeaf, IconBolt, IconDroplet, IconGasStation, IconTrendingUp, IconTrendingDown, IconDownload, IconUpload } from "@tabler/icons-react";
+import { useLanguage } from "@/lib/language-context";
 
-export default function DashboardPage() {
-  // Mock data - in production, fetch from Firestore
-  const emissionsData = {
-    current: 2450,
-    previous: 2680,
-    unit: 'kg CO2e',
-    percentChange: -8.6,
-  };
+const DashboardPage = () => {
+  const { t } = useLanguage();
+  
+  // Mock data - will be replaced with real data from Firebase/BigQuery
+  const currentMonthEmissions = 1247.5; // kg CO2e
+  const previousMonthEmissions = 1380.2;
+  const percentageChange = ((currentMonthEmissions - previousMonthEmissions) / previousMonthEmissions * 100).toFixed(1);
+  const sectorPercentile = 68; // Top 32%
 
-  const complianceData = {
-    completed: 12,
-    total: 35,
-    level: 'Basic SEDG Disclosure',
-  };
+  const emissionBreakdown = [
+    { type: t.dashboard.electricity, value: 872.3, icon: IconBolt, color: "text-yellow-500", percentage: 70 },
+    { type: t.dashboard.fuel, value: 249.5, icon: IconGasStation, color: "text-blue-500", percentage: 20 },
+    { type: t.dashboard.water, value: 125.7, icon: IconDroplet, color: "text-cyan-500", percentage: 10 },
+  ];
 
-  const benchmarkData = {
-    userScore: 72,
-    industryAvg: 58,
-    topPerformers: 85,
-  };
+  const monthlyTrend = [
+    { month: "Aug", value: 1456 },
+    { month: "Sep", value: 1389 },
+    { month: "Oct", value: 1402 },
+    { month: "Nov", value: 1380 },
+    { month: "Dec", value: 1348 },
+    { month: "Jan", value: 1247 },
+  ];
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-slate-900 dark:text-white">
-            ESG Dashboard
-          </h1>
-          <p className="text-slate-600 dark:text-slate-400 mt-1">
-            Track your environmental, social, and governance performance
+          <h1 className="text-3xl font-bold tracking-tight">{t.dashboard.title}</h1>
+          <p className="text-muted-foreground mt-1">
+            {t.dashboard.subtitle}
           </p>
         </div>
-        <Link href="/dashboard/bill-analysis">
-          <Button className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white">
-            <Upload className="w-4 h-4 mr-2" />
-            Upload New Bill
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm">
+            <IconUpload className="w-4 h-4 mr-2" />
+            {t.dashboard.common.uploadBill}
           </Button>
-        </Link>
+          <Button size="sm">
+            <IconDownload className="w-4 h-4 mr-2" />
+            {t.dashboard.common.exportReport}
+          </Button>
+        </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {/* Total CO2 Emissions Card */}
-        <Card className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700">
-          <CardHeader className="pb-2">
-            <CardDescription className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
-              <Leaf className="w-4 h-4 text-emerald-500" />
-              Total CO2 Emissions
-            </CardDescription>
-            <CardTitle className="text-3xl font-bold text-slate-900 dark:text-white">
-              {emissionsData.current.toLocaleString()}
-              <span className="text-lg font-normal text-slate-500 ml-1">
-                {emissionsData.unit}
-              </span>
-            </CardTitle>
+      {/* Key Metrics */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">{t.dashboard.common.totalEmissions}</CardTitle>
+            <IconLeaf className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="flex items-center gap-2">
-              <Badge
-                variant="outline"
-                className={`${
-                  emissionsData.percentChange < 0
-                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20'
-                    : 'bg-red-50 text-red-700 border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20'
-                }`}
-              >
-                {emissionsData.percentChange < 0 ? (
-                  <TrendingDown className="w-3 h-3 mr-1" />
-                ) : (
-                  <TrendingUp className="w-3 h-3 mr-1" />
-                )}
-                {Math.abs(emissionsData.percentChange)}%
-              </Badge>
-              <span className="text-sm text-slate-500 dark:text-slate-400">
-                vs last month
-              </span>
-            </div>
-            {/* Mini trend line visualization */}
-            <div className="mt-4 flex items-end gap-1 h-12">
-              {[40, 55, 45, 60, 35, 50, 30].map((height, i) => (
-                <div
-                  key={i}
-                  className="flex-1 bg-emerald-200 dark:bg-emerald-500/30 rounded-t"
-                  style={{ height: `${height}%` }}
-                />
-              ))}
-            </div>
+            <div className="text-2xl font-bold">{currentMonthEmissions.toFixed(1)} kg</div>
+            <p className="text-xs text-muted-foreground flex items-center mt-1">
+              {parseFloat(percentageChange) < 0 ? (
+                <>
+                  <IconTrendingDown className="w-4 h-4 text-green-500 mr-1" />
+                  <span className="text-green-500">{Math.abs(parseFloat(percentageChange))}% {t.dashboard.common.fromLastMonth}</span>
+                </>
+              ) : (
+                <>
+                  <IconTrendingUp className="w-4 h-4 text-red-500 mr-1" />
+                  <span className="text-red-500">{percentageChange}% {t.dashboard.common.fromLastMonth}</span>
+                </>
+              )}
+            </p>
           </CardContent>
         </Card>
 
-        {/* Compliance Progress Card */}
-        <Card className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700">
-          <CardHeader className="pb-2">
-            <CardDescription className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
-              <Target className="w-4 h-4 text-blue-500" />
-              Compliance Progress
-            </CardDescription>
-            <CardTitle className="text-3xl font-bold text-slate-900 dark:text-white">
-              {complianceData.completed}
-              <span className="text-lg font-normal text-slate-500">
-                /{complianceData.total}
-              </span>
-            </CardTitle>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">{t.dashboard.common.sectorRanking}</CardTitle>
+            <Badge variant="secondary">Manufacturing</Badge>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-slate-600 dark:text-slate-400 mb-3">
-              {complianceData.level}
+            <div className="text-2xl font-bold">Top {100 - sectorPercentile}%</div>
+            <p className="text-xs text-muted-foreground mt-1">
+              {t.dashboard.common.betterThanPeers.replace('{percent}', sectorPercentile.toString())}
             </p>
-            <Progress
-              value={(complianceData.completed / complianceData.total) * 100}
-              className="h-2 bg-slate-200 dark:bg-slate-700"
-            />
-            <div className="flex justify-between mt-2 text-xs text-slate-500">
-              <span>
-                {Math.round(
-                  (complianceData.completed / complianceData.total) * 100
-                )}
-                % complete
-              </span>
-              <span>{complianceData.total - complianceData.completed} remaining</span>
-            </div>
+            <Progress value={sectorPercentile} className="mt-2" />
           </CardContent>
         </Card>
 
-        {/* Industry Benchmark Card */}
-        <Card className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700">
-          <CardHeader className="pb-2">
-            <CardDescription className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
-              <BarChart3 className="w-4 h-4 text-purple-500" />
-              Industry Benchmark
-            </CardDescription>
-            <CardTitle className="text-3xl font-bold text-slate-900 dark:text-white">
-              {benchmarkData.userScore}
-              <span className="text-lg font-normal text-slate-500">/100</span>
-            </CardTitle>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">{t.dashboard.common.electricityUsage}</CardTitle>
+            <IconBolt className="h-4 w-4 text-yellow-500" />
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-emerald-600 dark:text-emerald-400 mb-3">
-              Above Malaysian SME average
+            <div className="text-2xl font-bold">1,486 kWh</div>
+            <p className="text-xs text-muted-foreground mt-1">
+              872.3 kg CO2e (70% {t.dashboard.common.ofTotal})
             </p>
-            {/* Benchmark visualization */}
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-slate-500 w-20">You</span>
-                <div className="flex-1 bg-slate-200 dark:bg-slate-700 rounded-full h-2">
-                  <div
-                    className="bg-emerald-500 h-2 rounded-full"
-                    style={{ width: `${benchmarkData.userScore}%` }}
-                  />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Data Entries</CardTitle>
+            <Badge variant="outline">This Month</Badge>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">12 Bills</div>
+            <p className="text-xs text-muted-foreground mt-1">
+              8 auto-extracted, 4 manual
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Charts and Breakdown */}
+      <div className="grid gap-4 md:grid-cols-2">
+        {/* Emission Breakdown */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Emission Breakdown</CardTitle>
+            <CardDescription>Carbon footprint by utility type (January 2026)</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {emissionBreakdown.map((item) => {
+              const Icon = item.icon;
+              return (
+                <div key={item.type} className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Icon className={`w-4 h-4 ${item.color}`} />
+                      <span className="text-sm font-medium">{item.type}</span>
+                    </div>
+                    <div className="text-sm font-bold">{item.value} kg CO2e</div>
+                  </div>
+                  <Progress value={item.percentage} className="h-2" />
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>{item.percentage}% {t.dashboard.common.ofTotal}</span>
+                  </div>
                 </div>
-                <span className="text-xs font-medium text-slate-700 dark:text-slate-300 w-8">
-                  {benchmarkData.userScore}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-slate-500 w-20">Avg SME</span>
-                <div className="flex-1 bg-slate-200 dark:bg-slate-700 rounded-full h-2">
-                  <div
-                    className="bg-slate-400 h-2 rounded-full"
-                    style={{ width: `${benchmarkData.industryAvg}%` }}
-                  />
-                </div>
-                <span className="text-xs font-medium text-slate-700 dark:text-slate-300 w-8">
-                  {benchmarkData.industryAvg}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-slate-500 w-20">Top 10%</span>
-                <div className="flex-1 bg-slate-200 dark:bg-slate-700 rounded-full h-2">
-                  <div
-                    className="bg-purple-500 h-2 rounded-full"
-                    style={{ width: `${benchmarkData.topPerformers}%` }}
-                  />
-                </div>
-                <span className="text-xs font-medium text-slate-700 dark:text-slate-300 w-8">
-                  {benchmarkData.topPerformers}
-                </span>
-              </div>
+              );
+            })}
+          </CardContent>
+        </Card>
+
+        {/* Monthly Trend */}
+        <Card>
+          <CardHeader>
+            <CardTitle>{t.dashboard.monthlyTrend}</CardTitle>
+            <CardDescription>Carbon emissions over time (kg CO2e)</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {monthlyTrend.map((data, idx) => {
+                const maxValue = Math.max(...monthlyTrend.map(d => d.value));
+                const percentage = (data.value / maxValue) * 100;
+                const isLatest = idx === monthlyTrend.length - 1;
+                
+                return (
+                  <div key={data.month} className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className={`text-sm font-medium ${isLatest ? 'text-primary' : ''}`}>
+                        {data.month}
+                      </span>
+                      <span className={`text-sm font-bold ${isLatest ? 'text-primary' : ''}`}>
+                        {data.value} kg
+                      </span>
+                    </div>
+                    <Progress value={percentage} className="h-2" />
+                  </div>
+                );
+              })}
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Bill Uploader Section */}
-      <Card className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700">
+      {/* Insights & Recommendations */}
+      <Card>
         <CardHeader>
-          <CardTitle className="text-slate-900 dark:text-white">
-            Quick Bill Analysis
-          </CardTitle>
-          <CardDescription className="text-slate-600 dark:text-slate-400">
-            Upload your Malaysian utility bill for instant AI-powered ESG analysis
-          </CardDescription>
+          <CardTitle>{t.dashboard.insights}</CardTitle>
+          <CardDescription>Recommendations to reduce your carbon footprint</CardDescription>
         </CardHeader>
         <CardContent>
-          <BillUploader />
+          <div className="space-y-4">
+            <div className="flex gap-4 p-4 border rounded-lg">
+              <div className="shrink-0 w-10 h-10 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center">
+                <IconTrendingDown className="w-5 h-5 text-green-600 dark:text-green-400" />
+              </div>
+              <div className="flex-1">
+                <h4 className="font-semibold text-sm mb-1">Great Progress!</h4>
+                <p className="text-sm text-muted-foreground">
+                  Your emissions decreased by 9.6% compared to last month. Your electricity usage optimization is working well.
+                </p>
+              </div>
+            </div>
+
+            <Separator />
+
+            <div className="flex gap-4 p-4 border rounded-lg">
+              <div className="shrink-0 w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                <IconBolt className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+              </div>
+              <div className="flex-1">
+                <h4 className="font-semibold text-sm mb-1">Peak Hour Usage</h4>
+                <p className="text-sm text-muted-foreground">
+                  Consider shifting high-energy operations to off-peak hours (10 PM - 8 AM) to reduce costs by up to 30%.
+                </p>
+              </div>
+            </div>
+
+            <Separator />
+
+            <div className="flex gap-4 p-4 border rounded-lg">
+              <div className="shrink-0 w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900 flex items-center justify-center">
+                <IconLeaf className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+              </div>
+              <div className="flex-1">
+                <h4 className="font-semibold text-sm mb-1">SDG Alignment</h4>
+                <p className="text-sm text-muted-foreground">
+                  Your current performance aligns with SDG Goals 8, 9, and 12. Maintain this trend to qualify for ESG incentives.
+                </p>
+              </div>
+            </div>
+          </div>
         </CardContent>
       </Card>
-
-      {/* Quick Actions */}
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card className="bg-gradient-to-br from-emerald-500 to-emerald-600 border-0">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-semibold text-white">
-                  Generate ESG Report
-                </h3>
-                <p className="text-emerald-100 text-sm mt-1">
-                  Create a comprehensive SEDG-compliant report
-                </p>
-              </div>
-              <Link href="/dashboard/reports">
-                <Button
-                  variant="secondary"
-                  className="bg-white/20 hover:bg-white/30 text-white border-0"
-                >
-                  <ArrowRight className="w-4 h-4" />
-                </Button>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-slate-700 to-slate-800 border-0">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-semibold text-white">
-                  View All Analytics
-                </h3>
-                <p className="text-slate-300 text-sm mt-1">
-                  Deep dive into your sustainability metrics
-                </p>
-              </div>
-              <Link href="/dashboard/reports">
-                <Button
-                  variant="secondary"
-                  className="bg-white/20 hover:bg-white/30 text-white border-0"
-                >
-                  <ArrowRight className="w-4 h-4" />
-                </Button>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
     </div>
   );
-}
+};
+
+export default DashboardPage;

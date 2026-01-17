@@ -41,9 +41,16 @@ export default function LandingPage() {
             >
               <span className={lang === "en" ? "text-white" : ""}>EN</span> / <span className={lang === "bm" ? "text-white" : ""}>BM</span>
             </Badge>
-            <Button variant="secondary" className="rounded-full font-semibold hover:bg-gray-200 transition-colors">
-              {t.nav.getStarted}
-            </Button>
+            <Link href="/sign-in">
+              <Button variant="ghost" className="rounded-full font-medium hover:bg-white/5 transition-colors text-white">
+                Sign In
+              </Button>
+            </Link>
+            <Link href="/sign-up">
+              <Button variant="secondary" className="rounded-full font-semibold hover:bg-gray-200 transition-colors">
+                {t.nav.getStarted}
+              </Button>
+            </Link>
           </div>
         </div>
       </nav>
@@ -71,13 +78,17 @@ export default function LandingPage() {
             </p>
             
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Button size="lg" className="w-full sm:w-auto px-8 py-6 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold transition-all flex items-center justify-center gap-2 group text-lg">
-                {t.hero.ctaStart}
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </Button>
-              <Button variant="outline" size="lg" className="w-full sm:w-auto px-8 py-6 rounded-full border-white/10 hover:bg-white/10 text-white font-semibold transition-all text-lg bg-white/5">
-                {t.hero.ctaDemo}
-              </Button>
+              <Link href="/sign-up" className="w-full sm:w-auto">
+                <Button size="lg" className="w-full sm:w-auto px-8 py-6 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold transition-all flex items-center justify-center gap-2 group text-lg">
+                  {t.hero.ctaStart}
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </Button>
+              </Link>
+              <Link href="/dashboard" className="w-full sm:w-auto">
+                <Button variant="outline" size="lg" className="w-full sm:w-auto px-8 py-6 rounded-full border-white/10 hover:bg-white/10 text-white font-semibold transition-all text-lg bg-white/5">
+                  {t.hero.ctaDemo}
+                </Button>
+              </Link>
             </div>
             
             {/* Social Proof / Trust */}
@@ -226,9 +237,11 @@ export default function LandingPage() {
             <p className="text-xl text-gray-300 mb-10 max-w-2xl mx-auto">
                 {t.cta.description}
             </p>
-            <Button size="lg" className="px-10 py-8 rounded-full bg-white text-emerald-900 font-bold text-lg hover:bg-gray-100 transition-colors shadow-xl shadow-emerald-900/20">
-                {t.cta.button}
-            </Button>
+            <Link href="/sign-up">
+              <Button size="lg" className="px-10 py-8 rounded-full bg-white text-emerald-900 font-bold text-lg hover:bg-gray-100 transition-colors shadow-xl shadow-emerald-900/20">
+                  {t.cta.button}
+              </Button>
+            </Link>
         </div>
       </section>
 

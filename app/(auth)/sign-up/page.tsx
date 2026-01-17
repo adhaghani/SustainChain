@@ -14,7 +14,16 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Mail, Lock, User, Building2, Loader2, AlertCircle } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Mail, Lock, User, Building2, Loader2, AlertCircle, Leaf } from 'lucide-react';
+import { 
+  IconBrandGoogle, 
+  IconBrandLinkedin,
+  IconShieldCheck,
+  IconCheck
+} from '@tabler/icons-react';
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -23,7 +32,9 @@ export default function SignUpPage() {
     company: '',
     email: '',
     password: '',
+    confirmPassword: ''
   });
+  const [agreeToTerms, setAgreeToTerms] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -34,6 +45,17 @@ export default function SignUpPage() {
   const handleEmailSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+
+    if (!agreeToTerms) {
+      setError('Please agree to the Terms of Service and Privacy Policy');
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -51,7 +73,7 @@ export default function SignUpPage() {
         displayName: formData.name,
       });
 
-      router.push('/dashboard');
+      router.push('/dashboard/onboarding');
     } catch (err) {
       setError(
         err instanceof Error ? err.message : 'Failed to create account. Please try again.'
@@ -71,7 +93,7 @@ export default function SignUpPage() {
       }
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
-      router.push('/dashboard');
+      router.push('/dashboard/onboarding');
     } catch (err) {
       setError(
         err instanceof Error ? err.message : 'Failed to sign up with Google.'
@@ -81,165 +103,252 @@ export default function SignUpPage() {
     }
   };
 
+
+  const handleLinkedInSignUp = async () => {
+    setError('LinkedIn SSO integration coming soon');
+    setTimeout(() => setError(''), 3000);
+  };
+
   return (
-    <div className="space-y-6">
-      <div className="text-center">
-        <h1 className="text-2xl font-bold text-white">Create your account</h1>
-        <p className="text-slate-400 text-sm mt-1">
-          Start your ESG compliance journey today
+    <div className="min-h-screen flex items-center justify-center bg-[#0A0A0A] p-4">
+      <div className="w-full max-w-2xl">
+        {/* Logo */}
+        <Link href="/" className="flex items-center justify-center gap-2 mb-8">
+          <div className="w-10 h-10 rounded-lg bg-linear-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
+            <Leaf className="w-6 h-6 text-white" />
+          </div>
+          <span className="font-bold text-2xl tracking-tight text-white">SustainChain</span>
+        </Link>
+
+        <Card className="border-white/10 bg-slate-900/50 backdrop-blur">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl font-bold text-white">Create your account</CardTitle>
+            <CardDescription className="text-slate-400">
+              Join Malaysian SMEs achieving ESG compliance
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {error && (
+              <Alert variant="destructive" className="bg-red-500/10 border-red-500/20">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+
+            {/* Benefits */}
+            <div className="grid gap-3 p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+              <h3 className="font-semibold text-emerald-200 text-sm">What you&apos;ll get:</h3>
+              <div className="grid gap-2">
+                {[
+                  'AI-powered bill extraction (90%+ accuracy)',
+                  '14-day free trial with all Premium features',
+                  'Sector benchmarking against 1000+ companies',
+                  'Professional ESG reports for stakeholders'
+                ].map((benefit, index) => (
+                  <div key={index} className="flex items-center gap-2 text-xs text-emerald-200">
+                    <IconCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span>{benefit}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Social Sign Up Options */}
+            <div className="space-y-3">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleGoogleSignUp}
+                disabled={loading}
+                className="w-full border-slate-600 text-slate-300 hover:bg-slate-700/50 hover:text-white"
+              >
+                <IconBrandGoogle className="mr-2 h-5 w-5" />
+                Continue with Google
+              </Button>
+              
+              <div className="grid grid-cols-2 gap-3">
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleLinkedInSignUp}
+                  disabled={loading}
+                  className="border-slate-600 text-slate-300 hover:bg-slate-700/50 hover:text-white"
+                >
+                  <IconBrandLinkedin className="mr-2 h-5 w-5" />
+                  LinkedIn
+                </Button>
+              </div>
+            </div>
+
+            <div className="relative">
+              <Separator className="bg-slate-700" />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="bg-slate-900 px-3 text-xs text-slate-500 uppercase">Or</span>
+              </div>
+            </div>
+
+            <form onSubmit={handleEmailSignUp} className="space-y-4">
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name" className="text-slate-300">
+                    Full Name
+                  </Label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                    <Input
+                      id="name"
+                      name="name"
+                      type="text"
+                      placeholder="Ahmad Rahman"
+                      value={formData.name}
+                      onChange={handleChange}
+                      className="pl-10 bg-slate-900/50 border-slate-600 text-white placeholder:text-slate-500 focus:border-emerald-500 focus:ring-emerald-500/20"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="company" className="text-slate-300">
+                    Company Name
+                  </Label>
+                  <div className="relative">
+                    <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                    <Input
+                      id="company"
+                      name="company"
+                      type="text"
+                      placeholder="Syarikat ABC Sdn Bhd"
+                      value={formData.company}
+                      onChange={handleChange}
+                      className="pl-10 bg-slate-900/50 border-slate-600 text-white placeholder:text-slate-500 focus:border-emerald-500 focus:ring-emerald-500/20"
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-slate-300">
+                  Work Email
+                </Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    placeholder="you@company.com"
+                    value={formData.email}
+                    onChange={handleChange}
+                    className="pl-10 bg-slate-900/50 border-slate-600 text-white placeholder:text-slate-500 focus:border-emerald-500 focus:ring-emerald-500/20"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="password" className="text-slate-300">
+                    Password
+                  </Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                    <Input
+                      id="password"
+                      name="password"
+                      type="password"
+                      placeholder="••••••••"
+                      value={formData.password}
+                      onChange={handleChange}
+                      className="pl-10 bg-slate-900/50 border-slate-600 text-white placeholder:text-slate-500 focus:border-emerald-500 focus:ring-emerald-500/20"
+                      required
+                      minLength={8}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword" className="text-slate-300">
+                    Confirm Password
+                  </Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                    <Input
+                      id="confirmPassword"
+                      name="confirmPassword"
+                      type="password"
+                      placeholder="••••••••"
+                      value={formData.confirmPassword}
+                      onChange={handleChange}
+                      className="pl-10 bg-slate-900/50 border-slate-600 text-white placeholder:text-slate-500 focus:border-emerald-500 focus:ring-emerald-500/20"
+                      required
+                      minLength={8}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-start space-x-3">
+                <Checkbox 
+                  id="terms" 
+                  checked={agreeToTerms}
+                  onCheckedChange={(checked) => setAgreeToTerms(checked as boolean)}
+                  className="mt-1"
+                />
+                <label htmlFor="terms" className="text-sm text-slate-400 leading-relaxed">
+                  I agree to the{' '}
+                  <Link href="#" className="text-emerald-400 hover:text-emerald-300">
+                    Terms of Service
+                  </Link>
+                  {' '}and{' '}
+                  <Link href="#" className="text-emerald-400 hover:text-emerald-300">
+                    Privacy Policy
+                  </Link>
+                </label>
+              </div>
+
+              <Button
+                type="submit"
+                disabled={loading || !agreeToTerms}
+                className="w-full bg-linear-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-medium py-2.5"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Creating account...
+                  </>
+                ) : (
+                  'Create account'
+                )}
+              </Button>
+            </form>
+
+            <div className="flex items-center gap-2 p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
+              <IconShieldCheck className="w-5 h-5 text-blue-400 shrink-0" />
+              <p className="text-xs text-blue-200">
+                14-day free trial • No credit card required • Cancel anytime
+              </p>
+            </div>
+
+            <p className="text-center text-sm text-slate-400">
+              Already have an account?{' '}
+              <Link
+                href="/sign-in"
+                className="text-emerald-400 hover:text-emerald-300 font-medium"
+              >
+                Sign in
+              </Link>
+            </p>
+          </CardContent>
+        </Card>
+
+        <p className="text-center text-xs text-slate-500 mt-6">
+          Protected by PDPA • Data encrypted with AES-256 • ISO 27001 certified
         </p>
       </div>
-
-      {error && (
-        <Alert variant="destructive" className="bg-red-500/10 border-red-500/20">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-
-      <form onSubmit={handleEmailSignUp} className="space-y-4">
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-2">
-            <Label htmlFor="name" className="text-slate-300">
-              Full Name
-            </Label>
-            <div className="relative">
-              <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
-              <Input
-                id="name"
-                name="name"
-                type="text"
-                placeholder="John Doe"
-                value={formData.name}
-                onChange={handleChange}
-                className="pl-10 bg-slate-900/50 border-slate-600 text-white placeholder:text-slate-500 focus:border-emerald-500 focus:ring-emerald-500/20"
-                required
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="company" className="text-slate-300">
-              Company
-            </Label>
-            <div className="relative">
-              <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
-              <Input
-                id="company"
-                name="company"
-                type="text"
-                placeholder="Acme Sdn Bhd"
-                value={formData.company}
-                onChange={handleChange}
-                className="pl-10 bg-slate-900/50 border-slate-600 text-white placeholder:text-slate-500 focus:border-emerald-500 focus:ring-emerald-500/20"
-                required
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="email" className="text-slate-300">
-            Email
-          </Label>
-          <div className="relative">
-            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              placeholder="you@company.com"
-              value={formData.email}
-              onChange={handleChange}
-              className="pl-10 bg-slate-900/50 border-slate-600 text-white placeholder:text-slate-500 focus:border-emerald-500 focus:ring-emerald-500/20"
-              required
-            />
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="password" className="text-slate-300">
-            Password
-          </Label>
-          <div className="relative">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
-            <Input
-              id="password"
-              name="password"
-              type="password"
-              placeholder="••••••••"
-              value={formData.password}
-              onChange={handleChange}
-              className="pl-10 bg-slate-900/50 border-slate-600 text-white placeholder:text-slate-500 focus:border-emerald-500 focus:ring-emerald-500/20"
-              minLength={6}
-              required
-            />
-          </div>
-          <p className="text-xs text-slate-500">Minimum 6 characters</p>
-        </div>
-
-        <Button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-medium py-2.5"
-        >
-          {loading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Creating account...
-            </>
-          ) : (
-            'Create account'
-          )}
-        </Button>
-      </form>
-
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-slate-700" />
-        </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-slate-800/50 px-2 text-slate-500">Or continue with</span>
-        </div>
-      </div>
-
-      <Button
-        type="button"
-        variant="outline"
-        onClick={handleGoogleSignUp}
-        disabled={loading}
-        className="w-full border-slate-600 text-slate-300 hover:bg-slate-700/50 hover:text-white"
-      >
-        <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
-          <path
-            fill="currentColor"
-            d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-          />
-          <path
-            fill="currentColor"
-            d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-          />
-          <path
-            fill="currentColor"
-            d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-          />
-          <path
-            fill="currentColor"
-            d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-          />
-        </svg>
-        Google
-      </Button>
-
-      <p className="text-center text-sm text-slate-400">
-        Already have an account?{' '}
-        <Link
-          href="/sign-in"
-          className="text-emerald-400 hover:text-emerald-300 font-medium"
-        >
-          Sign in
-        </Link>
-      </p>
     </div>
   );
 }
+        
