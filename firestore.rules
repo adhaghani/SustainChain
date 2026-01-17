@@ -1,0 +1,218 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ============================================
+    // HELPER FUNCTIONS
+    // ============================================
+    
+    // Check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Get user's tenant ID from custom claims
+    function getUserTenantId() {
+      return request.auth.token.tenantId;
+    }
+    
+    // Get user's role from custom claims
+    function getUserRole() {
+      return request.auth.token.role;
+    }
+    
+    // Check if user belongs to the tenant
+    function belongsToTenant(tenantId) {
+      return isAuthenticated() && getUserTenantId() == tenantId;
+    }
+    
+    // Check if user is admin
+    function isAdmin() {
+      return isAuthenticated() && getUserRole() == 'admin';
+    }
+    
+    // Check if user is admin of specific tenant
+    function isTenantAdmin(tenantId) {
+      return belongsToTenant(tenantId) && isAdmin();
+    }
+    
+    // Check if user can write (admin or clerk)
+    function canWrite() {
+      return isAuthenticated() && getUserRole() in ['admin', 'clerk'];
+    }
+    
+    // Check if resource belongs to user's tenant
+    function resourceBelongsToUserTenant() {
+      return resource.data.tenantId == getUserTenantId();
+    }
+    
+    // ============================================
+    // USERS COLLECTION
+    // ============================================
+    
+    match /users/{userId} {
+      // Users can read their own profile
+      allow read: if isAuthenticated() && request.auth.uid == userId;
+      
+      // Users can update their own profile (limited fields)
+      allow update: if isAuthenticated() 
+                    && request.auth.uid == userId
+                    && request.resource.data.diff(resource.data).affectedKeys()
+                       .hasOnly(['name', 'phone', 'avatar', 'lastLogin', 
+                                 'lastActivity', 'onboardingStep', 'updatedAt']);
+      
+      // Admins can read all users in their tenant
+      allow read: if isAuthenticated() 
+                  && isAdmin() 
+                  && resource.data.tenantId == getUserTenantId();
+      
+      // Admins can create users in their tenant
+      allow create: if isAuthenticated()
+                    && isAdmin()
+                    && request.resource.data.tenantId == getUserTenantId();
+      
+      // Admins can update users in their tenant (except role changes require super admin)
+      allow update: if isAuthenticated()
+                    && isAdmin()
+                    && resource.data.tenantId == getUserTenantId()
+                    && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'tenantId']));
+      
+      // Only super admins can delete users (implement via Cloud Functions)
+      allow delete: if false;
+    }
+    
+    // ============================================
+    // TENANTS COLLECTION
+    // ============================================
+    
+    match /tenants/{tenantId} {
+      // Users can read their own tenant
+      allow read: if belongsToTenant(tenantId);
+      
+      // Only admins can update tenant info
+      allow update: if isTenantAdmin(tenantId);
+      
+      // Tenant creation handled via Cloud Functions (during signup)
+      allow create: if false;
+      allow delete: if false;
+      
+      // --------------------------------------------
+      // ENTRIES SUBCOLLECTION
+      // --------------------------------------------
+      
+      match /entries/{entryId} {
+        // All tenant members can read entries
+        allow read: if belongsToTenant(tenantId);
+        
+        // Admins and clerks can create entries
+        allow create: if belongsToTenant(tenantId) 
+                      && canWrite()
+                      && request.resource.data.tenantId == tenantId
+                      && request.resource.data.userId == request.auth.uid;
+        
+        // Admins and clerks can update entries
+        // Clerks can only update their own entries
+        allow update: if belongsToTenant(tenantId)
+                      && canWrite()
+                      && (isAdmin() || resource.data.userId == request.auth.uid);
+        
+        // Only admins can delete entries
+        allow delete: if isTenantAdmin(tenantId);
+      }
+      
+      // --------------------------------------------
+      // AUDIT LOGS SUBCOLLECTION
+      // --------------------------------------------
+      
+      match /audit_logs/{logId} {
+        // Admins can read audit logs
+        allow read: if isTenantAdmin(tenantId);
+        
+        // Audit logs are write-only (created by Cloud Functions)
+        allow write: if false;
+      }
+      
+      // --------------------------------------------
+      // NOTIFICATIONS SUBCOLLECTION
+      // --------------------------------------------
+      
+      match /notifications/{notificationId} {
+        // Users can read their own notifications
+        allow read: if belongsToTenant(tenantId) 
+                    && (resource.data.userId == request.auth.uid || resource.data.userId == 'all');
+        
+        // Users can update their own notifications (mark as read)
+        allow update: if belongsToTenant(tenantId)
+                      && resource.data.userId == request.auth.uid
+                      && request.resource.data.diff(resource.data).affectedKeys()
+                         .hasOnly(['read', 'readAt', 'dismissed', 'updatedAt']);
+        
+        // Admins can create notifications
+        allow create: if isTenantAdmin(tenantId);
+        
+        // Users can delete their own notifications
+        allow delete: if belongsToTenant(tenantId) 
+                      && resource.data.userId == request.auth.uid;
+      }
+      
+      // --------------------------------------------
+      // REPORTS SUBCOLLECTION
+      // --------------------------------------------
+      
+      match /reports/{reportId} {
+        // All tenant members can read reports
+        allow read: if belongsToTenant(tenantId);
+        
+        // Admins and clerks can create reports
+        allow create: if belongsToTenant(tenantId) && canWrite();
+        
+        // Only admins can delete reports
+        allow delete: if isTenantAdmin(tenantId);
+        
+        // Reports are immutable after creation (except status updates via Cloud Functions)
+        allow update: if false;
+      }
+      
+      // --------------------------------------------
+      // SUBSCRIPTIONS SUBCOLLECTION
+      // --------------------------------------------
+      
+      match /subscriptions/{subscriptionId} {
+        // All tenant members can read subscription info
+        allow read: if belongsToTenant(tenantId);
+        
+        // Only admins can update subscription (via Stripe webhooks)
+        allow write: if false; // Managed by Cloud Functions only
+        
+        // Invoices subcollection
+        match /invoices/{invoiceId} {
+          // Admins can read invoices
+          allow read: if isTenantAdmin(tenantId);
+          allow write: if false; // Managed by Cloud Functions only
+        }
+      }
+    }
+    
+    // ============================================
+    // SYSTEM CONFIG COLLECTION (Admin-only)
+    // ============================================
+    
+    match /system_config/{configId} {
+      // Anyone can read emission factors (needed for calculations)
+      allow read: if isAuthenticated();
+      
+      // Only super admins can write (via Cloud Functions)
+      allow write: if false;
+    }
+    
+    // ============================================
+    // ONBOARDING SESSIONS COLLECTION
+    // ============================================
+    
+    match /onboarding_sessions/{sessionId} {
+      // Users can read/write their own onboarding session
+      allow read, write: if isAuthenticated() 
+                         && resource.data.userId == request.auth.uid;
+    }
+  }
+}

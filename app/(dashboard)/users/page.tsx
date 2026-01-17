@@ -1,8 +1,15 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+'use client';
+
+import { useState, useEffect } from 'react';
+import { auth } from '@/lib/firebase';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {  
   IconSearch, 
   IconUserPlus,
@@ -17,7 +24,8 @@ import {
   IconCheck,
   IconBan,
   IconSettings,
-  IconSend
+  IconAlertCircle,
+  IconLoader2
 } from "@tabler/icons-react";
 import {
   DropdownMenu,
@@ -34,123 +42,238 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import type { UserDocument, UserRole, UserStatus } from '@/types/firestore';
 
 const UsersPage = () => {
-  // Mock data - will be replaced with Firebase Auth data
-  const users = [
-    {
-      id: "1",
-      name: "Ahmad bin Ibrahim",
-      email: "ahmad@muarfurniture.com",
-      phone: "+60 12-345 6789",
-      role: "admin",
-      tenant: "Muar Furniture Industries",
-      tenantId: "1",
-      status: "active",
-      lastLogin: "2026-01-17T14:30:00",
-      joinedDate: "2025-06-15",
-      entriesCreated: 45,
-      avatar: null
-    },
-    {
-      id: "2",
-      name: "Siti Nurhaliza",
-      email: "siti@muarfurniture.com",
-      phone: "+60 13-456 7890",
-      role: "clerk",
-      tenant: "Muar Furniture Industries",
-      tenantId: "1",
-      status: "active",
-      lastLogin: "2026-01-17T10:15:00",
-      joinedDate: "2025-07-20",
-      entriesCreated: 23,
-      avatar: null
-    },
-    {
-      id: "3",
-      name: "Sarah Lee",
-      email: "sarah.lee@greentech.my",
-      phone: "+60 12-789 0123",
-      role: "admin",
-      tenant: "Green Tech Solutions",
-      tenantId: "2",
-      status: "active",
-      lastLogin: "2026-01-17T15:45:00",
-      joinedDate: "2025-03-20",
-      entriesCreated: 89,
-      avatar: null
-    },
-    {
-      id: "4",
-      name: "Michael Tan",
-      email: "michael@greentech.my",
-      phone: "+60 16-234 5678",
-      role: "viewer",
-      tenant: "Green Tech Solutions",
-      tenantId: "2",
-      status: "active",
-      lastLogin: "2026-01-16T16:20:00",
-      joinedDate: "2025-04-10",
-      entriesCreated: 0,
-      avatar: null
-    },
-    {
-      id: "5",
-      name: "Lim Chong Wei",
-      email: "lim@jffoods.com",
-      phone: "+60 17-345 6789",
-      role: "admin",
-      tenant: "Johor Fresh Foods",
-      tenantId: "3",
-      status: "active",
-      lastLogin: "2026-01-16T09:30:00",
-      joinedDate: "2025-09-10",
-      entriesCreated: 23,
-      avatar: null
-    },
-    {
-      id: "6",
-      name: "Kumar Raj",
-      email: "kumar@logisticspro.my",
-      phone: "+60 12-456 7891",
-      role: "admin",
-      tenant: "Logistics Pro Malaysia",
-      tenantId: "4",
-      status: "active",
-      lastLogin: "2026-01-17T11:00:00",
-      joinedDate: "2026-01-05",
-      entriesCreated: 12,
-      avatar: null
-    },
-    {
-      id: "7",
-      name: "Priya Sharma",
-      email: "priya@logisticspro.my",
-      phone: "+60 13-567 8902",
-      role: "clerk",
-      tenant: "Logistics Pro Malaysia",
-      tenantId: "4",
-      status: "pending",
-      lastLogin: null,
-      joinedDate: "2026-01-15",
-      entriesCreated: 0,
-      avatar: null
-    },
-    {
-      id: "8",
-      name: "Wong Li Ting",
-      email: "wong@pea-electronics.com",
-      phone: "+60 14-678 9013",
-      role: "admin",
-      tenant: "Penang Electronics Assembly",
-      tenantId: "5",
-      status: "inactive",
-      lastLogin: "2025-12-20T14:00:00",
-      joinedDate: "2025-08-22",
-      entriesCreated: 8,
-      avatar: null
-    },
-  ];
+  const [users, setUsers] = useState<UserDocument[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<UserDocument[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [roleFilter, setRoleFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all-status');
+  
+  // Dialog states
+  const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<UserDocument | null>(null);
+  
+  // Form states
+  const [inviteForm, setInviteForm] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    role: 'clerk' as UserRole,
+  });
+  const [editForm, setEditForm] = useState({
+    role: 'clerk' as UserRole,
+    status: 'active' as UserStatus,
+  });
+  const [actionLoading, setActionLoading] = useState(false);
+
+  // Fetch users
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  // Filter users
+  useEffect(() => {
+    let filtered = users;
+
+    // Search filter
+    if (searchQuery) {
+      filtered = filtered.filter(user =>
+        user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        user.tenantName.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    // Role filter
+    if (roleFilter !== 'all') {
+      filtered = filtered.filter(user => user.role === roleFilter);
+    }
+
+    // Status filter
+    if (statusFilter !== 'all-status') {
+      filtered = filtered.filter(user => user.status === statusFilter);
+    }
+
+    setFilteredUsers(filtered);
+  }, [users, searchQuery, roleFilter, statusFilter]);
+
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+      setError('');
+
+      const currentUser = auth?.currentUser;
+      if (!currentUser) {
+        throw new Error('Not authenticated');
+      }
+
+      const token = await currentUser.getIdToken();
+
+      const response = await fetch('/api/users', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to fetch users');
+      }
+
+      setUsers(data.data);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleInviteUser = async () => {
+    try {
+      setActionLoading(true);
+      setError('');
+
+      const currentUser = auth?.currentUser;
+      if (!currentUser) throw new Error('Not authenticated');
+
+      const token = await currentUser.getIdToken();
+
+      const response = await fetch('/api/users/invite', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(inviteForm),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to invite user');
+      }
+
+      // Reset form and close dialog
+      setInviteForm({ name: '', email: '', phone: '', role: 'clerk' });
+      setInviteDialogOpen(false);
+      
+      // Refresh users list
+      await fetchUsers();
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleUpdateUser = async () => {
+    if (!selectedUser) return;
+
+    try {
+      setActionLoading(true);
+      setError('');
+
+      const currentUser = auth?.currentUser;
+      if (!currentUser) throw new Error('Not authenticated');
+
+      const token = await currentUser.getIdToken();
+
+      const response = await fetch('/api/users/update', {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: selectedUser.id,
+          role: editForm.role,
+          status: editForm.status,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to update user');
+      }
+
+      setEditDialogOpen(false);
+      setSelectedUser(null);
+      await fetchUsers();
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleDeleteUser = async () => {
+    if (!selectedUser) return;
+
+    try {
+      setActionLoading(true);
+      setError('');
+
+      const currentUser = auth?.currentUser;
+      if (!currentUser) throw new Error('Not authenticated');
+
+      const token = await currentUser.getIdToken();
+
+      const response = await fetch('/api/users/delete', {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: selectedUser.id,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to delete user');
+      }
+
+      setDeleteDialogOpen(false);
+      setSelectedUser(null);
+      await fetchUsers();
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const openEditDialog = (user: UserDocument) => {
+    setSelectedUser(user);
+    setEditForm({ role: user.role, status: user.status });
+    setEditDialogOpen(true);
+  };
+
+  const openDeleteDialog = (user: UserDocument) => {
+    setSelectedUser(user);
+    setDeleteDialogOpen(true);
+  };
+
+  // Mock data fallback for display purposes
+  const displayUsers = filteredUsers.length > 0 ? filteredUsers : [];
 
   const getRoleBadge = (role: string) => {
     switch (role) {
@@ -221,6 +344,17 @@ const UsersPage = () => {
       .slice(0, 2);
   };
 
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-center py-12">
+          <IconLoader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+        </div>
+      </div>
+    );
+  }
+
   const totalUsers = users.length;
   const activeUsers = users.filter(u => u.status === "active").length;
   const adminUsers = users.filter(u => u.role === "admin").length;
@@ -228,6 +362,14 @@ const UsersPage = () => {
 
   return (
     <div className="space-y-6">
+      {/* Error Alert */}
+      {error && (
+        <Alert variant="destructive">
+          <IconAlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -236,7 +378,7 @@ const UsersPage = () => {
             Manage user accounts, roles, and permissions
           </p>
         </div>
-        <Button>
+        <Button onClick={() => setInviteDialogOpen(true)}>
           <IconUserPlus className="w-4 h-4 mr-2" />
           Invite User
         </Button>
@@ -251,7 +393,7 @@ const UsersPage = () => {
           <CardContent>
             <div className="text-2xl font-bold">{totalUsers}</div>
             <p className="text-xs text-muted-foreground mt-1">
-              Across all tenants
+              In your organization
             </p>
           </CardContent>
         </Card>
@@ -263,7 +405,7 @@ const UsersPage = () => {
           <CardContent>
             <div className="text-2xl font-bold">{activeUsers}</div>
             <p className="text-xs text-muted-foreground mt-1">
-              {((activeUsers / totalUsers) * 100).toFixed(0)}% of total
+              {totalUsers > 0 ? ((activeUsers / totalUsers) * 100).toFixed(0) : 0}% of total
             </p>
           </CardContent>
         </Card>
@@ -275,7 +417,7 @@ const UsersPage = () => {
           <CardContent>
             <div className="text-2xl font-bold">{adminUsers}</div>
             <p className="text-xs text-muted-foreground mt-1">
-              System admins
+              With full access
             </p>
           </CardContent>
         </Card>
@@ -311,9 +453,11 @@ const UsersPage = () => {
               <Input 
                 placeholder="Search by name, email, or tenant..." 
                 className="pl-9"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            <Select defaultValue="all">
+            <Select value={roleFilter} onValueChange={setRoleFilter}>
               <SelectTrigger className="w-45">
                 <SelectValue placeholder="Filter by role" />
               </SelectTrigger>
@@ -324,7 +468,7 @@ const UsersPage = () => {
                 <SelectItem value="viewer">Viewer</SelectItem>
               </SelectContent>
             </Select>
-            <Select defaultValue="all-status">
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-45">
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
@@ -357,7 +501,7 @@ const UsersPage = () => {
                     <td className="p-4 align-middle">
                       <div className="flex items-center gap-3">
                         <Avatar>
-                          <AvatarImage src={user.avatar || undefined} />
+                          <AvatarImage src={undefined} />
                           <AvatarFallback className="bg-primary text-primary-foreground">
                             {getInitials(user.name)}
                           </AvatarFallback>
@@ -365,7 +509,7 @@ const UsersPage = () => {
                         <div>
                           <p className="font-medium text-sm">{user.name}</p>
                           <p className="text-xs text-muted-foreground">
-                            Joined {formatDate(user.joinedDate)}
+                            Joined {formatDate(user.createdAt.toDate().toISOString())}
                           </p>
                         </div>
                       </div>
@@ -376,16 +520,18 @@ const UsersPage = () => {
                           <IconMail className="w-3 h-3 text-muted-foreground" />
                           <span className="text-xs">{user.email}</span>
                         </div>
-                        <div className="flex items-center gap-1 text-sm">
-                          <IconPhone className="w-3 h-3 text-muted-foreground" />
-                          <span className="text-xs">{user.phone}</span>
-                        </div>
+                        {user.phone && (
+                          <div className="flex items-center gap-1 text-sm">
+                            <IconPhone className="w-3 h-3 text-muted-foreground" />
+                            <span className="text-xs">{user.phone}</span>
+                          </div>
+                        )}
                       </div>
                     </td>
                     <td className="p-4 align-middle">
-                      <span className="text-sm">{user.tenant}</span>
+                      <span className="text-sm">{user.tenantName}</span>
                       <p className="text-xs text-muted-foreground">
-                        {user.entriesCreated} entries created
+                        {user.tenantId.slice(0, 8)}...
                       </p>
                     </td>
                     <td className="p-4 align-middle">
@@ -396,7 +542,7 @@ const UsersPage = () => {
                     </td>
                     <td className="p-4 align-middle">
                       <div className="text-sm">
-                        {formatDateTime(user.lastLogin)}
+                        {user.lastLogin ? formatDateTime(user.lastLogin.toDate().toISOString()) : 'Never'}
                       </div>
                     </td>
                     <td className="p-4 align-middle">
@@ -408,35 +554,40 @@ const UsersPage = () => {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-48">
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => openEditDialog(user)}>
                             <IconEdit className="w-4 h-4 mr-2" />
                             Edit User
                           </DropdownMenuItem>
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => openEditDialog(user)}>
                             <IconShield className="w-4 h-4 mr-2" />
                             Change Role
                           </DropdownMenuItem>
-                          {user.status === "pending" && (
-                            <DropdownMenuItem>
-                              <IconSend className="w-4 h-4 mr-2" />
-                              Resend Invite
-                            </DropdownMenuItem>
-                          )}
                           <DropdownMenuSeparator />
                           {user.status === "active" && (
-                            <DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => {
+                              setSelectedUser(user);
+                              setEditForm({ role: user.role, status: 'inactive' });
+                              handleUpdateUser();
+                            }}>
                               <IconBan className="w-4 h-4 mr-2" />
                               Deactivate
                             </DropdownMenuItem>
                           )}
                           {user.status === "inactive" && (
-                            <DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => {
+                              setSelectedUser(user);
+                              setEditForm({ role: user.role, status: 'active' });
+                              handleUpdateUser();
+                            }}>
                               <IconCheck className="w-4 h-4 mr-2" />
                               Reactivate
                             </DropdownMenuItem>
                           )}
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem className="text-red-600">
+                          <DropdownMenuItem 
+                            className="text-red-600"
+                            onClick={() => openDeleteDialog(user)}
+                          >
                             <IconTrash className="w-4 h-4 mr-2" />
                             Delete User
                           </DropdownMenuItem>
@@ -452,7 +603,7 @@ const UsersPage = () => {
           {/* Pagination */}
           <div className="flex items-center justify-between mt-4">
             <p className="text-sm text-muted-foreground">
-              Showing {users.length} of {users.length} users
+              Showing {displayUsers.length} of {displayUsers.length} users
             </p>
             <div className="flex gap-2">
               <Button variant="outline" size="sm" disabled>
@@ -578,6 +729,190 @@ const UsersPage = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Invite User Dialog */}
+      <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Invite New User</DialogTitle>
+            <DialogDescription>
+              Send an invitation to add a new user to your organization
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Full Name</Label>
+              <Input
+                id="name"
+                placeholder="John Doe"
+                value={inviteForm.name}
+                onChange={(e) => setInviteForm({ ...inviteForm, name: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="john@example.com"
+                value={inviteForm.email}
+                onChange={(e) => setInviteForm({ ...inviteForm, email: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="phone">Phone (Optional)</Label>
+              <Input
+                id="phone"
+                placeholder="+60123456789"
+                value={inviteForm.phone}
+                onChange={(e) => setInviteForm({ ...inviteForm, phone: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="role">Role</Label>
+              <Select 
+                value={inviteForm.role} 
+                onValueChange={(value: UserRole) => setInviteForm({ ...inviteForm, role: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="admin">Administrator</SelectItem>
+                  <SelectItem value="clerk">Data Entry Clerk</SelectItem>
+                  <SelectItem value="viewer">Viewer</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setInviteDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleInviteUser} disabled={actionLoading}>
+              {actionLoading && <IconLoader2 className="w-4 h-4 mr-2 animate-spin" />}
+              Send Invitation
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit User Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit User</DialogTitle>
+            <DialogDescription>
+              Update user role and status
+            </DialogDescription>
+          </DialogHeader>
+          {selectedUser && (
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label>User</Label>
+                <div className="flex items-center gap-3 p-3 bg-muted rounded-md">
+                  <Avatar>
+                    <AvatarFallback className="bg-primary text-primary-foreground">
+                      {getInitials(selectedUser.name)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="font-medium">{selectedUser.name}</p>
+                    <p className="text-sm text-muted-foreground">{selectedUser.email}</p>
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-role">Role</Label>
+                <Select 
+                  value={editForm.role} 
+                  onValueChange={(value: UserRole) => setEditForm({ ...editForm, role: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="admin">Administrator</SelectItem>
+                    <SelectItem value="clerk">Data Entry Clerk</SelectItem>
+                    <SelectItem value="viewer">Viewer</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-status">Status</Label>
+                <Select 
+                  value={editForm.status} 
+                  onValueChange={(value: UserStatus) => setEditForm({ ...editForm, status: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="inactive">Inactive</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleUpdateUser} disabled={actionLoading}>
+              {actionLoading && <IconLoader2 className="w-4 h-4 mr-2 animate-spin" />}
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete User Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete User</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this user? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          {selectedUser && (
+            <div className="py-4">
+              <div className="flex items-center gap-3 p-3 bg-muted rounded-md">
+                <Avatar>
+                  <AvatarFallback className="bg-primary text-primary-foreground">
+                    {getInitials(selectedUser.name)}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="font-medium">{selectedUser.name}</p>
+                  <p className="text-sm text-muted-foreground">{selectedUser.email}</p>
+                </div>
+              </div>
+              <Alert className="mt-4">
+                <IconAlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  This will permanently delete the user account and remove all access permissions.
+                </AlertDescription>
+              </Alert>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={handleDeleteUser}
+              disabled={actionLoading}
+            >
+              {actionLoading && <IconLoader2 className="w-4 h-4 mr-2 animate-spin" />}
+              Delete User
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

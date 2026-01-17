@@ -55,7 +55,7 @@
      "confidence": 0.94
    }
    ```
-5. **Carbon Calculation**: Apply Malaysia grid emission factor (0.587 kg CO2e/kWh)
+5. **Carbon Calculation**: Apply x`r (0.587 kg CO2e/kWh)
 6. **Storage**: Write to Firestore `/tenants/{id}/entries/{entryId}`
 7. **Analytics**: Batch ETL to BigQuery for benchmarking queries
 8. **Report**: Generate PDF using carbon totals + sector comparisons

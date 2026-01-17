@@ -3,13 +3,8 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import {
-  createUserWithEmailAndPassword,
-  signInWithPopup,
-  GoogleAuthProvider,
-  updateProfile,
-} from 'firebase/auth';
-import { auth, isFirebaseConfigured } from '@/lib/firebase';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -17,24 +12,50 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Mail, Lock, User, Building2, Loader2, AlertCircle, Leaf } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Mail, Lock, User, Building2, Loader2, AlertCircle, Leaf, Hash, MapPin } from 'lucide-react';
 import { 
   IconBrandGoogle, 
   IconBrandLinkedin,
   IconShieldCheck,
   IconCheck
 } from '@tabler/icons-react';
+import type { CompanySector } from '@/types/firestore';
+
+const SECTORS: { value: CompanySector; label: string }[] = [
+  { value: 'Manufacturing', label: 'Manufacturing' },
+  { value: 'Technology', label: 'Technology' },
+  { value: 'Food & Beverage', label: 'Food & Beverage' },
+  { value: 'Logistics', label: 'Logistics' },
+  { value: 'Retail', label: 'Retail' },
+  { value: 'Agriculture', label: 'Agriculture' },
+  { value: 'Construction', label: 'Construction' },
+  { value: 'Healthcare', label: 'Healthcare' },
+  { value: 'Education', label: 'Education' },
+  { value: 'Hospitality', label: 'Hospitality' },
+  { value: 'Other', label: 'Other' },
+];
 
 export default function SignUpPage() {
   const router = useRouter();
   const [formData, setFormData] = useState({
-    name: '',
-    company: '',
-    email: '',
-    password: '',
+    // Company Info
+    companyName: '',
+    uen: '',
+    sector: '' as CompanySector | '',
+    address: '',
+    city: '',
+    state: '',
+    postalCode: '',
+    
+    // Admin User Info
+    adminName: '',
+    adminEmail: '',
+    adminPhone: '',
+    adminPassword: '',
     confirmPassword: ''
   });
-  const [agreeToTerms, setAgreeToTerms] = useState(false);
+  const [pdpaConsent, setPdpaConsent] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -42,37 +63,73 @@ export default function SignUpPage() {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
+  const handleSectorChange = (value: string) => {
+    setFormData((prev) => ({ ...prev, sector: value as CompanySector }));
+  };
+
   const handleEmailSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
-    if (formData.password !== formData.confirmPassword) {
+    // Validation
+    if (!formData.companyName || !formData.uen || !formData.sector || !formData.address ||
+        !formData.adminName || !formData.adminEmail || !formData.adminPassword) {
+      setError('Please fill in all required fields');
+      return;
+    }
+
+    if (formData.adminPassword !== formData.confirmPassword) {
       setError('Passwords do not match');
       return;
     }
 
-    if (!agreeToTerms) {
-      setError('Please agree to the Terms of Service and Privacy Policy');
+    if (formData.adminPassword.length < 6) {
+      setError('Password must be at least 6 characters');
+      return;
+    }
+
+    if (!pdpaConsent) {
+      setError('Please agree to the PDPA and Privacy Policy');
       return;
     }
 
     setLoading(true);
 
     try {
-      if (!auth) {
-        throw new Error('Firebase is not configured. Please set up environment variables.');
-      }
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        formData.email,
-        formData.password
-      );
-
-      // Update profile with display name
-      await updateProfile(userCredential.user, {
-        displayName: formData.name,
+      // Call tenant registration API
+      const response = await fetch('/api/auth/register-tenant', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          companyName: formData.companyName,
+          uen: formData.uen,
+          sector: formData.sector,
+          address: formData.address,
+          city: formData.city,
+          state: formData.state,
+          postalCode: formData.postalCode,
+          adminName: formData.adminName,
+          adminEmail: formData.adminEmail,
+          adminPhone: formData.adminPhone,
+          adminPassword: formData.adminPassword,
+          pdpaConsent: pdpaConsent,
+        }),
       });
 
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Registration failed');
+      }
+
+      // Sign in the user
+      if (!auth) {
+        throw new Error('Firebase is not configured');
+      }
+
+      await signInWithEmailAndPassword(auth, formData.adminEmail, formData.adminPassword);
+
+      // Redirect to onboarding
       router.push('/dashboard/onboarding');
     } catch (err) {
       setError(
@@ -84,25 +141,9 @@ export default function SignUpPage() {
   };
 
   const handleGoogleSignUp = async () => {
-    setError('');
-    setLoading(true);
-
-    try {
-      if (!auth) {
-        throw new Error('Firebase is not configured. Please set up environment variables.');
-      }
-      const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
-      router.push('/dashboard/onboarding');
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'Failed to sign up with Google.'
-      );
-    } finally {
-      setLoading(false);
-    }
+    setError('Google SSO integration coming soon - this will require company UEN verification');
+    setTimeout(() => setError(''), 5000);
   };
-
 
   const handleLinkedInSignUp = async () => {
     setError('LinkedIn SSO integration coming soon');
@@ -189,19 +230,80 @@ export default function SignUpPage() {
             </div>
 
             <form onSubmit={handleEmailSignUp} className="space-y-4">
-              <div className="grid md:grid-cols-2 gap-4">
+              {/* Company Information */}
+              <div className="space-y-4 p-4 rounded-lg bg-slate-800/30 border border-slate-700">
+                <h3 className="text-sm font-semibold text-slate-200">Company Information</h3>
+                
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="companyName" className="text-slate-300">
+                      Company Name *
+                    </Label>
+                    <div className="relative">
+                      <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                      <Input
+                        id="companyName"
+                        name="companyName"
+                        type="text"
+                        placeholder="Syarikat ABC Sdn Bhd"
+                        value={formData.companyName}
+                        onChange={handleChange}
+                        className="pl-10 bg-slate-900/50 border-slate-600 text-white placeholder:text-slate-500 focus:border-emerald-500 focus:ring-emerald-500/20"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="uen" className="text-slate-300">
+                      UEN / ROC Number *
+                    </Label>
+                    <div className="relative">
+                      <Hash className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                      <Input
+                        id="uen"
+                        name="uen"
+                        type="text"
+                        placeholder="ROC123456"
+                        value={formData.uen}
+                        onChange={handleChange}
+                        className="pl-10 bg-slate-900/50 border-slate-600 text-white placeholder:text-slate-500 focus:border-emerald-500 focus:ring-emerald-500/20"
+                        required
+                      />
+                    </div>
+                  </div>
+                </div>
+
                 <div className="space-y-2">
-                  <Label htmlFor="name" className="text-slate-300">
-                    Full Name
+                  <Label htmlFor="sector" className="text-slate-300">
+                    Industry Sector *
+                  </Label>
+                  <Select value={formData.sector} onValueChange={handleSectorChange}>
+                    <SelectTrigger className="bg-slate-900/50 border-slate-600 text-white focus:border-emerald-500 focus:ring-emerald-500/20">
+                      <SelectValue placeholder="Select your industry" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-slate-900 border-slate-700">
+                      {SECTORS.map((sector) => (
+                        <SelectItem key={sector.value} value={sector.value} className="text-white hover:bg-slate-800">
+                          {sector.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="address" className="text-slate-300">
+                    Business Address *
                   </Label>
                   <div className="relative">
-                    <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
                     <Input
-                      id="name"
-                      name="name"
+                      id="address"
+                      name="address"
                       type="text"
-                      placeholder="Ahmad Rahman"
-                      value={formData.name}
+                      placeholder="123 Jalan Example"
+                      value={formData.address}
                       onChange={handleChange}
                       className="pl-10 bg-slate-900/50 border-slate-600 text-white placeholder:text-slate-500 focus:border-emerald-500 focus:ring-emerald-500/20"
                       required
@@ -209,101 +311,163 @@ export default function SignUpPage() {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="company" className="text-slate-300">
-                    Company Name
-                  </Label>
-                  <div className="relative">
-                    <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                <div className="grid md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="city" className="text-slate-300">City</Label>
                     <Input
-                      id="company"
-                      name="company"
+                      id="city"
+                      name="city"
                       type="text"
-                      placeholder="Syarikat ABC Sdn Bhd"
-                      value={formData.company}
+                      placeholder="Kuala Lumpur"
+                      value={formData.city}
                       onChange={handleChange}
-                      className="pl-10 bg-slate-900/50 border-slate-600 text-white placeholder:text-slate-500 focus:border-emerald-500 focus:ring-emerald-500/20"
-                      required
+                      className="bg-slate-900/50 border-slate-600 text-white placeholder:text-slate-500 focus:border-emerald-500 focus:ring-emerald-500/20"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="state" className="text-slate-300">State</Label>
+                    <Input
+                      id="state"
+                      name="state"
+                      type="text"
+                      placeholder="Selangor"
+                      value={formData.state}
+                      onChange={handleChange}
+                      className="bg-slate-900/50 border-slate-600 text-white placeholder:text-slate-500 focus:border-emerald-500 focus:ring-emerald-500/20"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="postalCode" className="text-slate-300">Postcode</Label>
+                    <Input
+                      id="postalCode"
+                      name="postalCode"
+                      type="text"
+                      placeholder="50000"
+                      value={formData.postalCode}
+                      onChange={handleChange}
+                      className="bg-slate-900/50 border-slate-600 text-white placeholder:text-slate-500 focus:border-emerald-500 focus:ring-emerald-500/20"
                     />
                   </div>
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-slate-300">
-                  Work Email
-                </Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    placeholder="you@company.com"
-                    value={formData.email}
-                    onChange={handleChange}
-                    className="pl-10 bg-slate-900/50 border-slate-600 text-white placeholder:text-slate-500 focus:border-emerald-500 focus:ring-emerald-500/20"
-                    required
-                  />
-                </div>
-              </div>
+              {/* Admin User Information */}
+              <div className="space-y-4 p-4 rounded-lg bg-slate-800/30 border border-slate-700">
+                <h3 className="text-sm font-semibold text-slate-200">Admin Account</h3>
+                
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="adminName" className="text-slate-300">
+                      Full Name *
+                    </Label>
+                    <div className="relative">
+                      <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                      <Input
+                        id="adminName"
+                        name="adminName"
+                        type="text"
+                        placeholder="Ahmad Rahman"
+                        value={formData.adminName}
+                        onChange={handleChange}
+                        className="pl-10 bg-slate-900/50 border-slate-600 text-white placeholder:text-slate-500 focus:border-emerald-500 focus:ring-emerald-500/20"
+                        required
+                      />
+                    </div>
+                  </div>
 
-              <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="adminPhone" className="text-slate-300">
+                      Phone Number
+                    </Label>
+                    <Input
+                      id="adminPhone"
+                      name="adminPhone"
+                      type="tel"
+                      placeholder="+60123456789"
+                      value={formData.adminPhone}
+                      onChange={handleChange}
+                      className="bg-slate-900/50 border-slate-600 text-white placeholder:text-slate-500 focus:border-emerald-500 focus:ring-emerald-500/20"
+                    />
+                  </div>
+                </div>
+
                 <div className="space-y-2">
-                  <Label htmlFor="password" className="text-slate-300">
-                    Password
+                  <Label htmlFor="adminEmail" className="text-slate-300">
+                    Work Email *
                   </Label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
                     <Input
-                      id="password"
-                      name="password"
-                      type="password"
-                      placeholder="••••••••"
-                      value={formData.password}
+                      id="adminEmail"
+                      name="adminEmail"
+                      type="email"
+                      placeholder="you@company.com"
+                      value={formData.adminEmail}
                       onChange={handleChange}
                       className="pl-10 bg-slate-900/50 border-slate-600 text-white placeholder:text-slate-500 focus:border-emerald-500 focus:ring-emerald-500/20"
                       required
-                      minLength={8}
                     />
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="confirmPassword" className="text-slate-300">
-                    Confirm Password
-                  </Label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
-                    <Input
-                      id="confirmPassword"
-                      name="confirmPassword"
-                      type="password"
-                      placeholder="••••••••"
-                      value={formData.confirmPassword}
-                      onChange={handleChange}
-                      className="pl-10 bg-slate-900/50 border-slate-600 text-white placeholder:text-slate-500 focus:border-emerald-500 focus:ring-emerald-500/20"
-                      required
-                      minLength={8}
-                    />
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="adminPassword" className="text-slate-300">
+                      Password *
+                    </Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                      <Input
+                        id="adminPassword"
+                        name="adminPassword"
+                        type="password"
+                        placeholder="••••••••"
+                        value={formData.adminPassword}
+                        onChange={handleChange}
+                        className="pl-10 bg-slate-900/50 border-slate-600 text-white placeholder:text-slate-500 focus:border-emerald-500 focus:ring-emerald-500/20"
+                        required
+                        minLength={6}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="confirmPassword" className="text-slate-300">
+                      Confirm Password *
+                    </Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                      <Input
+                        id="confirmPassword"
+                        name="confirmPassword"
+                        type="password"
+                        placeholder="••••••••"
+                        value={formData.confirmPassword}
+                        onChange={handleChange}
+                        className="pl-10 bg-slate-900/50 border-slate-600 text-white placeholder:text-slate-500 focus:border-emerald-500 focus:ring-emerald-500/20"
+                        required
+                        minLength={6}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
 
-              <div className="flex items-start space-x-3">
+              {/* PDPA Consent */}
+              <div className="flex items-start space-x-3 p-4 rounded-lg bg-amber-500/10 border border-amber-500/20">
                 <Checkbox 
-                  id="terms" 
-                  checked={agreeToTerms}
-                  onCheckedChange={(checked) => setAgreeToTerms(checked as boolean)}
+                  id="pdpa" 
+                  checked={pdpaConsent}
+                  onCheckedChange={(checked) => setPdpaConsent(checked as boolean)}
                   className="mt-1"
                 />
-                <label htmlFor="terms" className="text-sm text-slate-400 leading-relaxed">
-                  I agree to the{' '}
-                  <Link href="#" className="text-emerald-400 hover:text-emerald-300">
-                    Terms of Service
+                <label htmlFor="pdpa" className="text-sm text-amber-200 leading-relaxed">
+                  I consent to the collection, use, and disclosure of my personal data in accordance with the{' '}
+                  <Link href="#" className="text-amber-400 hover:text-amber-300 underline">
+                    Personal Data Protection Act (PDPA) 2010
                   </Link>
                   {' '}and{' '}
-                  <Link href="#" className="text-emerald-400 hover:text-emerald-300">
+                  <Link href="#" className="text-amber-400 hover:text-amber-300 underline">
                     Privacy Policy
                   </Link>
                 </label>
@@ -311,7 +475,7 @@ export default function SignUpPage() {
 
               <Button
                 type="submit"
-                disabled={loading || !agreeToTerms}
+                disabled={loading || !pdpaConsent}
                 className="w-full bg-linear-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-medium py-2.5"
               >
                 {loading ? (

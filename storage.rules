@@ -1,0 +1,63 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function getUserTenantId() {
+      return request.auth.token.tenantId;
+    }
+    
+    function belongsToTenant(tenantId) {
+      return getUserTenantId() == tenantId;
+    }
+    
+    // ============================================
+    // BILLS BUCKET
+    // ============================================
+    
+    match /sustainchain-bills/{tenantId}/{fileName} {
+      // Users can read bills from their tenant
+      allow read: if isAuthenticated() && belongsToTenant(tenantId);
+      
+      // Admins and clerks can upload bills
+      allow write: if isAuthenticated() 
+                   && belongsToTenant(tenantId)
+                   && request.auth.token.role in ['admin', 'clerk']
+                   && request.resource.size < 10 * 1024 * 1024  // 10MB limit
+                   && request.resource.contentType.matches('image/.*');
+    }
+    
+    // ============================================
+    // REPORTS BUCKET
+    // ============================================
+    
+    match /sustainchain-reports/{tenantId}/{fileName} {
+      // Users can read reports from their tenant
+      allow read: if isAuthenticated() && belongsToTenant(tenantId);
+      
+      // Only Cloud Functions can write (controlled generation)
+      allow write: if false;
+    }
+    
+    // ============================================
+    // ASSETS BUCKET
+    // ============================================
+    
+    match /sustainchain-assets/logos/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() 
+                   && request.auth.token.role == 'admin'
+                   && request.resource.size < 2 * 1024 * 1024;  // 2MB limit
+    }
+    
+    match /sustainchain-assets/avatars/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() 
+                   && request.resource.size < 1 * 1024 * 1024;  // 1MB limit
+    }
+  }
+}
