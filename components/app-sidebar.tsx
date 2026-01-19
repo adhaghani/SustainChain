@@ -22,6 +22,7 @@ import {
 import { NavMain } from "@/components/nav-main"
 import { NavSecondary } from "@/components/nav-secondary"
 import { NavUser } from "@/components/nav-user"
+import { useAuth } from "@/lib/auth-context"
 import {
   Sidebar,
   SidebarContent,
@@ -35,12 +36,13 @@ import { useLanguage } from "@/lib/language-context"
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { t } = useLanguage();
+  const { userData, signOut } = useAuth();
   
   const data = {
     user: {
-      name: "Ahmad Rahman",
-      email: "ahmad@sustainchain.app",
-      avatar: "/avatars/user.jpg",
+      name: userData?.displayName || "",
+      email: userData?.email || "",
+      avatar: userData?.photoURL || "/avatars/user.jpg",
     },
     navMain: [
       {
@@ -148,7 +150,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser signOut={signOut} user={data.user} />
       </SidebarFooter>
     </Sidebar>
   )

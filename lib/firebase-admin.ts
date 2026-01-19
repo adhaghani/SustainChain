@@ -12,7 +12,7 @@ function initializeFirebaseAdmin(): App {
     return existingApps[0];
   }
 
-  const projectId = process.env.FIREBASE_PROJECT_ID;
+  const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
   const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
   const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n');
 
@@ -34,7 +34,10 @@ function initializeFirebaseAdmin(): App {
 // Initialize the app once
 const app = initializeFirebaseAdmin();
 
-// Export the Firestore instance
+// Export the Firestore instance with settings to ignore undefined values
 export const db: Firestore = getFirestore(app);
+db.settings({
+  ignoreUndefinedProperties: true,
+});
 
 export default app;

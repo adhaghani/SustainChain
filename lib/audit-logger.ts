@@ -53,30 +53,32 @@ export async function createAuditLog(params: CreateAuditLogParams): Promise<void
     new Date(Date.now() + 7 * 365 * 24 * 60 * 60 * 1000)
   );
 
-  const auditLog: AuditLogDocument = {
+  const auditLog: Partial<AuditLogDocument> = {
     id: logRef.id,
     tenantId: params.tenantId,
     timestamp: Timestamp.now(),
     userId: params.userId,
     userName: params.userName,
-    userEmail: params.userEmail,
-    userRole: params.userRole,
     action: params.action,
     resource: params.resource,
-    resourceId: params.resourceId,
     details: params.details,
     ipAddress: params.ipAddress,
     userAgent: params.userAgent,
-    requestId: params.requestId,
     status: params.status,
     severity: params.severity,
-    errorMessage: params.errorMessage,
-    errorCode: params.errorCode,
-    changeLog: params.changeLog,
     retainUntil,
   };
 
-  await logRef.set(auditLog);
+  // Only add optional fields if they are defined
+  if (params.userEmail !== undefined) auditLog.userEmail = params.userEmail;
+  if (params.userRole !== undefined) auditLog.userRole = params.userRole;
+  if (params.resourceId !== undefined) auditLog.resourceId = params.resourceId;
+  if (params.requestId !== undefined) auditLog.requestId = params.requestId;
+  if (params.errorMessage !== undefined) auditLog.errorMessage = params.errorMessage;
+  if (params.errorCode !== undefined) auditLog.errorCode = params.errorCode;
+  if (params.changeLog !== undefined) auditLog.changeLog = params.changeLog;
+
+  await logRef.set(auditLog as AuditLogDocument);
 }
 
 /**

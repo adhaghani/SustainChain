@@ -9,7 +9,7 @@ import { BigQuery } from '@google-cloud/bigquery';
  * can be used, or explicit projectId/credentials can be passed.
  */
 function initializeBigQuery(): BigQuery {
-  const projectId = process.env.GOOGLE_CLOUD_PROJECT_ID || process.env.FIREBASE_PROJECT_ID;
+  const projectId = process.env.GOOGLE_CLOUD_PROJECT_ID || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
 
   if (!projectId) {
     throw new Error('Missing GOOGLE_CLOUD_PROJECT_ID. Please set it in environment variables.');

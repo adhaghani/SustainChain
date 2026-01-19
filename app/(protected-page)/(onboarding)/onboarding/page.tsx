@@ -6,14 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { 
   IconCheck,
   IconArrowRight,
   IconArrowLeft,
   IconBuildingFactory,
-  IconUpload,
   IconSparkles,
   IconRocket
 } from "@tabler/icons-react";
@@ -27,12 +25,11 @@ import {
 
 const OnboardingPage = () => {
   const [currentStep, setCurrentStep] = useState(1);
-  const totalSteps = 3;
+  const totalSteps = 2;
 
   const steps = [
     { number: 1, title: "Company Setup", description: "Tell us about your business" },
     { number: 2, title: "Configure Settings", description: "Set up emission factors" },
-    { number: 3, title: "First Bill Upload", description: "Try AI extraction" },
   ];
 
   const nextStep = () => {
@@ -61,7 +58,7 @@ const OnboardingPage = () => {
           <CardContent className="pt-6">
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                {steps.map((step, index) => (
+                {steps.map((step) => (
                   <div key={step.number} className="flex items-center flex-1">
                     <div className="flex flex-col items-center flex-1">
                       <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${
@@ -77,11 +74,6 @@ const OnboardingPage = () => {
                       </div>
                       <p className="text-xs font-medium mt-2 text-center">{step.title}</p>
                     </div>
-                    {index < steps.length - 1 && (
-                      <div className={`h-1 flex-1 mx-2 ${
-                        currentStep > step.number ? 'bg-green-500' : 'bg-muted'
-                      }`} />
-                    )}
                   </div>
                 ))}
               </div>
@@ -282,94 +274,6 @@ const OnboardingPage = () => {
                 </div>
               </div>
             )}
-
-            {/* Step 3: First Bill Upload */}
-            {currentStep === 3 && (
-              <div className="space-y-6">
-                <div className="flex items-center gap-3 p-4 bg-green-50 dark:bg-green-950 rounded-lg border border-green-200 dark:border-green-900">
-                  <div className="w-12 h-12 rounded-full bg-green-500 flex items-center justify-center">
-                    <IconUpload className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold">Try Our AI Bill Extraction!</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Upload your first utility bill and see Gemini AI in action
-                    </p>
-                  </div>
-                </div>
-
-                <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-12 text-center hover:border-primary/50 transition-colors cursor-pointer">
-                  <div className="flex flex-col items-center gap-4">
-                    <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center">
-                      <IconUpload className="w-10 h-10 text-primary" />
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-semibold mb-2">Upload Your First Bill</h3>
-                      <p className="text-sm text-muted-foreground max-w-md mx-auto">
-                        Choose a TNB electricity bill, SAJ water bill, or fuel receipt. 
-                        Our AI will automatically extract the data in seconds!
-                      </p>
-                    </div>
-                    <Button size="lg">
-                      <IconUpload className="w-5 h-5 mr-2" />
-                      Choose File
-                    </Button>
-                    <p className="text-xs text-muted-foreground">
-                      Supported: JPG, PNG, PDF • Max 10MB
-                    </p>
-                  </div>
-                </div>
-
-                <Separator />
-
-                <div className="space-y-3">
-                  <h4 className="font-semibold text-sm">What happens next?</h4>
-                  <div className="space-y-3">
-                    <div className="flex items-start gap-3">
-                      <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-xs font-bold text-primary-foreground">
-                        1
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium">AI Extraction</p>
-                        <p className="text-xs text-muted-foreground">
-                          Gemini reads your bill and extracts kWh, amount, and dates
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-xs font-bold text-primary-foreground">
-                        2
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium">Carbon Calculation</p>
-                        <p className="text-xs text-muted-foreground">
-                          Automatic CO2e calculation using Malaysia emission factors
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-xs font-bold text-primary-foreground">
-                        3
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium">Dashboard Update</p>
-                        <p className="text-xs text-muted-foreground">
-                          Your carbon footprint dashboard updates in real-time
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="p-4 bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-900 rounded-lg">
-                  <p className="text-sm font-medium mb-1">💡 Pro Tip</p>
-                  <p className="text-xs text-muted-foreground">
-                    You can skip this step and explore the dashboard first. Come back anytime to upload your bills 
-                    from the &quot;Upload&quot; page.
-                  </p>
-                </div>
-              </div>
-            )}
           </CardContent>
         </Card>
 
@@ -385,9 +289,6 @@ const OnboardingPage = () => {
           </Button>
 
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm">
-              Skip Tutorial
-            </Button>
             {currentStep < totalSteps ? (
               <Button onClick={nextStep}>
                 Next

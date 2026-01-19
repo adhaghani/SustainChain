@@ -13,14 +13,18 @@ import { Separator } from '@/components/ui/separator';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Mail, Lock, User, Building2, Loader2, AlertCircle, Leaf, Hash, MapPin } from 'lucide-react';
-import { 
-  IconBrandGoogle, 
-  IconBrandLinkedin,
-  IconShieldCheck,
-  IconCheck
+import { Mail, Lock, User, Building2, Loader2, AlertCircle, Hash, MapPin } from 'lucide-react';
+import {
+  IconBrandGoogle,
 } from '@tabler/icons-react';
 import type { CompanySector } from '@/types/firestore';
+import { cn } from '@/lib/utils';
+import {
+  Field,
+  FieldDescription,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field"
 
 const SECTORS: { value: CompanySector; label: string }[] = [
   { value: 'Manufacturing', label: 'Manufacturing' },
@@ -130,7 +134,7 @@ export default function SignUpPage() {
       await signInWithEmailAndPassword(auth, formData.adminEmail, formData.adminPassword);
 
       // Redirect to onboarding
-      router.push('/dashboard/onboarding');
+      router.push('/onboarding');
     } catch (err) {
       setError(
         err instanceof Error ? err.message : 'Failed to create account. Please try again.'
@@ -151,96 +155,50 @@ export default function SignUpPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0A0A0A] p-4">
-      <div className="w-full max-w-2xl">
-        {/* Logo */}
-        <Link href="/" className="flex items-center justify-center gap-2 mb-8">
-          <div className="w-10 h-10 rounded-lg bg-linear-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
-            <Leaf className="w-6 h-6 text-white" />
-          </div>
-          <span className="font-bold text-2xl tracking-tight text-white">SustainChain</span>
-        </Link>
-
-        <Card className="border-white/10 bg-slate-900/50 backdrop-blur">
+    <div className={cn("flex w-full max-w-sm flex-col gap-6")}>
+      <Card>
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold text-white">Create your account</CardTitle>
-            <CardDescription className="text-slate-400">
-              Join Malaysian SMEs achieving ESG compliance
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {error && (
-              <Alert variant="destructive" className="bg-red-500/10 border-red-500/20">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
+            <CardTitle>Create your account</CardTitle>
+          <CardDescription>
+            Join Malaysian SMEs achieving ESG compliance
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {error && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
 
-            {/* Benefits */}
-            <div className="grid gap-3 p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
-              <h3 className="font-semibold text-emerald-200 text-sm">What you&apos;ll get:</h3>
-              <div className="grid gap-2">
-                {[
-                  'AI-powered bill extraction (90%+ accuracy)',
-                  '14-day free trial with all Premium features',
-                  'Sector benchmarking against 1000+ companies',
-                  'Professional ESG reports for stakeholders'
-                ].map((benefit, index) => (
-                  <div key={index} className="flex items-center gap-2 text-xs text-emerald-200">
-                    <IconCheck className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <span>{benefit}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Social Sign Up Options */}
-            <div className="space-y-3">
-              <Button
+            <Button
                 type="button"
                 variant="outline"
                 onClick={handleGoogleSignUp}
                 disabled={loading}
-                className="w-full border-slate-600 text-slate-300 hover:bg-slate-700/50 hover:text-white"
+                className="w-full"
               >
-                <IconBrandGoogle className="mr-2 h-5 w-5" />
-                Continue with Google
+                <IconBrandGoogle className="mr-2 h-4 w-4" />
+                Sign up with Google
               </Button>
-              
-              <div className="grid grid-cols-2 gap-3">
-
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleLinkedInSignUp}
-                  disabled={loading}
-                  className="border-slate-600 text-slate-300 hover:bg-slate-700/50 hover:text-white"
-                >
-                  <IconBrandLinkedin className="mr-2 h-5 w-5" />
-                  LinkedIn
-                </Button>
-              </div>
-            </div>
 
             <div className="relative">
-              <Separator className="bg-slate-700" />
+              <Separator />
               <div className="absolute inset-0 flex items-center justify-center">
-                <span className="bg-slate-900 px-3 text-xs text-slate-500 uppercase">Or</span>
+                <span className="bg-background px-2 text-muted-foreground text-xs uppercase">Or continue with</span>
               </div>
             </div>
 
-            <form onSubmit={handleEmailSignUp} className="space-y-4">
+            <form onSubmit={handleEmailSignUp} className="grid gap-4">
               {/* Company Information */}
-              <div className="space-y-4 p-4 rounded-lg bg-slate-800/30 border border-slate-700">
-                <h3 className="text-sm font-semibold text-slate-200">Company Information</h3>
+              <div className="grid gap-4">
+                <h3 className="text-sm font-semibold">Company Information</h3>
                 
                 <div className="grid md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="companyName" className="text-slate-300">
-                      Company Name *
-                    </Label>
+                  <div className="grid gap-2">
+                    <Label htmlFor="companyName">Company Name *</Label>
                     <div className="relative">
-                      <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                      <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input
                         id="companyName"
                         name="companyName"
@@ -248,18 +206,16 @@ export default function SignUpPage() {
                         placeholder="Syarikat ABC Sdn Bhd"
                         value={formData.companyName}
                         onChange={handleChange}
-                        className="pl-10 bg-slate-900/50 border-slate-600 text-white placeholder:text-slate-500 focus:border-emerald-500 focus:ring-emerald-500/20"
+                        className="pl-10"
                         required
                       />
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="uen" className="text-slate-300">
-                      UEN / ROC Number *
-                    </Label>
+                  <div className="grid gap-2">
+                    <Label htmlFor="uen">UEN / ROC Number *</Label>
                     <div className="relative">
-                      <Hash className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                      <Hash className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input
                         id="uen"
                         name="uen"
@@ -267,24 +223,22 @@ export default function SignUpPage() {
                         placeholder="ROC123456"
                         value={formData.uen}
                         onChange={handleChange}
-                        className="pl-10 bg-slate-900/50 border-slate-600 text-white placeholder:text-slate-500 focus:border-emerald-500 focus:ring-emerald-500/20"
+                        className="pl-10"
                         required
                       />
                     </div>
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="sector" className="text-slate-300">
-                    Industry Sector *
-                  </Label>
+                <div className="grid gap-2">
+                  <Label htmlFor="sector">Industry Sector *</Label>
                   <Select value={formData.sector} onValueChange={handleSectorChange}>
-                    <SelectTrigger className="bg-slate-900/50 border-slate-600 text-white focus:border-emerald-500 focus:ring-emerald-500/20">
+                    <SelectTrigger>
                       <SelectValue placeholder="Select your industry" />
                     </SelectTrigger>
-                    <SelectContent className="bg-slate-900 border-slate-700">
+                    <SelectContent>
                       {SECTORS.map((sector) => (
-                        <SelectItem key={sector.value} value={sector.value} className="text-white hover:bg-slate-800">
+                        <SelectItem key={sector.value} value={sector.value}>
                           {sector.label}
                         </SelectItem>
                       ))}
@@ -292,12 +246,10 @@ export default function SignUpPage() {
                   </Select>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="address" className="text-slate-300">
-                    Business Address *
-                  </Label>
+                <div className="grid gap-2">
+                  <Label htmlFor="address">Business Address *</Label>
                   <div className="relative">
-                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="address"
                       name="address"
@@ -305,15 +257,15 @@ export default function SignUpPage() {
                       placeholder="123 Jalan Example"
                       value={formData.address}
                       onChange={handleChange}
-                      className="pl-10 bg-slate-900/50 border-slate-600 text-white placeholder:text-slate-500 focus:border-emerald-500 focus:ring-emerald-500/20"
+                      className="pl-10"
                       required
                     />
                   </div>
                 </div>
 
                 <div className="grid md:grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="city" className="text-slate-300">City</Label>
+                  <div className="grid gap-2">
+                    <Label htmlFor="city">City</Label>
                     <Input
                       id="city"
                       name="city"
@@ -321,11 +273,10 @@ export default function SignUpPage() {
                       placeholder="Kuala Lumpur"
                       value={formData.city}
                       onChange={handleChange}
-                      className="bg-slate-900/50 border-slate-600 text-white placeholder:text-slate-500 focus:border-emerald-500 focus:ring-emerald-500/20"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="state" className="text-slate-300">State</Label>
+                  <div className="grid gap-2">
+                    <Label htmlFor="state">State</Label>
                     <Input
                       id="state"
                       name="state"
@@ -333,11 +284,10 @@ export default function SignUpPage() {
                       placeholder="Selangor"
                       value={formData.state}
                       onChange={handleChange}
-                      className="bg-slate-900/50 border-slate-600 text-white placeholder:text-slate-500 focus:border-emerald-500 focus:ring-emerald-500/20"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="postalCode" className="text-slate-300">Postcode</Label>
+                  <div className="grid gap-2">
+                    <Label htmlFor="postalCode">Postcode</Label>
                     <Input
                       id="postalCode"
                       name="postalCode"
@@ -345,23 +295,20 @@ export default function SignUpPage() {
                       placeholder="50000"
                       value={formData.postalCode}
                       onChange={handleChange}
-                      className="bg-slate-900/50 border-slate-600 text-white placeholder:text-slate-500 focus:border-emerald-500 focus:ring-emerald-500/20"
                     />
                   </div>
                 </div>
               </div>
 
               {/* Admin User Information */}
-              <div className="space-y-4 p-4 rounded-lg bg-slate-800/30 border border-slate-700">
-                <h3 className="text-sm font-semibold text-slate-200">Admin Account</h3>
+              <div className="grid gap-4">
+                <h3 className="text-sm font-semibold">Admin Account</h3>
                 
                 <div className="grid md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="adminName" className="text-slate-300">
-                      Full Name *
-                    </Label>
+                  <div className="grid gap-2">
+                    <Label htmlFor="adminName">Full Name *</Label>
                     <div className="relative">
-                      <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                      <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input
                         id="adminName"
                         name="adminName"
@@ -369,16 +316,14 @@ export default function SignUpPage() {
                         placeholder="Ahmad Rahman"
                         value={formData.adminName}
                         onChange={handleChange}
-                        className="pl-10 bg-slate-900/50 border-slate-600 text-white placeholder:text-slate-500 focus:border-emerald-500 focus:ring-emerald-500/20"
+                        className="pl-10"
                         required
                       />
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="adminPhone" className="text-slate-300">
-                      Phone Number
-                    </Label>
+                  <div className="grid gap-2">
+                    <Label htmlFor="adminPhone">Phone Number</Label>
                     <Input
                       id="adminPhone"
                       name="adminPhone"
@@ -386,17 +331,14 @@ export default function SignUpPage() {
                       placeholder="+60123456789"
                       value={formData.adminPhone}
                       onChange={handleChange}
-                      className="bg-slate-900/50 border-slate-600 text-white placeholder:text-slate-500 focus:border-emerald-500 focus:ring-emerald-500/20"
                     />
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="adminEmail" className="text-slate-300">
-                    Work Email *
-                  </Label>
+                <div className="grid gap-2">
+                  <Label htmlFor="adminEmail">Work Email *</Label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="adminEmail"
                       name="adminEmail"
@@ -404,19 +346,17 @@ export default function SignUpPage() {
                       placeholder="you@company.com"
                       value={formData.adminEmail}
                       onChange={handleChange}
-                      className="pl-10 bg-slate-900/50 border-slate-600 text-white placeholder:text-slate-500 focus:border-emerald-500 focus:ring-emerald-500/20"
+                      className="pl-10"
                       required
                     />
                   </div>
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="adminPassword" className="text-slate-300">
-                      Password *
-                    </Label>
+                  <div className="grid gap-2">
+                    <Label htmlFor="adminPassword">Password *</Label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input
                         id="adminPassword"
                         name="adminPassword"
@@ -424,19 +364,17 @@ export default function SignUpPage() {
                         placeholder="••••••••"
                         value={formData.adminPassword}
                         onChange={handleChange}
-                        className="pl-10 bg-slate-900/50 border-slate-600 text-white placeholder:text-slate-500 focus:border-emerald-500 focus:ring-emerald-500/20"
+                        className="pl-10"
                         required
                         minLength={6}
                       />
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="confirmPassword" className="text-slate-300">
-                      Confirm Password *
-                    </Label>
+                  <div className="grid gap-2">
+                    <Label htmlFor="confirmPassword">Confirm Password *</Label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input
                         id="confirmPassword"
                         name="confirmPassword"
@@ -444,7 +382,7 @@ export default function SignUpPage() {
                         placeholder="••••••••"
                         value={formData.confirmPassword}
                         onChange={handleChange}
-                        className="pl-10 bg-slate-900/50 border-slate-600 text-white placeholder:text-slate-500 focus:border-emerald-500 focus:ring-emerald-500/20"
+                        className="pl-10"
                         required
                         minLength={6}
                       />
@@ -454,20 +392,20 @@ export default function SignUpPage() {
               </div>
 
               {/* PDPA Consent */}
-              <div className="flex items-start space-x-3 p-4 rounded-lg bg-amber-500/10 border border-amber-500/20">
+              <div className="flex items-start space-x-2">
                 <Checkbox 
                   id="pdpa" 
                   checked={pdpaConsent}
                   onCheckedChange={(checked) => setPdpaConsent(checked as boolean)}
                   className="mt-1"
                 />
-                <label htmlFor="pdpa" className="text-sm text-amber-200 leading-relaxed">
-                  I consent to the collection, use, and disclosure of my personal data in accordance with the{' '}
-                  <Link href="#" className="text-amber-400 hover:text-amber-300 underline">
-                    Personal Data Protection Act (PDPA) 2010
+                <label htmlFor="pdpa" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                  I agree to the{' '}
+                  <Link href="#" className="underline underline-offset-4 hover:text-primary">
+                    Terms of Service
                   </Link>
                   {' '}and{' '}
-                  <Link href="#" className="text-amber-400 hover:text-amber-300 underline">
+                  <Link href="#" className="underline underline-offset-4 hover:text-primary">
                     Privacy Policy
                   </Link>
                 </label>
@@ -476,7 +414,7 @@ export default function SignUpPage() {
               <Button
                 type="submit"
                 disabled={loading || !pdpaConsent}
-                className="w-full bg-linear-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-medium py-2.5"
+                className="w-full"
               >
                 {loading ? (
                   <>
@@ -489,29 +427,18 @@ export default function SignUpPage() {
               </Button>
             </form>
 
-            <div className="flex items-center gap-2 p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
-              <IconShieldCheck className="w-5 h-5 text-blue-400 shrink-0" />
-              <p className="text-xs text-blue-200">
-                14-day free trial • No credit card required • Cancel anytime
-              </p>
-            </div>
-
-            <p className="text-center text-sm text-slate-400">
+            <p className="text-center text-sm text-muted-foreground">
               Already have an account?{' '}
               <Link
                 href="/sign-in"
-                className="text-emerald-400 hover:text-emerald-300 font-medium"
+                className="underline underline-offset-4 hover:text-primary"
               >
                 Sign in
               </Link>
             </p>
           </CardContent>
         </Card>
-
-        <p className="text-center text-xs text-slate-500 mt-6">
-          Protected by PDPA • Data encrypted with AES-256 • ISO 27001 certified
-        </p>
-      </div>
+      
     </div>
   );
 }

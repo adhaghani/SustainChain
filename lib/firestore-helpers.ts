@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Firestore Helper Functions
  * CRUD operations for common database operations
@@ -25,7 +26,7 @@ export async function createUserDocument(
   userId: string,
   data: CreateUserData
 ): Promise<UserDocument> {
-  const userDoc: UserDocument = {
+  const userDoc: Partial<UserDocument> = {
     id: userId,
     email: data.email,
     name: data.name,
@@ -44,11 +45,15 @@ export async function createUserDocument(
     createdAt: Timestamp.now(),
     updatedAt: Timestamp.now(),
     pdpaConsentGiven: data.pdpaConsentGiven,
-    pdpaConsentDate: data.pdpaConsentGiven ? Timestamp.now() : undefined,
   };
 
-  await db.collection('users').doc(userId).set(userDoc);
-  return userDoc;
+  // Only add pdpaConsentDate if consent was given
+  if (data.pdpaConsentGiven) {
+    userDoc.pdpaConsentDate = Timestamp.now();
+  }
+
+  await db.collection('users').doc(userId).set(userDoc as UserDocument);
+  return userDoc as UserDocument;
 }
 
 /**
@@ -83,7 +88,7 @@ export async function getTenantUsers(tenantId: string): Promise<UserDocument[]> 
     .orderBy('createdAt', 'desc')
     .get();
 
-  return snapshot.docs.map((doc) => doc.data() as UserDocument);
+  return snapshot.docs.map((doc: any ) => doc.data() as UserDocument);
 }
 
 /**
@@ -201,6 +206,34 @@ export async function updateTenantActivity(tenantId: string): Promise<void> {
   });
 }
 
+/** 
+ * Get audit logs for a tenant
+ */
+
+export async function getTenantAuditLogs(tenantId: string): Promise<any[]> {
+  const snapshot = await db
+    .collection('auditLogs')
+    .where('tenantId', '==', tenantId)
+    .get();
+
+  return snapshot.docs.map((doc: any) => doc.data());
+}
+
+/** 
+ * Get all entries for a tenant
+ */
+
+export async function getTenantEntries(tenantId: string): Promise<any[]> {
+  const snapshot = await db
+    .collection('entries')
+    .where('tenantId', '==', tenantId)
+    .get();
+
+  return snapshot.docs.map((doc: any) => doc.data());
+}
+
+
+
 // ============================================
 // COMBINED OPERATIONS
 // ============================================
@@ -229,6 +262,113 @@ export async function createTenantWithAdmin(
 
   return { tenant, admin };
 }
+
+// ============================================
+// SYSTEM ADMIN OPERATION
+// ============================================
+
+
+/** 
+ * UpdateApiLimits
+ */
+export async function updateApiLimits(
+  rateLimits?: {
+    billAnalysis?: { 
+      requestPerDay?: number;
+      requestPerHour?: number;
+      requestPerMinute?: number;
+    };
+    dashboard?: {
+      requestPerMinute?: number;
+    };
+    reportGeneration?: {
+      requestPerHour?: number;
+      requestPerMinute?: number;
+    };
+  }
+): Promise<void> {
+  await db.collection('system_config').doc('api_limits').update({
+    lastUpdated: Timestamp.now(),
+    rateLimits: rateLimits,
+  });
+} 
+
+/** 
+ * update system Quota
+ */
+
+export async function updateSystemQuota(
+  
+  newQuota: {
+    enterprise?: {
+      maxBillUploads?: number;
+      maxReports?: number;
+      maxStorageGB?: number;
+      maxUsers?: number;
+    };
+    premium?: {
+      maxBillUploads?: number;
+      maxReports?: number;
+      maxStorageGB?: number;
+      maxUsers?: number;
+    };
+    standard?: {
+      maxBillUploads?: number;
+      maxReports?: number;
+      maxStorageGB?: number;
+      maxUsers?: number;
+    };
+    trial?: {
+      maxBillUploads?: number;
+      maxReports?: number;
+      maxStorageGB?: number;
+      maxUsers?: number;
+    };
+  }
+): Promise<void> {
+  await db.collection('system_config').doc('api_limits').update({
+    lastUpdated: Timestamp.now(),
+    quotas: newQuota,
+  });
+}
+
+export async function updateEmissionFactors(
+  ValidUntil: string,
+  version: string,
+  source: string,
+  newEmissionFactors?: {
+    electricity?: {
+      default?: number;
+      peninsular?: number;
+      sabah?: number;
+      sarawak?: number;
+    };
+    water?: {
+      default?: number;
+      desalination?: number;
+      treatment?: number;
+    };
+    fuel?: {
+      default?: number;
+      diesel_b10?: number;
+      diesel_b20?: number;
+      lng?: number;
+      petrol_ron95?: number;
+      petrol_ron97?: number;
+    }
+  },
+
+
+) : Promise<void> {
+  await db.collection('system_config').doc('emission_factors').update({
+    lastUpdated: Timestamp.now(),
+    factors: newEmissionFactors,
+    validUntil: ValidUntil,
+    version: version,
+    source: source,
+  });
+}
+
 
 // ============================================
 // VALIDATION HELPERS
