@@ -3,6 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { auth } from '@/lib/firebase';
+import { firestoreTimestampToDate, type FirestoreTimestamp } from '@/lib/utils';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -316,9 +317,10 @@ const UsersPage = () => {
     }
   };
 
-  const formatDateTime = (dateString: string | null) => {
-    if (!dateString) return "Never";
-    return new Date(dateString).toLocaleString('en-MY', {
+  const formatDateTime = (timestamp: FirestoreTimestamp | null) => {
+    if (!timestamp) return "Never";
+    const date = firestoreTimestampToDate(timestamp);
+    return date.toLocaleString('en-MY', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -327,8 +329,9 @@ const UsersPage = () => {
     });
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-MY', {
+  const formatDate = (timestamp: FirestoreTimestamp) => {
+    const date = firestoreTimestampToDate(timestamp);
+    return date.toLocaleDateString('en-MY', {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
@@ -509,7 +512,7 @@ const UsersPage = () => {
                         <div>
                           <p className="font-medium text-sm">{user.name}</p>
                           <p className="text-xs text-muted-foreground">
-                            Joined {formatDate(user.createdAt.toDate().toISOString())}
+                            Joined {formatDate(user.createdAt as unknown as FirestoreTimestamp)}
                           </p>
                         </div>
                       </div>
@@ -542,7 +545,7 @@ const UsersPage = () => {
                     </td>
                     <td className="p-4 align-middle">
                       <div className="text-sm">
-                        {user.lastLogin ? formatDateTime(user.lastLogin.toDate().toISOString()) : 'Never'}
+                        {user.lastLogin ? formatDateTime(user.lastLogin as unknown as FirestoreTimestamp) : 'Never'}
                       </div>
                     </td>
                     <td className="p-4 align-middle">

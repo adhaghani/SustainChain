@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth, isFirebaseConfigured } from '@/lib/firebase';
 import { AuthProvider } from '@/lib/auth-context';
+import { Spinner } from '@/components/ui/spinner';
 
 interface ProtectedLayoutProps {
   children: React.ReactNode;
@@ -33,10 +34,10 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
     return () => unsubscribe();
   }, [router]);
 
-  // Only render children when authenticated
-  if (!isAuthenticated) {
-    return null;
+  if(!isAuthenticated){
+    return <div className='flex items-center justify-center h-screen'><Spinner /></div>;
   }
+
 
   return (
     <AuthProvider>
