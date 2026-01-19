@@ -87,7 +87,7 @@ Important:
       model: process.env.GEMINI_MODEL || "gemini-2.5-flash",
       contents: [
         {
-          role: "user",
+          role: "admin",
           parts: [
             { text: prompt },
             {

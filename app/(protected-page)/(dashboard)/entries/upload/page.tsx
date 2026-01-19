@@ -1,3 +1,7 @@
+'use client';
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -5,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import BillUploader from "@/components/bill/bill-uploader";
 import { 
   IconUpload, 
   IconCamera,
@@ -31,6 +36,14 @@ import {
 } from "@/components/ui/select";
 
 const UploadPage = () => {
+  const router = useRouter();
+  const [recentEntryId, setRecentEntryId] = useState<string | null>(null);
+
+  const handleEntryCreated = (entryId: string) => {
+    setRecentEntryId(entryId);
+    // Optionally redirect to entries page or show notification
+  };
+
   // Mock upload state - will be replaced with real state management
   const recentUploads = [
     {
@@ -108,9 +121,22 @@ const UploadPage = () => {
             Upload utility bills for AI-powered data extraction and carbon calculation
           </p>
         </div>
+        <Button variant="outline" onClick={() => router.push('/entries')}>
+          View All Entries
+        </Button>
       </div>
 
-      {/* Upload Zone */}
+      {/* Success Alert for Recent Entry */}
+      {recentEntryId && (
+        <Alert className="bg-green-50 dark:bg-green-500/10 border-green-200 dark:border-green-500/20">
+          <IconCheck className="h-4 w-4 text-green-600" />
+          <AlertDescription className="text-green-800 dark:text-green-200">
+            Entry saved successfully! <a href={`/entries`} className="underline font-medium">View in entries list</a>
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Upload Zone - Using Real BillUploader Component */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -122,45 +148,8 @@ const UploadPage = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Drag and Drop Area */}
-          <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-12 text-center hover:border-primary/50 transition-colors cursor-pointer">
-            <div className="flex flex-col items-center gap-4">
-              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-                <IconUpload className="w-8 h-8 text-primary" />
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold mb-1">Drop your bills here</h3>
-                <p className="text-sm text-muted-foreground">
-                  or click to browse from your device
-                </p>
-              </div>
-              <div className="flex gap-2">
-                <Button>
-                  <IconUpload className="w-4 h-4 mr-2" />
-                  Choose Files
-                </Button>
-                <Button variant="outline">
-                  <IconCamera className="w-4 h-4 mr-2" />
-                  Take Photo
-                </Button>
-              </div>
-              <div className="flex gap-3 text-xs text-muted-foreground mt-2">
-                <span className="flex items-center gap-1">
-                  <IconFileTypeJpg className="w-4 h-4" />
-                  JPG
-                </span>
-                <span className="flex items-center gap-1">
-                  <IconFileTypeJpg className="w-4 h-4" />
-                  PNG
-                </span>
-                <span className="flex items-center gap-1">
-                  <IconFileTypePdf className="w-4 h-4" />
-                  PDF
-                </span>
-                <span>• Max 10MB per file</span>
-              </div>
-            </div>
-          </div>
+          {/* Real Bill Uploader Component */}
+          <BillUploader onEntryCreated={handleEntryCreated} />
 
           {/* Info Alert */}
           <Alert>
@@ -181,7 +170,7 @@ const UploadPage = () => {
               <Badge variant="secondary">Petron (Fuel)</Badge>
               <Badge variant="secondary">Shell (Fuel)</Badge>
               <Badge variant="secondary">Petronas (Fuel)</Badge>
-              <Badge variant="secondary">BHP (Electricity - Sarawak)</Badge>
+              <Badge variant="secondary">SEB (Electricity - Sarawak)</Badge>
               <Badge variant="secondary">SESB (Electricity - Sabah)</Badge>
             </div>
           </div>

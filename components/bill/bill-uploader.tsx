@@ -1,16 +1,26 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { Upload, FileText, Loader2, CheckCircle, XCircle } from 'lucide-react';
+import { Upload, FileText, Loader2, CheckCircle, XCircle, ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { uploadBillImage, validateBillFile } from '@/lib/storage-helpers';
+import { auth } from '@/lib/firebase';
+import EntryReviewForm, { type ExtractedBillData } from './entry-review-form';
 
-type UploadState = 'idle' | 'dragover' | 'uploading' | 'analyzing' | 'success' | 'error';
+type UploadState = 'idle' | 'dragover' | 'uploading' | 'analyzing' | 'review' | 'success' | 'error';
 
-export default function BillUploader() {
+interface BillUploaderProps {
+  onEntryCreated?: (entryId: string) => void;
+}
+
+export default function BillUploader({ onEntryCreated }: BillUploaderProps) {
   const [state, setState] = useState<UploadState>('idle');
   const [fileName, setFileName] = useState<string>('');
   const [error, setError] = useState<string>('');
+  const [extractedData, setExtractedData] = useState<ExtractedBillData | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [currentFile, setCurrentFile] = useState<File | null>(null);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -38,40 +48,131 @@ export default function BillUploader() {
   }, []);
 
   const handleFile = async (file: File) => {
-    // Validate file type
-    const validTypes = ['application/pdf', 'image/png', 'image/jpeg', 'image/jpg'];
-    if (!validTypes.includes(file.type)) {
-      setError('Please upload a PDF or image file (PNG, JPG)');
+    // Validate file
+    const validation = validateBillFile(file);
+    if (!validation.valid) {
+      setError(validation.error || 'Invalid file');
       setState('error');
       return;
     }
 
-    // Validate file size (max 10MB)
-    if (file.size > 10 * 1024 * 1024) {
-      setError('File size must be less than 10MB');
+    // Check authentication
+    const currentUser = auth?.currentUser;
+    if (!currentUser) {
+      setError('Please sign in to upload bills');
+      setState('error');
+      return;
+    }
+
+    // Get tenant ID from token claims
+    const tokenResult = await currentUser.getIdTokenResult();
+    const tenantId = tokenResult.claims.tenantId as string;
+    
+    if (!tenantId) {
+      setError('No tenant associated with your account');
       setState('error');
       return;
     }
 
     setFileName(file.name);
+    setCurrentFile(file);
     setState('uploading');
 
-    // Simulate upload delay
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    // Create image preview for non-PDF files
+    if (file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
 
-    setState('analyzing');
+    try {
+      // Step 1: Upload to Firebase Storage
+      const uploadResult = await uploadBillImage(file, tenantId);
+      
+      if (!uploadResult.success) {
+        throw new Error(uploadResult.error || 'Failed to upload image');
+      }
 
-    // Simulate AI analysis delay
-    await new Promise((resolve) => setTimeout(resolve, 3000));
+      setState('analyzing');
 
+      // Step 2: Analyze with Gemini
+      const formData = new FormData();
+      formData.append('image', file);
+      formData.append('tenantId', tenantId);
+      formData.append('imageUrl', uploadResult.url || '');
+
+      const response = await fetch('/api/analyze', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to analyze bill');
+      }
+
+      // Step 3: Show review form
+      setExtractedData({
+        ...data.data,
+        billImageUrl: uploadResult.url,
+        billImageStoragePath: uploadResult.storagePath,
+      });
+      setState('review');
+
+    } catch (err) {
+      console.error('Error processing bill:', err);
+      setError(err instanceof Error ? err.message : 'Failed to process bill');
+      setState('error');
+    }
+  };
+
+  const handleSave = (entryId: string) => {
     setState('success');
+    onEntryCreated?.(entryId);
+  };
+
+  const handleReanalyze = () => {
+    if (currentFile) {
+      handleFile(currentFile);
+    }
   };
 
   const resetUploader = () => {
     setState('idle');
     setFileName('');
     setError('');
+    setExtractedData(null);
+    setImagePreview(null);
+    setCurrentFile(null);
   };
+
+  // Review state - show the form
+  if (state === 'review' && extractedData) {
+    return (
+      <div className="w-full space-y-4">
+        {imagePreview && (
+          <div className="flex justify-center">
+            <div className="relative w-48 h-48 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700">
+              <img 
+                src={imagePreview} 
+                alt="Bill preview" 
+                className="w-full h-full object-cover"
+              />
+            </div>
+          </div>
+        )}
+        <EntryReviewForm
+          extractedData={extractedData}
+          onSave={handleSave}
+          onReanalyze={handleReanalyze}
+          onCancel={resetUploader}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="w-full">
@@ -90,10 +191,10 @@ export default function BillUploader() {
             <CheckCircle className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
           </div>
           <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-1">
-            Analysis Complete!
+            Entry Saved Successfully!
           </h3>
           <p className="text-slate-600 dark:text-slate-400 mb-4">
-            Your bill &quot;{fileName}&quot; has been processed successfully.
+            Your bill &quot;{fileName}&quot; has been processed and saved.
           </p>
           <Button onClick={resetUploader} variant="outline">
             Upload Another Bill
@@ -108,11 +209,19 @@ export default function BillUploader() {
             <Loader2 className="w-8 h-8 text-emerald-600 dark:text-emerald-400 animate-spin" />
           </div>
           <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-1">
-            Gemini AI is analyzing your Malaysian utility bill...
+            Gemini AI is analyzing your bill...
           </h3>
           <p className="text-slate-600 dark:text-slate-400">
-            Extracting energy usage, calculating CO2 emissions, and generating ESG insights.
+            Extracting energy usage, calculating CO2 emissions, and generating insights.
           </p>
+          {imagePreview && (
+            <div className="mt-4 flex justify-center">
+              <div className="relative w-32 h-32 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 opacity-75">
+                <img src={imagePreview} alt="Bill preview" className="w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-emerald-500/20 animate-pulse" />
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -143,7 +252,7 @@ export default function BillUploader() {
         >
           <input
             type="file"
-            accept=".pdf,.png,.jpg,.jpeg"
+            accept=".pdf,.png,.jpg,.jpeg,.heic"
             onChange={handleFileInput}
             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
           />
@@ -177,7 +286,7 @@ export default function BillUploader() {
                 )}
               </p>
               <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                TNB, Sarawak Energy, SESB bills • PDF or images up to 10MB
+                TNB, SAJ, IWK, SESB, SEB bills • PDF or images up to 10MB
               </p>
             </div>
 
@@ -185,6 +294,7 @@ export default function BillUploader() {
               <span className="px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded">PDF</span>
               <span className="px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded">PNG</span>
               <span className="px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded">JPG</span>
+              <span className="px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded">HEIC</span>
             </div>
           </div>
         </div>

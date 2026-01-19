@@ -2,6 +2,7 @@
 
 import { initializeApp, getApps, getApp, type FirebaseApp } from 'firebase/app';
 import { getAuth, type Auth } from 'firebase/auth';
+import { getStorage, type FirebaseStorage } from 'firebase/storage';
 
 /**
  * Firebase Client SDK Configuration
@@ -22,11 +23,14 @@ const isFirebaseConfigured = Boolean(firebaseConfig.apiKey);
 // Initialize Firebase (singleton pattern) - only if configured
 let app: FirebaseApp | null = null;
 let auth: Auth | null = null;
+let storage: FirebaseStorage | null = null;
 
 if (isFirebaseConfigured) {
   app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
   auth = getAuth(app);
+  storage = getStorage(app);
 }
 
-export { auth, app, isFirebaseConfigured };
+export { auth, app, storage, isFirebaseConfigured };
 export default app;
+

@@ -127,7 +127,7 @@
 
 ### Performance Optimization
 - [ ] Implement Next.js ISR for dashboard (revalidate every 60s)
-- [ ] Add Firestore indexes for all queries
+- [x] Add Firestore indexes for all queries
 - [ ] Compress images with Next.js Image component
 - [ ] Optimize bundle size and Core Web Vitals
 
@@ -162,7 +162,7 @@
 
 | Week | Focus Area | Status | Completion |
 |------|------------|--------|------------|
-| 1 | Foundation & Auth | � Nearly Complete | 90% |
+| 1 | Foundation & Auth | ✅ Nearly Complete | 90% |
 | 2 | Bill Ingestion | ⚪ Not Started | 0% |
 | 3 | Dashboard & Carbon Calc | ⚪ Not Started | 0% |
 | 4 | BigQuery Benchmarking | ⚪ Not Started | 0% |
