@@ -131,7 +131,10 @@ export default function SignUpPage() {
         throw new Error('Firebase is not configured');
       }
 
-      await signInWithEmailAndPassword(auth, formData.adminEmail, formData.adminPassword);
+      const userCredential = await signInWithEmailAndPassword(auth, formData.adminEmail, formData.adminPassword);
+      
+      // Force token refresh to ensure custom claims are loaded
+      await userCredential.user.getIdToken(true);
 
       // Redirect to onboarding
       router.push('/onboarding');

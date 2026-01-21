@@ -8,18 +8,16 @@ import {
   signInWithPopup,
   GoogleAuthProvider,
 } from 'firebase/auth';
-import { auth, isFirebaseConfigured } from '@/lib/firebase';
+import { auth } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Separator } from '@/components/ui/separator';
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Mail, Lock, Loader2, AlertCircle, Leaf } from 'lucide-react';
+import { Loader2, AlertCircle } from 'lucide-react';
 import { 
   IconBrandGoogle, 
-  IconBrandLinkedin,
-  IconShieldCheck 
 } from '@tabler/icons-react';
 import {
   Field,
@@ -48,7 +46,28 @@ export default function LoginForm(){
       if (!auth) {
         throw new Error('Firebase is not configured. Please set up environment variables.');
       }
-      await signInWithEmailAndPassword(auth, email, password);
+      
+      // Step 1: Sign in with Firebase
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      
+      // Step 2: Get ID token and call backend to set custom claims
+      const idToken = await userCredential.user.getIdToken();
+      
+      const response = await fetch('/api/auth/sign-in', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idToken }),
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to complete sign-in');
+      }
+      
+      // Step 3: Force token refresh to get new custom claims
+      await userCredential.user.getIdToken(true);
+      
       router.push('/dashboard');
     } catch (err) {
       setError(
@@ -71,8 +90,28 @@ export default function LoginForm(){
       if (!auth) {
         throw new Error('Firebase is not configured. Please set up environment variables.');
       }
+      
       const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
+      const userCredential = await signInWithPopup(auth, provider);
+      
+      // Get ID token and call backend to set custom claims
+      const idToken = await userCredential.user.getIdToken();
+      
+      const response = await fetch('/api/auth/sign-in', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idToken }),
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to complete sign-in');
+      }
+      
+      // Force token refresh to get new custom claims
+      await userCredential.user.getIdToken(true);
+      
       router.push('/dashboard');
     } catch (err) {
       setError(

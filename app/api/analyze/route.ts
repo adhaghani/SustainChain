@@ -25,7 +25,7 @@ export interface BillExtractionResult {
   rawResponse?: string;
 }
 
-const EXTRACTION_PROMPT = `You are an expert at reading Malaysian utility bills. Analyze this utility bill image and extract the following information in JSON format:
+const EXTRACTION_PROMPT = `You are an expert at reading Malaysian utility bills. Analyze this utility bill (image or PDF) and extract the following information in JSON format:
 
 {
   "utilityType": "electricity" | "water" | "fuel" | "other",
@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get form data with image
+    // Get form data with image/PDF
     const formData = await request.formData();
     const imageFile = formData.get('image') as File | null;
     const tenantId = formData.get('tenantId') as string | null;
@@ -71,9 +71,20 @@ export async function POST(request: NextRequest) {
 
     if (!imageUrl && !imageFile) {
       return NextResponse.json(
-        { error: 'No image provided. Send either imageUrl or image file.' },
+        { error: 'No file provided. Send either imageUrl or image/PDF file.' },
         { status: 400 }
       );
+    }
+    
+    // Validate file type
+    if (imageFile) {
+      const supportedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp', 'application/pdf'];
+      if (!supportedTypes.includes(imageFile.type)) {
+        return NextResponse.json(
+          { error: `Unsupported file type: ${imageFile.type}. Supported types: JPEG, PNG, WEBP, PDF` },
+          { status: 400 }
+        );
+      }
     }
 
     if (!tenantId) {
@@ -83,14 +94,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Prepare image for Gemini
-    let imagePart: { inlineData: { data: string; mimeType: string } } | { fileUri: string; mimeType: string };
+    // Prepare file for Gemini (supports images and PDFs)
+    let filePart: { inlineData: { data: string; mimeType: string } } | { fileUri: string; mimeType: string };
 
     if (imageFile) {
-      // Convert file to base64
+      // Convert file to base64 (works for both images and PDFs)
       const arrayBuffer = await imageFile.arrayBuffer();
       const base64 = Buffer.from(arrayBuffer).toString('base64');
-      imagePart = {
+      
+      console.log(`📄 Processing file: ${imageFile.name} (${imageFile.type})`);
+      
+      filePart = {
         inlineData: {
           data: base64,
           mimeType: imageFile.type,
@@ -102,7 +116,10 @@ export async function POST(request: NextRequest) {
       const arrayBuffer = await response.arrayBuffer();
       const base64 = Buffer.from(arrayBuffer).toString('base64');
       const mimeType = response.headers.get('content-type') || 'image/jpeg';
-      imagePart = {
+      
+      console.log(`📄 Processing URL: ${imageUrl} (${mimeType})`);
+      
+      filePart = {
         inlineData: {
           data: base64,
           mimeType,
@@ -110,26 +127,28 @@ export async function POST(request: NextRequest) {
       };
     } else {
       return NextResponse.json(
-        { error: 'Invalid image input' },
+        { error: 'Invalid file input' },
         { status: 400 }
       );
     }
 
-    // Call Gemini Vision API
+    // Call Gemini Vision API (supports both images and PDFs)
+    console.log('🤖 Calling Gemini API for bill analysis...');
+    
     const model = genAI.models.generateContent({
-      model: 'gemini-1.5-flash',
+      model: 'gemini-2.5-flash',
       contents: [
         {
           role: 'user',
           parts: [
             { text: EXTRACTION_PROMPT },
-            imagePart,
+            filePart,
           ],
         },
       ],
       config: {
         temperature: 0.1, // Low temperature for factual extraction
-        maxOutputTokens: 1024,
+        maxOutputTokens: 2048,
       },
     });
 

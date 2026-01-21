@@ -67,9 +67,25 @@ export default function BillUploader({ onEntryCreated }: BillUploaderProps) {
     // Get tenant ID from token claims
     const tokenResult = await currentUser.getIdTokenResult();
     const tenantId = tokenResult.claims.tenantId as string;
+    const role = tokenResult.claims.role as string;
+    
+    // Debug logging
+    console.log('🔍 Auth Debug:', {
+      uid: currentUser.uid,
+      email: currentUser.email,
+      tenantId,
+      role,
+      allClaims: tokenResult.claims
+    });
     
     if (!tenantId) {
-      setError('No tenant associated with your account');
+      setError('No tenant associated with your account. Please sign out and sign back in.');
+      setState('error');
+      return;
+    }
+    
+    if (!role) {
+      setError('No role assigned. Please sign out and sign back in.');
       setState('error');
       return;
     }
@@ -78,18 +94,30 @@ export default function BillUploader({ onEntryCreated }: BillUploaderProps) {
     setCurrentFile(file);
     setState('uploading');
 
-    // Create image preview for non-PDF files
+    // Create image preview for image files (not PDFs)
     if (file.type.startsWith('image/')) {
       const reader = new FileReader();
       reader.onload = (e) => {
         setImagePreview(e.target?.result as string);
       };
       reader.readAsDataURL(file);
+    } else {
+      // For PDFs, clear any previous preview
+      setImagePreview(null);
     }
 
     try {
       // Step 1: Upload to Firebase Storage
+      console.log('📤 Uploading file:', {
+        fileName: file.name,
+        fileType: file.type,
+        fileSize: file.size,
+        tenantId
+      });
+      
       const uploadResult = await uploadBillImage(file, tenantId);
+      
+      console.log('📤 Upload result:', uploadResult);
       
       if (!uploadResult.success) {
         throw new Error(uploadResult.error || 'Failed to upload image');
@@ -214,14 +242,21 @@ export default function BillUploader({ onEntryCreated }: BillUploaderProps) {
           <p className="text-slate-600 dark:text-slate-400">
             Extracting energy usage, calculating CO2 emissions, and generating insights.
           </p>
-          {imagePreview && (
+          {imagePreview ? (
             <div className="mt-4 flex justify-center">
               <div className="relative w-32 h-32 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 opacity-75">
                 <img src={imagePreview} alt="Bill preview" className="w-full h-full object-cover" />
                 <div className="absolute inset-0 bg-emerald-500/20 animate-pulse" />
               </div>
             </div>
-          )}
+          ) : currentFile?.type === 'application/pdf' ? (
+            <div className="mt-4 flex justify-center">
+              <div className="relative w-32 h-32 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 flex items-center justify-center opacity-75">
+                <FileText className="w-12 h-12 text-slate-400" />
+                <div className="absolute inset-0 bg-emerald-500/20 animate-pulse" />
+              </div>
+            </div>
+          ) : null}
         </div>
       )}
 

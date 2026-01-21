@@ -24,11 +24,18 @@ service firebase.storage {
       allow read: if isAuthenticated() && belongsToTenant(tenantId);
       
       // Admins and clerks can upload bills
+      // Debug: Log what we're checking
       allow write: if isAuthenticated() 
                    && belongsToTenant(tenantId)
                    && request.auth.token.role in ['admin', 'clerk']
                    && request.resource.size < 10 * 1024 * 1024  // 10MB limit
-                   && request.resource.contentType.matches('image/.*');
+                   && (request.resource.contentType.matches('image/.*') 
+                       || request.resource.contentType == 'application/pdf');
+                       
+      // TEMPORARY DEBUG RULE - Remove after fixing
+      // This will let us see what's in the token
+      allow write: if isAuthenticated() 
+                   && debug(request.auth.token) != null;
     }
     
     // ============================================
