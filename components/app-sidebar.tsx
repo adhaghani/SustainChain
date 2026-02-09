@@ -5,19 +5,15 @@ import {
   IconCamera,
   IconChartBar,
   IconDashboard,
-  IconDatabase,
   IconFileAi,
   IconFileDescription,
   IconFileWord,
-  IconFolder,
   IconHelp,
   IconInnerShadowTop,
   IconListDetails,
   IconReport,
   IconSettings,
   IconUsers,
-  IconBell,
-  IconDownload,
   IconShield,
   IconBuilding,
   IconActivity,
@@ -54,11 +50,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         icon: IconDashboard,
       },
       {
-        title: t.dashboard.sidebar.uploadBills,
-        url: "/entries/upload",
-        icon: IconCamera,
-      },
-      {
         title: t.dashboard.sidebar.billEntries,
         url: "/entries",
         icon: IconListDetails,
@@ -85,16 +76,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         url: "/users",
         icon: IconUsers,
       },
-      {
-        title: t.dashboard.sidebar.tenants,
-        url: "/tenants",
-        icon: IconFolder,
-      },
-      {
-        title: t.dashboard.sidebar.systemConfig,
-        url: "/system-config",
-        icon: IconDatabase,
-      },
+      // {
+      //   title: t.dashboard.sidebar.tenants,
+      //   url: "/tenants",
+      //   icon: IconFolder,
+      // },
+      // {
+      //   title: t.dashboard.sidebar.systemConfig,
+      //   url: "/system-config",
+      //   icon: IconDatabase,
+      // },
       {
         title: t.dashboard.sidebar.auditLog,
         url: "/audit-log",
@@ -129,11 +120,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       },
     ],
     navSecondary: [
-      {
-        title: t.dashboard.sidebar.settings,
-        url: "/settings",
-        icon: IconSettings,
-      },
+      // {
+      //   title: t.dashboard.sidebar.settings,
+      //   url: "/settings",
+      //   icon: IconSettings,
+      // },
       {
         title: t.dashboard.header.helpCenter,
         url: "/help",
@@ -144,16 +135,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         url: "/changelog",
         icon: IconFileWord,
       },
-      {
-        title: t.dashboard.sidebar.notifications,
-        url: "/notifications",
-        icon: IconBell,
-      },
-      {
-        title: t.dashboard.sidebar.export,
-        url: "/export",
-        icon: IconDownload,
-      },
+      // {
+      //   title: t.dashboard.sidebar.notifications,
+      //   url: "/notifications",
+      //   icon: IconBell,
+      // },
+      // {
+      //   title: t.dashboard.sidebar.export,
+      //   url: "/export",
+      //   icon: IconDownload,
+      // },
     ],
   };
 

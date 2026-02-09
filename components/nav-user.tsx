@@ -1,7 +1,6 @@
 "use client"
 
 import {
-  IconCreditCard,
   IconDotsVertical,
   IconLogout,
   IconNotification,
@@ -29,6 +28,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import { useLanguage } from "@/lib/language-context"
+import Link from "next/link"
 
 export function NavUser({
   user,
@@ -88,22 +88,16 @@ export function NavUser({
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem asChild>
-                <a href="/dashboard/settings">
+                <Link href="/settings">
                   <IconUserCircle />
                   {t.dashboard.userMenu.account}
-                </a>
+                </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <a href="/dashboard/billing">
-                  <IconCreditCard />
-                  {t.dashboard.userMenu.billing}
-                </a>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <a href="/dashboard/settings">
+                <Link href="/notifications">
                   <IconNotification />
                   {t.dashboard.userMenu.notifications}
-                </a>
+                </Link>
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />

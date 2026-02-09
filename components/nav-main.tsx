@@ -1,8 +1,8 @@
 "use client"
 
-import { IconCirclePlusFilled, IconMail, type Icon } from "@tabler/icons-react"
+import { IconCirclePlusFilled,  type Icon } from "@tabler/icons-react"
 
-import { Button } from "@/components/ui/button"
+import Link from "next/link"
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -30,32 +30,21 @@ export function NavMain({
               asChild
               className="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground min-w-8 duration-200 ease-linear"
             >
-              <a href="/dashboard/upload">
+              <Link href="/dashboard/upload">
                 <IconCirclePlusFilled />
                 <span>Upload Bill</span>
-              </a>
+              </Link>
             </SidebarMenuButton>
-            <Button
-              size="icon"
-              className="size-8 group-data-[collapsible=icon]:opacity-0"
-              variant="outline"
-              asChild
-            >
-              <a href="/dashboard/help">
-                <IconMail />
-                <span className="sr-only">Help</span>
-              </a>
-            </Button>
           </SidebarMenuItem>
         </SidebarMenu>
         <SidebarMenu>
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
               <SidebarMenuButton tooltip={item.title} asChild>
-                <a href={item.url}>
+                <Link href={item.url}>
                   {item.icon && <item.icon />}
                   <span>{item.title}</span>
-                </a>
+                </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}

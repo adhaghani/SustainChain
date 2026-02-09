@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { useLanguage } from "@/lib/language-context"
-import { IconBell, IconCheck, IconAlertCircle, IconInfoCircle } from "@tabler/icons-react"
+import { IconBell} from "@tabler/icons-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
