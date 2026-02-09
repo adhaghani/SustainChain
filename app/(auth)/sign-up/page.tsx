@@ -9,22 +9,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Separator } from '@/components/ui/separator';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Mail, Lock, User, Building2, Loader2, AlertCircle, Hash, MapPin } from 'lucide-react';
-import {
-  IconBrandGoogle,
-} from '@tabler/icons-react';
 import type { CompanySector } from '@/types/firestore';
 import { cn } from '@/lib/utils';
-import {
-  Field,
-  FieldDescription,
-  FieldGroup,
-  FieldLabel,
-} from "@/components/ui/field"
 
 const SECTORS: { value: CompanySector; label: string }[] = [
   { value: 'Manufacturing', label: 'Manufacturing' },
@@ -42,6 +32,7 @@ const SECTORS: { value: CompanySector; label: string }[] = [
 
 export default function SignUpPage() {
   const router = useRouter();
+  const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
     // Company Info
     companyName: '',
@@ -63,6 +54,8 @@ export default function SignUpPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const totalSteps = 3;
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
@@ -71,29 +64,68 @@ export default function SignUpPage() {
     setFormData((prev) => ({ ...prev, sector: value as CompanySector }));
   };
 
+  const validateStep = (step: number): boolean => {
+    setError('');
+    
+    switch (step) {
+      case 1: // Company Information
+        if (!formData.companyName || !formData.uen || !formData.sector || !formData.address) {
+          setError('Please fill in all required company information fields');
+          return false;
+        }
+        return true;
+      
+      case 2: // Admin Account
+        if (!formData.adminName || !formData.adminEmail) {
+          setError('Please fill in all required admin account fields');
+          return false;
+        }
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(formData.adminEmail)) {
+          setError('Please enter a valid email address');
+          return false;
+        }
+        return true;
+      
+      case 3: // Password & Consent
+        if (!formData.adminPassword || !formData.confirmPassword) {
+          setError('Please fill in all password fields');
+          return false;
+        }
+        if (formData.adminPassword !== formData.confirmPassword) {
+          setError('Passwords do not match');
+          return false;
+        }
+        if (formData.adminPassword.length < 6) {
+          setError('Password must be at least 6 characters');
+          return false;
+        }
+        if (!pdpaConsent) {
+          setError('Please agree to the Terms of Service and Privacy Policy');
+          return false;
+        }
+        return true;
+      
+      default:
+        return true;
+    }
+  };
+
+  const handleNext = () => {
+    if (validateStep(currentStep)) {
+      setCurrentStep((prev) => Math.min(prev + 1, totalSteps));
+    }
+  };
+
+  const handleBack = () => {
+    setError('');
+    setCurrentStep((prev) => Math.max(prev - 1, 1));
+  };
+
   const handleEmailSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
-
-    // Validation
-    if (!formData.companyName || !formData.uen || !formData.sector || !formData.address ||
-        !formData.adminName || !formData.adminEmail || !formData.adminPassword) {
-      setError('Please fill in all required fields');
-      return;
-    }
-
-    if (formData.adminPassword !== formData.confirmPassword) {
-      setError('Passwords do not match');
-      return;
-    }
-
-    if (formData.adminPassword.length < 6) {
-      setError('Password must be at least 6 characters');
-      return;
-    }
-
-    if (!pdpaConsent) {
-      setError('Please agree to the PDPA and Privacy Policy');
+    
+    if (!validateStep(currentStep)) {
       return;
     }
 
@@ -147,24 +179,30 @@ export default function SignUpPage() {
     }
   };
 
-  const handleGoogleSignUp = async () => {
-    setError('Google SSO integration coming soon - this will require company UEN verification');
-    setTimeout(() => setError(''), 5000);
-  };
-
-  const handleLinkedInSignUp = async () => {
-    setError('LinkedIn SSO integration coming soon');
-    setTimeout(() => setError(''), 3000);
-  };
-
   return (
     <div className={cn("flex w-full max-w-sm flex-col gap-6")}>
       <Card>
           <CardHeader className="text-center">
             <CardTitle>Create your account</CardTitle>
           <CardDescription>
-            Join Malaysian SMEs achieving ESG compliance
+            Step {currentStep} of {totalSteps}: {
+              currentStep === 1 ? 'Company Information' :
+              currentStep === 2 ? 'Admin Account' :
+              'Password & Agreement'
+            }
           </CardDescription>
+          {/* Progress Indicator */}
+          <div className="flex gap-2 mt-4">
+            {[1, 2, 3].map((step) => (
+              <div
+                key={step}
+                className={cn(
+                  "h-2 flex-1 rounded-full transition-colors",
+                  step <= currentStep ? "bg-primary" : "bg-muted"
+                )}
+              />
+            ))}
+          </div>
         </CardHeader>
         <CardContent>
           {error && (
@@ -174,40 +212,74 @@ export default function SignUpPage() {
             </Alert>
           )}
 
-            <Button
-                type="button"
-                variant="outline"
-                onClick={handleGoogleSignUp}
-                disabled={loading}
-                className="w-full"
-              >
-                <IconBrandGoogle className="mr-2 h-4 w-4" />
-                Sign up with Google
-              </Button>
-
-            <div className="relative">
-              <Separator />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span className="bg-background px-2 text-muted-foreground text-xs uppercase">Or continue with</span>
-              </div>
-            </div>
-
             <form onSubmit={handleEmailSignUp} className="grid gap-4">
-              {/* Company Information */}
-              <div className="grid gap-4">
-                <h3 className="text-sm font-semibold">Company Information</h3>
-                
-                <div className="grid md:grid-cols-2 gap-4">
+              {/* Step 1: Company Information */}
+              {currentStep === 1 && (
+                <div className="grid gap-4">
+                  <h3 className="text-sm font-semibold">Company Information</h3>
+                  
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="companyName">Company Name *</Label>
+                      <div className="relative">
+                        <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="companyName"
+                          name="companyName"
+                          type="text"
+                          placeholder="Syarikat ABC Sdn Bhd"
+                          value={formData.companyName}
+                          onChange={handleChange}
+                          className="pl-10"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid gap-2">
+                      <Label htmlFor="uen">UEN / ROC Number *</Label>
+                      <div className="relative">
+                        <Hash className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="uen"
+                          name="uen"
+                          type="text"
+                          placeholder="ROC123456"
+                          value={formData.uen}
+                          onChange={handleChange}
+                          className="pl-10"
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
+
                   <div className="grid gap-2">
-                    <Label htmlFor="companyName">Company Name *</Label>
+                    <Label htmlFor="sector">Industry Sector *</Label>
+                    <Select value={formData.sector} onValueChange={handleSectorChange}>
+                      <SelectTrigger className='w-full'>
+                        <SelectValue placeholder="Select your industry" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {SECTORS.map((sector) => (
+                          <SelectItem key={sector.value} value={sector.value}>
+                            {sector.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="grid gap-2">
+                    <Label htmlFor="address">Business Address *</Label>
                     <div className="relative">
-                      <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input
-                        id="companyName"
-                        name="companyName"
+                        id="address"
+                        name="address"
                         type="text"
-                        placeholder="Syarikat ABC Sdn Bhd"
-                        value={formData.companyName}
+                        placeholder="123 Jalan Example"
+                        value={formData.address}
                         onChange={handleChange}
                         className="pl-10"
                         required
@@ -215,222 +287,206 @@ export default function SignUpPage() {
                     </div>
                   </div>
 
-                  <div className="grid gap-2">
-                    <Label htmlFor="uen">UEN / ROC Number *</Label>
-                    <div className="relative">
-                      <Hash className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <div className="grid md:grid-cols-3 gap-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="city">City</Label>
                       <Input
-                        id="uen"
-                        name="uen"
+                        id="city"
+                        name="city"
                         type="text"
-                        placeholder="ROC123456"
-                        value={formData.uen}
+                        placeholder="Kuala Lumpur"
+                        value={formData.city}
                         onChange={handleChange}
-                        className="pl-10"
-                        required
                       />
                     </div>
-                  </div>
-                </div>
-
-                <div className="grid gap-2">
-                  <Label htmlFor="sector">Industry Sector *</Label>
-                  <Select value={formData.sector} onValueChange={handleSectorChange}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select your industry" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {SECTORS.map((sector) => (
-                        <SelectItem key={sector.value} value={sector.value}>
-                          {sector.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="grid gap-2">
-                  <Label htmlFor="address">Business Address *</Label>
-                  <div className="relative">
-                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="address"
-                      name="address"
-                      type="text"
-                      placeholder="123 Jalan Example"
-                      value={formData.address}
-                      onChange={handleChange}
-                      className="pl-10"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="grid md:grid-cols-3 gap-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="city">City</Label>
-                    <Input
-                      id="city"
-                      name="city"
-                      type="text"
-                      placeholder="Kuala Lumpur"
-                      value={formData.city}
-                      onChange={handleChange}
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="state">State</Label>
-                    <Input
-                      id="state"
-                      name="state"
-                      type="text"
-                      placeholder="Selangor"
-                      value={formData.state}
-                      onChange={handleChange}
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="postalCode">Postcode</Label>
-                    <Input
-                      id="postalCode"
-                      name="postalCode"
-                      type="text"
-                      placeholder="50000"
-                      value={formData.postalCode}
-                      onChange={handleChange}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Admin User Information */}
-              <div className="grid gap-4">
-                <h3 className="text-sm font-semibold">Admin Account</h3>
-                
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="adminName">Full Name *</Label>
-                    <div className="relative">
-                      <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <div className="grid gap-2">
+                      <Label htmlFor="state">State</Label>
                       <Input
-                        id="adminName"
-                        name="adminName"
+                        id="state"
+                        name="state"
                         type="text"
-                        placeholder="Ahmad Rahman"
-                        value={formData.adminName}
+                        placeholder="Selangor"
+                        value={formData.state}
                         onChange={handleChange}
-                        className="pl-10"
-                        required
                       />
                     </div>
-                  </div>
-
-                  <div className="grid gap-2">
-                    <Label htmlFor="adminPhone">Phone Number</Label>
-                    <Input
-                      id="adminPhone"
-                      name="adminPhone"
-                      type="tel"
-                      placeholder="+60123456789"
-                      value={formData.adminPhone}
-                      onChange={handleChange}
-                    />
-                  </div>
-                </div>
-
-                <div className="grid gap-2">
-                  <Label htmlFor="adminEmail">Work Email *</Label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="adminEmail"
-                      name="adminEmail"
-                      type="email"
-                      placeholder="you@company.com"
-                      value={formData.adminEmail}
-                      onChange={handleChange}
-                      className="pl-10"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="adminPassword">Password *</Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <div className="grid gap-2">
+                      <Label htmlFor="postalCode">Postcode</Label>
                       <Input
-                        id="adminPassword"
-                        name="adminPassword"
-                        type="password"
-                        placeholder="••••••••"
-                        value={formData.adminPassword}
+                        id="postalCode"
+                        name="postalCode"
+                        type="text"
+                        placeholder="50000"
+                        value={formData.postalCode}
                         onChange={handleChange}
-                        className="pl-10"
-                        required
-                        minLength={6}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid gap-2">
-                    <Label htmlFor="confirmPassword">Confirm Password *</Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="confirmPassword"
-                        name="confirmPassword"
-                        type="password"
-                        placeholder="••••••••"
-                        value={formData.confirmPassword}
-                        onChange={handleChange}
-                        className="pl-10"
-                        required
-                        minLength={6}
                       />
                     </div>
                   </div>
                 </div>
-              </div>
+              )}
 
-              {/* PDPA Consent */}
-              <div className="flex items-start space-x-2">
-                <Checkbox 
-                  id="pdpa" 
-                  checked={pdpaConsent}
-                  onCheckedChange={(checked) => setPdpaConsent(checked as boolean)}
-                  className="mt-1"
-                />
-                <label htmlFor="pdpa" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                  I agree to the{' '}
-                  <Link href="#" className="underline underline-offset-4 hover:text-primary">
-                    Terms of Service
-                  </Link>
-                  {' '}and{' '}
-                  <Link href="#" className="underline underline-offset-4 hover:text-primary">
-                    Privacy Policy
-                  </Link>
-                </label>
-              </div>
+              {/* Step 2: Admin Account Information */}
+              {currentStep === 2 && (
+                <div className="grid gap-4">
+                  <h3 className="text-sm font-semibold">Admin Account</h3>
+                  
+                  <div className="grid gap-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="adminName">Full Name *</Label>
+                      <div className="relative">
+                        <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="adminName"
+                          name="adminName"
+                          type="text"
+                          placeholder="Ahmad Rahman"
+                          value={formData.adminName}
+                          onChange={handleChange}
+                          className="pl-10"
+                          required
+                        />
+                      </div>
+                    </div>
 
-              <Button
-                type="submit"
-                disabled={loading || !pdpaConsent}
-                className="w-full"
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Creating account...
-                  </>
-                ) : (
-                  'Create account'
+                    <div className="grid gap-2">
+                      <Label htmlFor="adminEmail">Work Email *</Label>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="adminEmail"
+                          name="adminEmail"
+                          type="email"
+                          placeholder="you@company.com"
+                          value={formData.adminEmail}
+                          onChange={handleChange}
+                          className="pl-10"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid gap-2">
+                      <Label htmlFor="adminPhone">Phone Number</Label>
+                      <Input
+                        id="adminPhone"
+                        name="adminPhone"
+                        type="tel"
+                        placeholder="+60123456789"
+                        value={formData.adminPhone}
+                        onChange={handleChange}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Step 3: Password & Consent */}
+              {currentStep === 3 && (
+                <div className="grid gap-4">
+                  <h3 className="text-sm font-semibold">Secure Your Account</h3>
+                  
+                  <div className="grid gap-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="adminPassword">Password *</Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="adminPassword"
+                          name="adminPassword"
+                          type="password"
+                          placeholder="••••••••"
+                          value={formData.adminPassword}
+                          onChange={handleChange}
+                          className="pl-10"
+                          required
+                          minLength={6}
+                        />
+                      </div>
+                      <p className="text-xs text-muted-foreground">Must be at least 6 characters</p>
+                    </div>
+
+                    <div className="grid gap-2">
+                      <Label htmlFor="confirmPassword">Confirm Password *</Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="confirmPassword"
+                          name="confirmPassword"
+                          type="password"
+                          placeholder="••••••••"
+                          value={formData.confirmPassword}
+                          onChange={handleChange}
+                          className="pl-10"
+                          required
+                          minLength={6}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex items-start space-x-2 pt-2">
+                      <Checkbox 
+                        id="pdpa" 
+                        checked={pdpaConsent}
+                        onCheckedChange={(checked) => setPdpaConsent(checked as boolean)}
+                        className="mt-1"
+                      />
+                      <label htmlFor="pdpa" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                        I agree to the{' '}
+                        <Link href="#" className="underline underline-offset-4 hover:text-primary">
+                          Terms of Service
+                        </Link>
+                        {' '}and{' '}
+                        <Link href="#" className="underline underline-offset-4 hover:text-primary">
+                          Privacy Policy
+                        </Link>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Navigation Buttons */}
+              <div className="flex gap-2">
+                {currentStep > 1 && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleBack}
+                    className="flex-1"
+                    disabled={loading}
+                  >
+                    Back
+                  </Button>
                 )}
-              </Button>
+                
+                {currentStep < totalSteps ? (
+                  <Button
+                    type="button"
+                    onClick={handleNext}
+                    className="flex-1"
+                  >
+                    Next
+                  </Button>
+                ) : (
+                  <Button
+                    type="submit"
+                    disabled={loading}
+                    className="flex-1"
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Creating account...
+                      </>
+                    ) : (
+                      'Create account'
+                    )}
+                  </Button>
+                )}
+              </div>
             </form>
 
-            <p className="text-center text-sm text-muted-foreground">
+            <p className="text-center text-sm text-muted-foreground mt-4">
               Already have an account?{' '}
               <Link
                 href="/sign-in"
