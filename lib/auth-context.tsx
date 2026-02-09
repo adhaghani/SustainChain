@@ -1,10 +1,14 @@
 /* eslint-disable react-hooks/set-state-in-effect */
-'use client';
+"use client";
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { onAuthStateChanged, User, signOut as firebaseSignOut } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
-import { auth, db } from '@/lib/firebase';
+import React, { createContext, useContext, useEffect, useState } from "react";
+import {
+  onAuthStateChanged,
+  User,
+  signOut as firebaseSignOut,
+} from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
+import { auth, db } from "@/lib/firebase";
 
 // User data interface for easy access to display info
 interface UserData {
@@ -15,7 +19,7 @@ interface UserData {
   emailVerified: boolean;
   tenantId: string | null;
   tenantName: string | null;
-  role: 'superadmin' | 'admin' | 'clerk' | 'viewer' | null;
+  role: "superadmin" | "admin" | "clerk" | "viewer" | null;
   isSuperAdmin?: boolean;
 }
 
@@ -24,8 +28,9 @@ interface AuthContextType {
   userData: UserData | null;
   loading: boolean;
   signOut: () => Promise<void>;
+  refreshUserData: () => Promise<void>;
   tenantId: string | null;
-  role: 'superadmin' | 'admin' | 'clerk' | 'viewer' | null;
+  role: "superadmin" | "admin" | "clerk" | "viewer" | null;
   isSuperAdmin: boolean;
 }
 
@@ -48,23 +53,25 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
-      
+
       if (currentUser) {
         try {
           // Fetch user document from Firestore
-          const userDocRef = doc(db, 'users', currentUser.uid);
+          const userDocRef = doc(db, "users", currentUser.uid);
           const userDocSnap = await getDoc(userDocRef);
-          
+
           if (userDocSnap.exists()) {
             const firestoreData = userDocSnap.data();
             const role = firestoreData.role || null;
-            const isSuperAdmin = role === 'superadmin' || firestoreData.tenantId === 'system';
-            
+            const isSuperAdmin =
+              role === "superadmin" || firestoreData.tenantId === "system";
+
             // Extract user data including tenant info
             setUserData({
               uid: currentUser.uid,
               email: currentUser.email,
-              displayName: currentUser.displayName || firestoreData.name || null,
+              displayName:
+                currentUser.displayName || firestoreData.name || null,
               photoURL: currentUser.photoURL || firestoreData.avatar || null,
               emailVerified: currentUser.emailVerified,
               tenantId: firestoreData.tenantId || null,
@@ -86,7 +93,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
             });
           }
         } catch (error) {
-          console.error('Error fetching user data from Firestore:', error);
+          console.error("Error fetching user data from Firestore:", error);
           // Fallback to basic auth data
           setUserData({
             uid: currentUser.uid,
@@ -102,7 +109,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       } else {
         setUserData(null);
       }
-      
+
       setLoading(false);
     });
 
@@ -115,28 +122,60 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   };
 
+  // Manual refresh function for user data
+  const refreshUserData = async () => {
+    if (!user || !db) return;
+
+    try {
+      // Force refresh Firebase Auth token to get latest custom claims
+      await user.getIdToken(true);
+
+      // Re-fetch user document from Firestore
+      const userDocRef = doc(db, "users", user.uid);
+      const userDocSnap = await getDoc(userDocRef);
+
+      if (userDocSnap.exists()) {
+        const firestoreData = userDocSnap.data();
+        const role = firestoreData.role || null;
+        const isSuperAdmin =
+          role === "superadmin" || firestoreData.tenantId === "system";
+
+        setUserData({
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName || firestoreData.name || null,
+          photoURL: user.photoURL || firestoreData.avatar || null,
+          emailVerified: user.emailVerified,
+          tenantId: firestoreData.tenantId || null,
+          tenantName: firestoreData.tenantName || null,
+          role: role,
+          isSuperAdmin: isSuperAdmin,
+        });
+      }
+    } catch (error) {
+      console.error("Error refreshing user data:", error);
+    }
+  };
+
   const value: AuthContextType = {
     user,
     userData,
     loading,
     signOut,
+    refreshUserData,
     tenantId: userData?.tenantId || null,
     role: userData?.role || null,
     isSuperAdmin: userData?.isSuperAdmin || false,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 // Custom hook to use auth context
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 }

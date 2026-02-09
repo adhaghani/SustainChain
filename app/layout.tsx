@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Outfit, Geist, Geist_Mono } from "next/font/google"; // Using Outfit for a modern, tech-forward look
+import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
 
 const outfit = Outfit({
@@ -19,7 +20,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "SustainChain - The SME ESG Reporter",
-  description: "Empowering Malaysian SMEs with AI-driven ESG compliance. Business survival, simplified.",
+  description:
+    "Empowering Malaysian SMEs with AI-driven ESG compliance. Business survival, simplified.",
 };
 
 export default function RootLayout({
@@ -32,7 +34,9 @@ export default function RootLayout({
       <body
         className={`${outfit.variable} ${geistSans.variable} ${geistMono.variable} antialiased font-sans`}
       >
-        {children}
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );

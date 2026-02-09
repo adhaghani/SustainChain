@@ -3,34 +3,34 @@
  * Based on FIREBASE_SCHEMA.md
  */
 
-import { Timestamp } from 'firebase-admin/firestore';
+import { Timestamp } from "firebase-admin/firestore";
 
 // ============================================
 // ENUMS & CONSTANTS
 // ============================================
 
-export type UserRole = 'superadmin' | 'admin' | 'clerk' | 'viewer';
-export type UserStatus = 'active' | 'pending' | 'inactive';
-export type TenantStatus = 'active' | 'trial' | 'inactive' | 'suspended';
-export type SubscriptionTier = 'trial' | 'standard' | 'premium' | 'enterprise';
-export type CompanySector = 
-  | 'Manufacturing' 
-  | 'Technology' 
-  | 'Food & Beverage' 
-  | 'Logistics' 
-  | 'Retail' 
-  | 'Agriculture' 
-  | 'Construction' 
-  | 'Healthcare' 
-  | 'Education' 
-  | 'Hospitality' 
-  | 'Other';
+export type UserRole = "superadmin" | "admin" | "clerk" | "viewer";
+export type UserStatus = "active" | "pending" | "inactive";
+export type TenantStatus = "active" | "trial" | "inactive" | "suspended";
+export type SubscriptionTier = "trial" | "standard" | "premium" | "enterprise";
+export type CompanySector =
+  | "Manufacturing"
+  | "Technology"
+  | "Food & Beverage"
+  | "Logistics"
+  | "Retail"
+  | "Agriculture"
+  | "Construction"
+  | "Healthcare"
+  | "Education"
+  | "Hospitality"
+  | "Other";
 
-export type UtilityType = 'electricity' | 'water' | 'fuel' | 'other';
-export type EntryStatus = 'verified' | 'pending' | 'flagged' | 'rejected';
-export type ExtractionMethod = 'auto' | 'manual';
-export type NotificationType = 'success' | 'info' | 'warning' | 'error';
-export type NotificationPriority = 'low' | 'medium' | 'high' | 'urgent';
+export type UtilityType = "electricity" | "water" | "fuel" | "other";
+export type EntryStatus = "verified" | "pending" | "flagged" | "rejected";
+export type ExtractionMethod = "auto" | "manual";
+export type NotificationType = "success" | "info" | "warning" | "error";
+export type NotificationPriority = "low" | "medium" | "high" | "urgent";
 
 // ============================================
 // FIREBASE AUTH CUSTOM CLAIMS
@@ -54,6 +54,7 @@ export interface UserDocument {
   name: string;
   phone?: string | null;
   avatar?: string | null;
+  jobTitle?: string | null;
 
   // Multi-Tenant Relationship
   tenantId: string;
@@ -141,8 +142,8 @@ export interface TenantDocument {
 
   // Settings
   settings: {
-    defaultCurrency: 'MYR';
-    language: 'en' | 'ms';
+    defaultCurrency: "MYR";
+    language: "en" | "ms";
     timezone: string;
     fiscalYearStart: string;
   };
@@ -191,11 +192,11 @@ export interface EntryDocument {
   // Utility Information
   utilityType: UtilityType;
   provider: string;
-  region?: 'peninsular' | 'sabah' | 'sarawak';
+  region?: "peninsular" | "sabah" | "sarawak";
 
   // Usage Data
   usage: number;
-  unit: 'kWh' | 'm³' | 'L' | 'kg';
+  unit: "kWh" | "m³" | "L" | "kg";
   amount: number;
   currency: string;
 
@@ -261,33 +262,33 @@ export interface EntryDocument {
 // AUDIT LOG DOCUMENT
 // ============================================
 
-export type AuditAction = 
-  | 'CREATE' 
-  | 'UPDATE' 
-  | 'DELETE' 
-  | 'UPLOAD' 
-  | 'DOWNLOAD' 
-  | 'LOGIN' 
-  | 'LOGOUT' 
-  | 'EXPORT' 
-  | 'VERIFY' 
-  | 'REJECT' 
-  | 'GENERATE_REPORT' 
-  | 'AUTO_BACKUP' 
-  | 'SETTINGS_CHANGE';
+export type AuditAction =
+  | "CREATE"
+  | "UPDATE"
+  | "DELETE"
+  | "UPLOAD"
+  | "DOWNLOAD"
+  | "LOGIN"
+  | "LOGOUT"
+  | "EXPORT"
+  | "VERIFY"
+  | "REJECT"
+  | "GENERATE_REPORT"
+  | "AUTO_BACKUP"
+  | "SETTINGS_CHANGE";
 
-export type AuditResource = 
-  | 'Entry' 
-  | 'Bill' 
-  | 'Report' 
-  | 'User' 
-  | 'Tenant' 
-  | 'Subscription' 
-  | 'Database' 
-  | 'Settings';
+export type AuditResource =
+  | "Entry"
+  | "Bill"
+  | "Report"
+  | "User"
+  | "Tenant"
+  | "Subscription"
+  | "Database"
+  | "Settings";
 
-export type AuditStatus = 'success' | 'failure' | 'warning';
-export type AuditSeverity = 'info' | 'warning' | 'error' | 'critical';
+export type AuditStatus = "success" | "failure" | "warning";
+export type AuditSeverity = "info" | "warning" | "error" | "critical";
 
 export interface AuditLogDocument {
   id: string;
@@ -399,7 +400,7 @@ export interface OnboardingSessionDocument {
   sampleBillUrl?: string;
 
   preferences?: {
-    language: 'en' | 'ms';
+    language: "en" | "ms";
     timezone: string;
     fiscalYearStart: string;
   };
@@ -408,7 +409,7 @@ export interface OnboardingSessionDocument {
   pdpaConsentDate?: Timestamp;
 
   // Status
-  status: 'in_progress' | 'completed' | 'abandoned';
+  status: "in_progress" | "completed" | "abandoned";
 
   // Timestamps
   createdAt: Timestamp;

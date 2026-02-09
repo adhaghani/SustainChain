@@ -4,8 +4,8 @@
  * CRUD operations for common database operations
  */
 
-import { db } from './firebase-admin';
-import { Timestamp, FieldValue } from 'firebase-admin/firestore';
+import { db } from "./firebase-admin";
+import { Timestamp, FieldValue } from "firebase-admin/firestore";
 import type {
   UserDocument,
   TenantDocument,
@@ -13,7 +13,7 @@ import type {
   CreateTenantData,
   UserRole,
   TenantWithAdmin,
-} from '@/types/firestore';
+} from "@/types/firestore";
 
 // ============================================
 // USER OPERATIONS
@@ -24,7 +24,7 @@ import type {
  */
 export async function createUserDocument(
   userId: string,
-  data: CreateUserData
+  data: CreateUserData,
 ): Promise<UserDocument> {
   const userDoc: Partial<UserDocument> = {
     id: userId,
@@ -35,7 +35,7 @@ export async function createUserDocument(
     tenantId: data.tenantId,
     tenantName: data.tenantName,
     role: data.role,
-    status: 'active',
+    status: "active",
     lastLogin: Timestamp.now(),
     lastActivity: Timestamp.now(),
     entriesCreated: 0,
@@ -52,15 +52,20 @@ export async function createUserDocument(
     userDoc.pdpaConsentDate = Timestamp.now();
   }
 
-  await db.collection('users').doc(userId).set(userDoc as UserDocument);
+  await db
+    .collection("users")
+    .doc(userId)
+    .set(userDoc as UserDocument);
   return userDoc as UserDocument;
 }
 
 /**
  * Get user document by ID
  */
-export async function getUserDocument(userId: string): Promise<UserDocument | null> {
-  const doc = await db.collection('users').doc(userId).get();
+export async function getUserDocument(
+  userId: string,
+): Promise<UserDocument | null> {
+  const doc = await db.collection("users").doc(userId).get();
   if (!doc.exists) {
     return null;
   }
@@ -71,7 +76,7 @@ export async function getUserDocument(userId: string): Promise<UserDocument | nu
  * Update user's last login timestamp
  */
 export async function updateUserLastLogin(userId: string): Promise<void> {
-  await db.collection('users').doc(userId).update({
+  await db.collection("users").doc(userId).update({
     lastLogin: Timestamp.now(),
     lastActivity: Timestamp.now(),
     updatedAt: Timestamp.now(),
@@ -81,14 +86,16 @@ export async function updateUserLastLogin(userId: string): Promise<void> {
 /**
  * Get all users for a tenant
  */
-export async function getTenantUsers(tenantId: string): Promise<UserDocument[]> {
+export async function getTenantUsers(
+  tenantId: string,
+): Promise<UserDocument[]> {
   const snapshot = await db
-    .collection('users')
-    .where('tenantId', '==', tenantId)
-    .orderBy('createdAt', 'desc')
+    .collection("users")
+    .where("tenantId", "==", tenantId)
+    .orderBy("createdAt", "desc")
     .get();
 
-  return snapshot.docs.map((doc: any ) => doc.data() as UserDocument);
+  return snapshot.docs.map((doc: any) => doc.data() as UserDocument);
 }
 
 /**
@@ -96,12 +103,32 @@ export async function getTenantUsers(tenantId: string): Promise<UserDocument[]> 
  */
 export async function updateUserRole(
   userId: string,
-  newRole: UserRole
+  newRole: UserRole,
 ): Promise<void> {
-  await db.collection('users').doc(userId).update({
+  await db.collection("users").doc(userId).update({
     role: newRole,
     updatedAt: Timestamp.now(),
   });
+}
+
+/**
+ * Update user profile information
+ */
+export async function updateUserProfile(
+  userId: string,
+  updates: {
+    name?: string;
+    phone?: string | null;
+    jobTitle?: string | null;
+    avatar?: string | null;
+  },
+): Promise<void> {
+  const updateData: Record<string, unknown> = {
+    ...updates,
+    updatedAt: Timestamp.now(),
+  };
+
+  await db.collection("users").doc(userId).update(updateData);
 }
 
 // ============================================
@@ -112,9 +139,9 @@ export async function updateUserRole(
  * Create a new tenant document
  */
 export async function createTenantDocument(
-  data: CreateTenantData
+  data: CreateTenantData,
 ): Promise<TenantDocument> {
-  const tenantRef = db.collection('tenants').doc();
+  const tenantRef = db.collection("tenants").doc();
   const tenantId = tenantRef.id;
 
   const tenantDoc: TenantDocument = {
@@ -126,15 +153,15 @@ export async function createTenantDocument(
     city: data.city,
     state: data.state,
     postalCode: data.postalCode,
-    country: 'Malaysia',
+    country: "Malaysia",
     adminName: data.adminName,
     adminEmail: data.adminEmail,
     adminPhone: data.adminPhone,
     logo: null,
-    status: 'trial',
-    subscriptionTier: 'trial',
+    status: "trial",
+    subscriptionTier: "trial",
     trialEndsAt: Timestamp.fromDate(
-      new Date(Date.now() + 14 * 24 * 60 * 60 * 1000) // 14 days trial
+      new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 days trial
     ),
     userCount: 1,
     totalEntries: 0,
@@ -142,10 +169,10 @@ export async function createTenantDocument(
     currentMonthEmissions: 0,
     lastMonthEmissions: 0,
     settings: {
-      defaultCurrency: 'MYR',
-      language: 'en',
-      timezone: 'Asia/Kuala_Lumpur',
-      fiscalYearStart: '01',
+      defaultCurrency: "MYR",
+      language: "en",
+      timezone: "Asia/Kuala_Lumpur",
+      fiscalYearStart: "01",
     },
     dataRetentionYears: 7,
     createdAt: Timestamp.now(),
@@ -165,8 +192,10 @@ export async function createTenantDocument(
 /**
  * Get tenant document by ID
  */
-export async function getTenantDocument(tenantId: string): Promise<TenantDocument | null> {
-  const doc = await db.collection('tenants').doc(tenantId).get();
+export async function getTenantDocument(
+  tenantId: string,
+): Promise<TenantDocument | null> {
+  const doc = await db.collection("tenants").doc(tenantId).get();
   if (!doc.exists) {
     return null;
   }
@@ -178,8 +207,8 @@ export async function getTenantDocument(tenantId: string): Promise<TenantDocumen
  */
 export async function isUenTaken(uen: string): Promise<boolean> {
   const snapshot = await db
-    .collection('tenants')
-    .where('uen', '==', uen)
+    .collection("tenants")
+    .where("uen", "==", uen)
     .limit(1)
     .get();
 
@@ -189,50 +218,53 @@ export async function isUenTaken(uen: string): Promise<boolean> {
 /**
  * Increment tenant user count
  */
-export async function incrementTenantUserCount(tenantId: string): Promise<void> {
-  await db.collection('tenants').doc(tenantId).update({
-    userCount: FieldValue.increment(1),
-    updatedAt: Timestamp.now(),
-  });
+export async function incrementTenantUserCount(
+  tenantId: string,
+): Promise<void> {
+  await db
+    .collection("tenants")
+    .doc(tenantId)
+    .update({
+      userCount: FieldValue.increment(1),
+      updatedAt: Timestamp.now(),
+    });
 }
 
 /**
  * Update tenant activity timestamp
  */
 export async function updateTenantActivity(tenantId: string): Promise<void> {
-  await db.collection('tenants').doc(tenantId).update({
+  await db.collection("tenants").doc(tenantId).update({
     lastActivity: Timestamp.now(),
     updatedAt: Timestamp.now(),
   });
 }
 
-/** 
+/**
  * Get audit logs for a tenant
  */
 
 export async function getTenantAuditLogs(tenantId: string): Promise<any[]> {
   const snapshot = await db
-    .collection('auditLogs')
-    .where('tenantId', '==', tenantId)
+    .collection("auditLogs")
+    .where("tenantId", "==", tenantId)
     .get();
 
   return snapshot.docs.map((doc: any) => doc.data());
 }
 
-/** 
+/**
  * Get all entries for a tenant
  */
 
 export async function getTenantEntries(tenantId: string): Promise<any[]> {
   const snapshot = await db
-    .collection('entries')
-    .where('tenantId', '==', tenantId)
+    .collection("entries")
+    .where("tenantId", "==", tenantId)
     .get();
 
   return snapshot.docs.map((doc: any) => doc.data());
 }
-
-
 
 // ============================================
 // COMBINED OPERATIONS
@@ -244,7 +276,7 @@ export async function getTenantEntries(tenantId: string): Promise<any[]> {
 export async function createTenantWithAdmin(
   tenantData: CreateTenantData,
   adminUserId: string,
-  adminEmail: string
+  adminEmail: string,
 ): Promise<TenantWithAdmin> {
   // Create tenant
   const tenant = await createTenantDocument(tenantData);
@@ -256,7 +288,7 @@ export async function createTenantWithAdmin(
     phone: tenantData.adminPhone,
     tenantId: tenant.id,
     tenantName: tenant.name,
-    role: 'admin',
+    role: "admin",
     pdpaConsentGiven: true,
   });
 
@@ -267,66 +299,60 @@ export async function createTenantWithAdmin(
 // SYSTEM ADMIN OPERATION
 // ============================================
 
-
-/** 
+/**
  * UpdateApiLimits
  */
-export async function updateApiLimits(
-  rateLimits?: {
-    billAnalysis?: { 
-      requestPerDay?: number;
-      requestPerHour?: number;
-      requestPerMinute?: number;
-    };
-    dashboard?: {
-      requestPerMinute?: number;
-    };
-    reportGeneration?: {
-      requestPerHour?: number;
-      requestPerMinute?: number;
-    };
-  }
-): Promise<void> {
-  await db.collection('system_config').doc('api_limits').update({
+export async function updateApiLimits(rateLimits?: {
+  billAnalysis?: {
+    requestPerDay?: number;
+    requestPerHour?: number;
+    requestPerMinute?: number;
+  };
+  dashboard?: {
+    requestPerMinute?: number;
+  };
+  reportGeneration?: {
+    requestPerHour?: number;
+    requestPerMinute?: number;
+  };
+}): Promise<void> {
+  await db.collection("system_config").doc("api_limits").update({
     lastUpdated: Timestamp.now(),
     rateLimits: rateLimits,
   });
-} 
+}
 
-/** 
+/**
  * update system Quota
  */
 
-export async function updateSystemQuota(
-  
-  newQuota: {
-    enterprise?: {
-      maxBillUploads?: number;
-      maxReports?: number;
-      maxStorageGB?: number;
-      maxUsers?: number;
-    };
-    premium?: {
-      maxBillUploads?: number;
-      maxReports?: number;
-      maxStorageGB?: number;
-      maxUsers?: number;
-    };
-    standard?: {
-      maxBillUploads?: number;
-      maxReports?: number;
-      maxStorageGB?: number;
-      maxUsers?: number;
-    };
-    trial?: {
-      maxBillUploads?: number;
-      maxReports?: number;
-      maxStorageGB?: number;
-      maxUsers?: number;
-    };
-  }
-): Promise<void> {
-  await db.collection('system_config').doc('api_limits').update({
+export async function updateSystemQuota(newQuota: {
+  enterprise?: {
+    maxBillUploads?: number;
+    maxReports?: number;
+    maxStorageGB?: number;
+    maxUsers?: number;
+  };
+  premium?: {
+    maxBillUploads?: number;
+    maxReports?: number;
+    maxStorageGB?: number;
+    maxUsers?: number;
+  };
+  standard?: {
+    maxBillUploads?: number;
+    maxReports?: number;
+    maxStorageGB?: number;
+    maxUsers?: number;
+  };
+  trial?: {
+    maxBillUploads?: number;
+    maxReports?: number;
+    maxStorageGB?: number;
+    maxUsers?: number;
+  };
+}): Promise<void> {
+  await db.collection("system_config").doc("api_limits").update({
     lastUpdated: Timestamp.now(),
     quotas: newQuota,
   });
@@ -355,12 +381,10 @@ export async function updateEmissionFactors(
       lng?: number;
       petrol_ron95?: number;
       petrol_ron97?: number;
-    }
+    };
   },
-
-
-) : Promise<void> {
-  await db.collection('system_config').doc('emission_factors').update({
+): Promise<void> {
+  await db.collection("system_config").doc("emission_factors").update({
     lastUpdated: Timestamp.now(),
     factors: newEmissionFactors,
     validUntil: ValidUntil,
@@ -368,7 +392,6 @@ export async function updateEmissionFactors(
     source: source,
   });
 }
-
 
 // ============================================
 // VALIDATION HELPERS
@@ -380,7 +403,7 @@ export async function updateEmissionFactors(
  */
 export function validateMalaysianUEN(uen: string): boolean {
   // Remove spaces and convert to uppercase
-  const cleanUen = uen.replace(/\s/g, '').toUpperCase();
+  const cleanUen = uen.replace(/\s/g, "").toUpperCase();
 
   // Check for ROC format (e.g., ROC123456)
   const rocPattern = /^ROC\d{6,7}$/;
@@ -402,7 +425,7 @@ export function validateMalaysianUEN(uen: string): boolean {
  */
 export function validateMalaysianPhone(phone: string): boolean {
   // Remove spaces, dashes, and parentheses
-  const cleanPhone = phone.replace(/[\s\-()]/g, '');
+  const cleanPhone = phone.replace(/[\s\-()]/g, "");
 
   // Check for valid Malaysian mobile/landline formats
   // Mobile: 01X-XXXXXXX (10-11 digits)
