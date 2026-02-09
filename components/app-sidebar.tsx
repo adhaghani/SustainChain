@@ -115,7 +115,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       },
       {
         title: "Global Config",
-        url: "/system-admin/config",
+        url: "/system-admin/global-config",
         icon: IconSettings,
       },
     ],
