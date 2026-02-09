@@ -2,6 +2,7 @@
 
 import { initializeApp, getApps, getApp, type FirebaseApp } from 'firebase/app';
 import { getAuth, type Auth } from 'firebase/auth';
+import { getFirestore, type Firestore } from 'firebase/firestore';
 import { getStorage, type FirebaseStorage } from 'firebase/storage';
 
 /**
@@ -23,14 +24,16 @@ const isFirebaseConfigured = Boolean(firebaseConfig.apiKey);
 // Initialize Firebase (singleton pattern) - only if configured
 let app: FirebaseApp | null = null;
 let auth: Auth | null = null;
+let db: Firestore | null = null; // Add this line
 let storage: FirebaseStorage | null = null;
 
 if (isFirebaseConfigured) {
   app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
   auth = getAuth(app);
+  db = getFirestore(app); // Initialize Firestore
   storage = getStorage(app);
 }
 
-export { auth, app, storage, isFirebaseConfigured };
+export { auth, app, db, storage, isFirebaseConfigured }; // Export db
 export default app;
 

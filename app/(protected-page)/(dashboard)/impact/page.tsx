@@ -1,12 +1,10 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { 
   IconLeaf,
   IconBuildingFactory2,
-  IconUsers,
   IconChartBar,
   IconTrendingDown,
   IconTrendingUp,
@@ -220,7 +218,7 @@ const ImpactPage = () => {
       {/* Key Metrics */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
         <Card className="border-green-200 dark:border-green-900">
-          <CardContent className="pt-6">
+          <CardContent >
             <div className="flex items-center justify-between mb-2">
               <IconLeaf className="w-8 h-8 text-green-500" />
               <Badge variant="secondary" className="text-green-600">
@@ -234,7 +232,7 @@ const ImpactPage = () => {
         </Card>
 
         <Card className="border-blue-200 dark:border-blue-900">
-          <CardContent className="pt-6">
+          <CardContent >
             <div className="flex items-center justify-between mb-2">
               <IconBuildingFactory2 className="w-8 h-8 text-blue-500" />
               <Badge variant="secondary" className="text-blue-600">
@@ -248,7 +246,7 @@ const ImpactPage = () => {
         </Card>
 
         <Card className="border-purple-200 dark:border-purple-900">
-          <CardContent className="pt-6">
+          <CardContent >
             <div className="flex items-center justify-between mb-2">
               <IconChartBar className="w-8 h-8 text-purple-500" />
             </div>
@@ -258,7 +256,7 @@ const ImpactPage = () => {
         </Card>
 
         <Card className="border-orange-200 dark:border-orange-900">
-          <CardContent className="pt-6">
+          <CardContent >
             <div className="flex items-center justify-between mb-2">
               <IconCertificate className="w-8 h-8 text-orange-500" />
             </div>
@@ -268,7 +266,7 @@ const ImpactPage = () => {
         </Card>
 
         <Card className="border-teal-200 dark:border-teal-900">
-          <CardContent className="pt-6">
+          <CardContent >
             <div className="flex items-center justify-between mb-2">
               <IconTree className="w-8 h-8 text-teal-500" />
             </div>
@@ -295,7 +293,7 @@ const ImpactPage = () => {
               const Icon = sdg.icon;
               return (
                 <Card key={sdg.number}>
-                  <CardContent className="pt-6">
+                  <CardContent>
                     <div className="flex items-start gap-4">
                       <div className={`w-16 h-16 rounded-lg ${sdg.bgColor} flex items-center justify-center shrink-0`}>
                         <Icon className="w-8 h-8 text-white" />
@@ -458,29 +456,6 @@ const ImpactPage = () => {
                 </div>
               );
             })}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Call to Action */}
-      <Card className="border-primary bg-linear-to-r from-green-500/10 to-blue-500/10">
-        <CardContent className="pt-6">
-          <div className="text-center space-y-4">
-            <h3 className="text-2xl font-bold">Join the Movement</h3>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Be part of Malaysia&apos;s journey towards net-zero emissions. Together, we can help SMEs 
-              meet the Bursa Malaysia 2026 ESG mandate while reducing costs and environmental impact.
-            </p>
-            <div className="flex gap-3 justify-center">
-              <Button size="lg">
-                <IconUsers className="w-4 h-4 mr-2" />
-                Refer a Company
-              </Button>
-              <Button size="lg" variant="outline">
-                <IconHeartHandshake className="w-4 h-4 mr-2" />
-                Become a Partner
-              </Button>
-            </div>
           </div>
         </CardContent>
       </Card>

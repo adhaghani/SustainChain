@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { useState } from 'react';
@@ -9,10 +10,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Skeleton } from "@/components/ui/skeleton";
 import BillUploader from "@/components/bill/bill-uploader";
+import { useRecentEntries } from "@/hooks/use-entries";
 import { 
   IconUpload, 
-  IconCamera,
   IconFileTypePdf,
   IconFileTypeJpg,
   IconX,
@@ -38,52 +40,24 @@ import {
 const UploadPage = () => {
   const router = useRouter();
   const [recentEntryId, setRecentEntryId] = useState<string | null>(null);
+  const { entries: recentEntries, loading: entriesLoading, error: entriesError, refetch } = useRecentEntries();
 
   const handleEntryCreated = (entryId: string) => {
     setRecentEntryId(entryId);
-    // Optionally redirect to entries page or show notification
+    // Refetch entries to show the new one
+    refetch();
   };
-
-  // Mock upload state - will be replaced with real state management
-  const recentUploads = [
-    {
-      id: "1",
-      fileName: "TNB_Bill_Jan2026.jpg",
-      status: "processing",
-      progress: 65,
-      uploadedAt: "2026-01-17T15:30:00"
-    },
-    {
-      id: "2",
-      fileName: "SAJ_Water_Bill.pdf",
-      status: "completed",
-      extractedData: {
-        provider: "SAJ",
-        type: "water",
-        usage: 28,
-        unit: "m³",
-        amount: 45.20,
-        confidence: 0.89
-      },
-      uploadedAt: "2026-01-17T14:15:00"
-    },
-    {
-      id: "3",
-      fileName: "Fuel_Receipt_Petron.jpg",
-      status: "failed",
-      error: "Image quality too low. Please upload a clearer photo.",
-      uploadedAt: "2026-01-17T13:45:00"
-    }
-  ];
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "completed":
-        return <Badge variant="default" className="bg-green-500"><IconCheck className="w-3 h-3 mr-1" />Completed</Badge>;
-      case "processing":
-        return <Badge variant="secondary"><IconLoader2 className="w-3 h-3 mr-1 animate-spin" />Processing</Badge>;
-      case "failed":
-        return <Badge variant="destructive"><IconAlertTriangle className="w-3 h-3 mr-1" />Failed</Badge>;
+      case "verified":
+        return <Badge variant="default" className="bg-green-500"><IconCheck className="w-3 h-3 mr-1" />Verified</Badge>;
+      case "pending":
+        return <Badge variant="secondary"><IconLoader2 className="w-3 h-3 mr-1 animate-spin" />Pending</Badge>;
+      case "flagged":
+        return <Badge variant="outline" className="border-yellow-500 text-yellow-600"><IconAlertTriangle className="w-3 h-3 mr-1" />Flagged</Badge>;
+      case "rejected":
+        return <Badge variant="destructive"><IconX className="w-3 h-3 mr-1" />Rejected</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -102,13 +76,35 @@ const UploadPage = () => {
     }
   };
 
-  const formatDateTime = (dateString: string) => {
-    return new Date(dateString).toLocaleString('en-MY', {
+  const formatDateTime = (timestamp: any) => {
+    if (!timestamp) return 'N/A';
+    // Handle both Firebase Admin and Client SDK Timestamp types
+    if (timestamp.toDate) {
+      return timestamp.toDate().toLocaleString('en-MY', {
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+    // Fallback for regular Date objects
+    return new Date(timestamp).toLocaleString('en-MY', {
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
     });
+  };
+
+  const getFileName = (billImageUrl?: string) => {
+    if (!billImageUrl) return 'Bill Upload';
+    const parts = billImageUrl.split('/');
+    return parts[parts.length - 1] || 'Bill Upload';
+  };
+
+  const getFileExtension = (fileName: string) => {
+    const ext = fileName.split('.').pop()?.toLowerCase();
+    return ext || 'jpg';
   };
 
   return (
@@ -263,132 +259,153 @@ const UploadPage = () => {
           <CardDescription>Track the status of your bill uploads and extractions</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {recentUploads.map((upload) => (
-              <Card key={upload.id} className="overflow-hidden">
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1 space-y-3">
-                      {/* File Info */}
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
-                          {upload.fileName.endsWith('.pdf') ? (
-                            <IconFileTypePdf className="w-6 h-6 text-red-500" />
-                          ) : (
-                            <IconFileTypeJpg className="w-6 h-6 text-blue-500" />
-                          )}
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2">
-                            <p className="font-medium text-sm">{upload.fileName}</p>
-                            {getStatusBadge(upload.status)}
-                          </div>
-                          <p className="text-xs text-muted-foreground">
-                            {formatDateTime(upload.uploadedAt)}
-                          </p>
-                        </div>
+          {entriesLoading ? (
+            <div className="space-y-4">
+              {[...Array(3)].map((_, i) => (
+                <Card key={i} className="overflow-hidden">
+                  <CardContent className="p-4">
+                    <div className="flex items-start gap-3">
+                      <Skeleton className="w-10 h-10 rounded-lg" />
+                      <div className="flex-1 space-y-2">
+                        <Skeleton className="h-4 w-3/4" />
+                        <Skeleton className="h-3 w-1/2" />
                       </div>
-
-                      {/* Processing Progress */}
-                      {upload.status === "processing" && (
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between text-xs">
-                            <span className="text-muted-foreground">Extracting data with Gemini AI...</span>
-                            <span className="font-medium">{upload.progress}%</span>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : entriesError ? (
+            <Alert variant="destructive">
+              <AlertDescription>Failed to load recent entries. Please try again.</AlertDescription>
+            </Alert>
+          ) : recentEntries.length === 0 ? (
+            <div className="text-center py-12">
+              <IconUpload className="mx-auto h-12 w-12 text-muted-foreground" />
+              <h3 className="mt-4 text-lg font-semibold">No entries yet</h3>
+              <p className="text-sm text-muted-foreground mt-2">
+                Upload your first bill to get started
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {recentEntries.map((entry) => {
+                const fileName = getFileName(entry.billImageUrl || '');
+                const fileExt = getFileExtension(fileName);
+                
+                return (
+                  <Card key={entry.id} className="overflow-hidden">
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1 space-y-3">
+                          {/* File Info */}
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
+                              {fileExt === 'pdf' ? (
+                                <IconFileTypePdf className="w-6 h-6 text-red-500" />
+                              ) : (
+                                <IconFileTypeJpg className="w-6 h-6 text-blue-500" />
+                              )}
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                <p className="font-medium text-sm">{fileName}</p>
+                                {getStatusBadge(entry.status)}
+                              </div>
+                              <p className="text-xs text-muted-foreground">
+                                {formatDateTime(entry.createdAt)}
+                              </p>
+                            </div>
                           </div>
-                          <Progress value={upload.progress} className="h-1.5" />
-                        </div>
-                      )}
 
-                      {/* Extracted Data */}
-                      {upload.status === "completed" && upload.extractedData && (
-                        <div className="p-3 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-900 rounded-lg">
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                            <div>
-                              <p className="text-xs text-muted-foreground mb-1">Provider</p>
-                              <div className="flex items-center gap-1">
-                                {getUtilityIcon(upload.extractedData.type)}
-                                <span className="font-medium">{upload.extractedData.provider}</span>
+                          {/* Processing State */}
+                          {entry.status === "pending" && (
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between text-xs">
+                                <span className="text-muted-foreground">Extracting data with Gemini AI...</span>
+                              </div>
+                              <Progress value={50} className="h-1.5" />
+                            </div>
+                          )}
+
+                          {/* Extracted Data */}
+                          {(entry.status === "verified" || entry.extractionMethod === "auto") && (
+                            <div className="p-3 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-900 rounded-lg">
+                              <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
+                                <div>
+                                  <p className="text-xs text-muted-foreground mb-1">Provider</p>
+                                  <div className="flex items-center gap-1">
+                                    {getUtilityIcon(entry.utilityType)}
+                                    <span className="font-medium">{entry.provider}</span>
+                                  </div>
+                                </div>
+                                <div>
+                                  <p className="text-xs text-muted-foreground mb-1">Usage</p>
+                                  <p className="font-bold">{entry.usage} {entry.unit}</p>
+                                </div>
+                                <div>
+                                  <p className="text-xs text-muted-foreground mb-1">Amount</p>
+                                  <p className="font-bold">{entry.currency} {entry.amount.toFixed(2)}</p>
+                                </div>
+                                <div>
+                                  <p className="text-xs text-muted-foreground mb-1">CO2e</p>
+                                  <p className="font-bold text-green-600 dark:text-green-400">
+                                    {entry.co2e.toFixed(2)} kg
+                                  </p>
+                                </div>
+                                {entry.confidence && (
+                                  <div>
+                                    <p className="text-xs text-muted-foreground mb-1">AI Confidence</p>
+                                    <p className="font-bold text-green-600 dark:text-green-400">
+                                      {(entry.confidence * 100).toFixed(0)}%
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
+                              <div className="flex gap-2 mt-3">
+                                <Button size="sm" variant="outline" onClick={() => router.push(`/entries`)}>
+                                  <IconEdit className="w-3 h-3 mr-1" />
+                                  View Details
+                                </Button>
                               </div>
                             </div>
-                            <div>
-                              <p className="text-xs text-muted-foreground mb-1">Usage</p>
-                              <p className="font-bold">{upload.extractedData.usage} {upload.extractedData.unit}</p>
+                          )}
+
+                          {/* Flagged/Rejected Status */}
+                          {(entry.status === "flagged" || entry.status === "rejected") && (
+                            <div className="p-3 bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-900 rounded-lg">
+                              <div className="flex items-start gap-2">
+                                <IconAlertTriangle className="w-4 h-4 text-yellow-600 dark:text-yellow-400 mt-0.5" />
+                                <div className="flex-1">
+                                  <p className="text-sm font-medium text-yellow-600 dark:text-yellow-400">
+                                    {entry.status === "flagged" ? "Needs Review" : "Entry Rejected"}
+                                  </p>
+                                  <p className="text-xs text-yellow-600/80 dark:text-yellow-400/80 mt-1">
+                                    {entry.notes || "This entry requires manual verification"}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="flex gap-2 mt-3">
+                                <Button size="sm" variant="outline" onClick={() => router.push(`/entries`)}>
+                                  <IconEdit className="w-3 h-3 mr-1" />
+                                  Review Entry
+                                </Button>
+                              </div>
                             </div>
-                            <div>
-                              <p className="text-xs text-muted-foreground mb-1">Amount</p>
-                              <p className="font-bold">RM {upload.extractedData.amount.toFixed(2)}</p>
-                            </div>
-                            <div>
-                              <p className="text-xs text-muted-foreground mb-1">AI Confidence</p>
-                              <p className="font-bold text-green-600 dark:text-green-400">
-                                {(upload.extractedData.confidence * 100).toFixed(0)}%
-                              </p>
-                            </div>
-                          </div>
-                          <div className="flex gap-2 mt-3">
-                            <Button size="sm" variant="outline">
-                              <IconEdit className="w-3 h-3 mr-1" />
-                              Edit
-                            </Button>
-                            <Button size="sm">
-                              <IconCheck className="w-3 h-3 mr-1" />
-                              Confirm & Save
-                            </Button>
-                          </div>
+                          )}
                         </div>
-                      )}
 
-                      {/* Error Message */}
-                      {upload.status === "failed" && (
-                        <div className="p-3 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-900 rounded-lg">
-                          <div className="flex items-start gap-2">
-                            <IconAlertTriangle className="w-4 h-4 text-red-600 dark:text-red-400 mt-0.5" />
-                            <div className="flex-1">
-                              <p className="text-sm font-medium text-red-600 dark:text-red-400">
-                                Extraction Failed
-                              </p>
-                              <p className="text-xs text-red-600/80 dark:text-red-400/80 mt-1">
-                                {upload.error}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="flex gap-2 mt-3">
-                            <Button size="sm" variant="outline">
-                              <IconUpload className="w-3 h-3 mr-1" />
-                              Re-upload
-                            </Button>
-                            <Button size="sm" variant="outline">
-                              <IconEdit className="w-3 h-3 mr-1" />
-                              Manual Entry
-                            </Button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Delete Button */}
-                    <Button variant="ghost" size="sm">
-                      <IconX className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Batch Upload Info */}
-      <Card className="border-blue-200 dark:border-blue-900">
-        <CardHeader>
-          <CardTitle className="text-sm">💡 Pro Tip: Batch Upload</CardTitle>
-        </CardHeader>
-        <CardContent className="text-sm text-muted-foreground">
-          <p>
-            You can upload multiple bills at once! Select up to 10 files and our AI will process them in parallel. 
-            Perfect for uploading a month&apos;s worth of utility bills in one go.
-          </p>
+                        {/* View Button */}
+                        <Button variant="ghost" size="sm" onClick={() => router.push('/entries')}>
+                          <IconCheck className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

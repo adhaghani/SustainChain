@@ -1,8 +1,11 @@
+'use client';
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
 import { 
   IconSearch,
   IconDownload,
@@ -26,151 +29,33 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useAuditLogs, useAuditLogStats, formatAuditLogTimestamp } from "@/hooks/use-audit-logs";
+import { useState } from "react";
+import type { AuditAction, AuditStatus } from "@/types/firestore";
 
 const AuditLogPage = () => {
-  // Mock audit log data - will be replaced with Firestore data
-  const auditLogs = [
-    {
-      id: "1",
-      timestamp: "2026-01-17T15:45:00",
-      user: "Ahmad bin Ibrahim",
-      userEmail: "ahmad@muarfurniture.com",
-      action: "CREATE",
-      resource: "Entry",
-      resourceId: "entry-123",
-      details: "Created new electricity bill entry (TNB, 850 kWh, 498.95 kg CO2e)",
-      ipAddress: "103.20.45.128",
-      userAgent: "Chrome 120.0 (macOS)",
-      status: "success",
-      severity: "info"
-    },
-    {
-      id: "2",
-      timestamp: "2026-01-17T15:30:00",
-      user: "Ahmad bin Ibrahim",
-      userEmail: "ahmad@muarfurniture.com",
-      action: "UPLOAD",
-      resource: "Bill",
-      resourceId: "bill-456",
-      details: "Uploaded bill image TNB_Jan2026.jpg (2.3 MB)",
-      ipAddress: "103.20.45.128",
-      userAgent: "Chrome 120.0 (macOS)",
-      status: "success",
-      severity: "info"
-    },
-    {
-      id: "3",
-      timestamp: "2026-01-17T14:20:00",
-      user: "Siti Nurhaliza",
-      userEmail: "siti@muarfurniture.com",
-      action: "UPDATE",
-      resource: "Entry",
-      resourceId: "entry-122",
-      details: "Modified water bill entry - changed usage from 25 m³ to 28 m³",
-      ipAddress: "103.20.45.129",
-      userAgent: "Safari 17.1 (iOS)",
-      status: "success",
-      severity: "warning"
-    },
-    {
-      id: "4",
-      timestamp: "2026-01-17T13:15:00",
-      user: "Ahmad bin Ibrahim",
-      userEmail: "ahmad@muarfurniture.com",
-      action: "DOWNLOAD",
-      resource: "Report",
-      resourceId: "report-jan2026",
-      details: "Downloaded ESG Report for January 2026 (PDF)",
-      ipAddress: "103.20.45.128",
-      userAgent: "Chrome 120.0 (macOS)",
-      status: "success",
-      severity: "info"
-    },
-    {
-      id: "5",
-      timestamp: "2026-01-17T12:00:00",
-      user: "System",
-      userEmail: "system@sustainchain.app",
-      action: "AUTO_BACKUP",
-      resource: "Database",
-      resourceId: "backup-daily",
-      details: "Automated daily backup completed (458 MB)",
-      ipAddress: "Internal",
-      userAgent: "Cloud Functions",
-      status: "success",
-      severity: "info"
-    },
-    {
-      id: "6",
-      timestamp: "2026-01-17T11:30:00",
-      user: "Ahmad bin Ibrahim",
-      userEmail: "ahmad@muarfurniture.com",
-      action: "DELETE",
-      resource: "Entry",
-      resourceId: "entry-118",
-      details: "Deleted duplicate fuel entry (Petron receipt)",
-      ipAddress: "103.20.45.128",
-      userAgent: "Chrome 120.0 (macOS)",
-      status: "success",
-      severity: "warning"
-    },
-    {
-      id: "7",
-      timestamp: "2026-01-17T10:45:00",
-      user: "System",
-      userEmail: "system@sustainchain.app",
-      action: "AI_EXTRACTION",
-      resource: "Bill",
-      resourceId: "bill-455",
-      details: "AI extraction failed - image quality too low (confidence: 45%)",
-      ipAddress: "Internal",
-      userAgent: "Gemini API",
-      status: "failed",
-      severity: "error"
-    },
-    {
-      id: "8",
-      timestamp: "2026-01-17T09:30:00",
-      user: "Ahmad bin Ibrahim",
-      userEmail: "ahmad@muarfurniture.com",
-      action: "LOGIN",
-      resource: "Authentication",
-      resourceId: "session-789",
-      details: "User logged in successfully",
-      ipAddress: "103.20.45.128",
-      userAgent: "Chrome 120.0 (macOS)",
-      status: "success",
-      severity: "info"
-    },
-    {
-      id: "9",
-      timestamp: "2026-01-16T18:00:00",
-      user: "Ahmad bin Ibrahim",
-      userEmail: "ahmad@muarfurniture.com",
-      action: "UPDATE",
-      resource: "Settings",
-      resourceId: "settings-company",
-      details: "Updated emission factor for electricity (0.587 kg CO2e/kWh)",
-      ipAddress: "103.20.45.128",
-      userAgent: "Chrome 120.0 (macOS)",
-      status: "success",
-      severity: "warning"
-    },
-    {
-      id: "10",
-      timestamp: "2026-01-16T16:30:00",
-      user: "Siti Nurhaliza",
-      userEmail: "siti@muarfurniture.com",
-      action: "CREATE",
-      resource: "User",
-      resourceId: "user-004",
-      details: "Invited new user: rahman@muarfurniture.com (Role: Clerk)",
-      ipAddress: "103.20.45.129",
-      userAgent: "Safari 17.1 (iOS)",
-      status: "success",
-      severity: "info"
-    },
-  ];
+  const [actionFilter, setActionFilter] = useState<string>('all-actions');
+  const [statusFilter, setStatusFilter] = useState<string>('all-status');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Build filter options
+  const filterOptions = {
+    action: actionFilter !== 'all-actions' ? actionFilter as AuditAction : undefined,
+    status: statusFilter !== 'all-status' ? statusFilter as AuditStatus : undefined,
+    limitCount: 50,
+  };
+
+  const { logs: auditLogs, loading, error, refetch } = useAuditLogs(filterOptions);
+  const { stats, loading: statsLoading } = useAuditLogStats();
+
+  // Filter logs by search query (client-side)
+  const filteredLogs = searchQuery
+    ? auditLogs.filter((log) =>
+        log.userName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        log.details.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        log.action.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : auditLogs;
 
   const getActionIcon = (action: string) => {
     switch (action) {
@@ -201,8 +86,10 @@ const AuditLogPage = () => {
     switch (status) {
       case "success":
         return <Badge variant="default" className="bg-green-500"><IconCheck className="w-3 h-3 mr-1" />Success</Badge>;
-      case "failed":
+      case "failure":
         return <Badge variant="destructive"><IconAlertTriangle className="w-3 h-3 mr-1" />Failed</Badge>;
+      case "warning":
+        return <Badge variant="outline" className="border-yellow-500 text-yellow-600">Warning</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -221,16 +108,6 @@ const AuditLogPage = () => {
     }
   };
 
-  const formatDateTime = (dateString: string) => {
-    return new Date(dateString).toLocaleString('en-MY', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit'
-    });
-  };
-
   const getInitials = (name: string) => {
     return name
       .split(' ')
@@ -240,10 +117,37 @@ const AuditLogPage = () => {
       .slice(0, 2);
   };
 
-  const totalLogs = auditLogs.length;
-  const successfulActions = auditLogs.filter(log => log.status === "success").length;
-  const failedActions = auditLogs.filter(log => log.status === "failed").length;
-  const criticalChanges = auditLogs.filter(log => log.severity === "warning" || log.severity === "error").length;
+  const handleExport = async () => {
+    // TODO: Implement CSV/PDF export
+    console.log('Export audit logs');
+  };
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Audit Trail</h1>
+            <p className="text-muted-foreground mt-1">
+              Track all system activities and data modifications for compliance
+            </p>
+          </div>
+        </div>
+        <Card className="border-red-200 dark:border-red-900">
+          <CardHeader>
+            <CardTitle className="text-red-600 dark:text-red-400">Error Loading Audit Logs</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">{error.message}</p>
+            <Button onClick={refetch} className="mt-4" variant="outline">
+              <IconRefresh className="w-4 h-4 mr-2" />
+              Retry
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -256,11 +160,11 @@ const AuditLogPage = () => {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm">
-            <IconRefresh className="w-4 h-4 mr-2" />
+          <Button variant="outline" size="sm" onClick={refetch} disabled={loading}>
+            <IconRefresh className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
-          <Button size="sm">
+          <Button size="sm" onClick={handleExport}>
             <IconDownload className="w-4 h-4 mr-2" />
             Export Logs
           </Button>
@@ -274,10 +178,16 @@ const AuditLogPage = () => {
             <CardTitle className="text-sm font-medium text-muted-foreground">Total Activities</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalLogs}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Last 24 hours
-            </p>
+            {statsLoading ? (
+              <Skeleton className="h-8 w-20" />
+            ) : (
+              <>
+                <div className="text-2xl font-bold">{stats.totalLogs}</div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Last 100 activities
+                </p>
+              </>
+            )}
           </CardContent>
         </Card>
 
@@ -286,10 +196,16 @@ const AuditLogPage = () => {
             <CardTitle className="text-sm font-medium text-muted-foreground">Successful</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600 dark:text-green-400">{successfulActions}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {((successfulActions / totalLogs) * 100).toFixed(0)}% success rate
-            </p>
+            {statsLoading ? (
+              <Skeleton className="h-8 w-20" />
+            ) : (
+              <>
+                <div className="text-2xl font-bold text-green-600 dark:text-green-400">{stats.successfulActions}</div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {stats.totalLogs > 0 ? ((stats.successfulActions / stats.totalLogs) * 100).toFixed(0) : 0}% success rate
+                </p>
+              </>
+            )}
           </CardContent>
         </Card>
 
@@ -298,10 +214,16 @@ const AuditLogPage = () => {
             <CardTitle className="text-sm font-medium text-muted-foreground">Failed Actions</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600 dark:text-red-400">{failedActions}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Require attention
-            </p>
+            {statsLoading ? (
+              <Skeleton className="h-8 w-20" />
+            ) : (
+              <>
+                <div className="text-2xl font-bold text-red-600 dark:text-red-400">{stats.failedActions}</div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Require attention
+                </p>
+              </>
+            )}
           </CardContent>
         </Card>
 
@@ -310,10 +232,16 @@ const AuditLogPage = () => {
             <CardTitle className="text-sm font-medium text-muted-foreground">Critical Changes</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{criticalChanges}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Data modifications
-            </p>
+            {statsLoading ? (
+              <Skeleton className="h-8 w-20" />
+            ) : (
+              <>
+                <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{stats.criticalChanges}</div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Data modifications
+                </p>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -327,41 +255,38 @@ const AuditLogPage = () => {
               <Input 
                 placeholder="Search by user, action, or details..." 
                 className="pl-9"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            <Select defaultValue="all-actions">
+            <Select value={actionFilter} onValueChange={setActionFilter}>
               <SelectTrigger className="w-40">
                 <SelectValue placeholder="Action Type" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all-actions">All Actions</SelectItem>
-                <SelectItem value="create">Create</SelectItem>
-                <SelectItem value="update">Update</SelectItem>
-                <SelectItem value="delete">Delete</SelectItem>
-                <SelectItem value="login">Login/Logout</SelectItem>
-                <SelectItem value="upload">Upload</SelectItem>
-                <SelectItem value="download">Download</SelectItem>
+                <SelectItem value="CREATE">Create</SelectItem>
+                <SelectItem value="UPDATE">Update</SelectItem>
+                <SelectItem value="DELETE">Delete</SelectItem>
+                <SelectItem value="LOGIN">Login</SelectItem>
+                <SelectItem value="LOGOUT">Logout</SelectItem>
+                <SelectItem value="UPLOAD">Upload</SelectItem>
+                <SelectItem value="DOWNLOAD">Download</SelectItem>
+                <SelectItem value="VERIFY">Verify</SelectItem>
+                <SelectItem value="REJECT">Reject</SelectItem>
+                <SelectItem value="GENERATE_REPORT">Generate Report</SelectItem>
+                <SelectItem value="EXPORT">Export</SelectItem>
               </SelectContent>
             </Select>
-            <Select defaultValue="all-status">
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-35">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all-status">All Status</SelectItem>
                 <SelectItem value="success">Success</SelectItem>
-                <SelectItem value="failed">Failed</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select defaultValue="24h">
-              <SelectTrigger className="w-35">
-                <SelectValue placeholder="Time Range" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="24h">Last 24 Hours</SelectItem>
-                <SelectItem value="7d">Last 7 Days</SelectItem>
-                <SelectItem value="30d">Last 30 Days</SelectItem>
-                <SelectItem value="custom">Custom Range</SelectItem>
+                <SelectItem value="failure">Failed</SelectItem>
+                <SelectItem value="warning">Warning</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -375,93 +300,123 @@ const AuditLogPage = () => {
           <CardDescription>Chronological record of all system activities</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {auditLogs.map((log, index) => (
-              <div key={log.id} className="relative">
-                {/* Timeline Line */}
-                {index !== auditLogs.length - 1 && (
-                  <div className="absolute left-6.25 top-12.5 h-[calc(100%+16px)] w-0.5 bg-border" />
-                )}
-
-                {/* Log Entry */}
-                <div className="flex gap-4">
-                  {/* Icon */}
-                  <div className="shrink-0 w-12 h-12 rounded-full bg-muted flex items-center justify-center border-2 border-background relative z-10">
-                    {getActionIcon(log.action)}
-                  </div>
-
-                  {/* Content */}
-                  <div className="flex-1 pb-6">
-                    <Card>
-                      <CardContent className="p-4">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1 space-y-2">
-                            {/* Header */}
-                            <div className="flex items-center gap-2">
-                              <h4 className="font-semibold text-sm">{log.action}</h4>
-                              {getStatusBadge(log.status)}
-                              {getSeverityBadge(log.severity)}
-                            </div>
-
-                            {/* Details */}
-                            <p className="text-sm text-muted-foreground">{log.details}</p>
-
-                            {/* Metadata */}
-                            <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
-                              <div className="flex items-center gap-1">
-                                <Avatar className="w-5 h-5">
-                                  <AvatarImage src="" />
-                                  <AvatarFallback className="text-xs">
-                                    {log.user === "System" ? "SYS" : getInitials(log.user)}
-                                  </AvatarFallback>
-                                </Avatar>
-                                <span>{log.user}</span>
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <IconClock className="w-3 h-3" />
-                                <span>{formatDateTime(log.timestamp)}</span>
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <IconShieldCheck className="w-3 h-3" />
-                                <span>{log.ipAddress}</span>
-                              </div>
-                              {log.resourceId && (
-                                <div>
-                                  <Badge variant="outline" className="text-xs">
-                                    {log.resource}: {log.resourceId}
-                                  </Badge>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* User Agent (on hover/details) */}
-                          <div className="text-xs text-muted-foreground">
-                            {log.userAgent}
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
+          {loading ? (
+            <div className="space-y-4">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="flex gap-4">
+                  <Skeleton className="w-12 h-12 rounded-full" />
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-3 w-1/2" />
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : filteredLogs.length === 0 ? (
+            <div className="text-center py-12">
+              <IconShieldCheck className="mx-auto h-12 w-12 text-muted-foreground" />
+              <h3 className="mt-4 text-lg font-semibold">No audit logs found</h3>
+              <p className="text-sm text-muted-foreground mt-2">
+                {searchQuery || actionFilter !== 'all-actions' || statusFilter !== 'all-status'
+                  ? 'Try adjusting your filters'
+                  : 'Audit logs will appear here as activities occur'}
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {filteredLogs.map((log, index) => (
+                <div key={log.id} className="relative">
+                  {/* Timeline Line */}
+                  {index !== filteredLogs.length - 1 && (
+                    <div className="absolute left-6 top-12 h-[calc(100%+16px)] w-0.5 bg-border" />
+                  )}
+
+                  {/* Log Entry */}
+                  <div className="flex gap-4">
+                    {/* Icon */}
+                    <div className="shrink-0 w-12 h-12 rounded-full bg-muted flex items-center justify-center border-2 border-background relative z-10">
+                      {getActionIcon(log.action)}
+                    </div>
+
+                    {/* Content */}
+                    <div className="flex-1 pb-6">
+                      <Card>
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1 space-y-2">
+                              {/* Header */}
+                              <div className="flex items-center gap-2">
+                                <h4 className="font-semibold text-sm">{log.action}</h4>
+                                {getStatusBadge(log.status)}
+                                {getSeverityBadge(log.severity)}
+                              </div>
+
+                              {/* Details */}
+                              <p className="text-sm text-muted-foreground">{log.details}</p>
+
+                              {/* Metadata */}
+                              <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
+                                <div className="flex items-center gap-1">
+                                  <Avatar className="w-5 h-5">
+                                    <AvatarImage src="" />
+                                    <AvatarFallback className="text-xs">
+                                      {log.userName === "System" ? "SYS" : getInitials(log.userName)}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <span>{log.userName}</span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <IconClock className="w-3 h-3" />
+                                  <span>{formatAuditLogTimestamp(log.timestamp)}</span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <IconShieldCheck className="w-3 h-3" />
+                                  <span>{log.ipAddress}</span>
+                                </div>
+                                {log.resourceId && (
+                                  <div>
+                                    <Badge variant="outline" className="text-xs">
+                                      {log.resource}: {log.resourceId}
+                                    </Badge>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* User Agent - Truncated */}
+                          {log.userAgent && (
+                            <div className="mt-2 pt-2 border-t">
+                              <p className="text-xs text-muted-foreground truncate" title={log.userAgent}>
+                                <span className="font-medium">User Agent:</span> {log.userAgent}
+                              </p>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
 
           {/* Pagination */}
-          <div className="flex items-center justify-between mt-6 pt-4 border-t">
-            <p className="text-sm text-muted-foreground">
-              Showing {auditLogs.length} of {auditLogs.length} activities
-            </p>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" disabled>
-                Previous
-              </Button>
-              <Button variant="outline" size="sm" disabled>
-                Next
-              </Button>
+          {!loading && filteredLogs.length > 0 && (
+            <div className="flex items-center justify-between mt-6 pt-4 border-t">
+              <p className="text-sm text-muted-foreground">
+                Showing {filteredLogs.length} of {filteredLogs.length} activities
+              </p>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" disabled>
+                  Previous
+                </Button>
+                <Button variant="outline" size="sm" disabled>
+                  Next
+                </Button>
+              </div>
             </div>
-          </div>
+          )}
         </CardContent>
       </Card>
 
@@ -475,7 +430,7 @@ const AuditLogPage = () => {
         </CardHeader>
         <CardContent className="text-sm text-muted-foreground">
           <p>
-            All activities are logged and retained for <strong>5 years</strong> as required by Malaysia&apos;s Personal Data 
+            All activities are logged and retained for <strong>7 years</strong> as required by Malaysia&apos;s Personal Data 
             Protection Act (PDPA) and ESG reporting regulations. Audit logs are encrypted and backed up daily to ensure 
             data integrity for compliance audits.
           </p>

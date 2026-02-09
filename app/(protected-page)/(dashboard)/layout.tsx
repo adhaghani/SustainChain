@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/sidebar"
 import { LanguageProvider } from "@/lib/language-context"
 import { translations } from "@/lib/i18n"
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
 
 export default function Layout({ children }: { children: React.ReactNode }) {
@@ -24,12 +25,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <AppSidebar variant="inset" />
         <SidebarInset>
           <SiteHeader />
-          <div className="flex flex-1 flex-col">
-            <div className="@container/main flex flex-1 flex-col gap-2 p-4">
+          <ScrollArea className="flex flex-1 flex-col max-h-[calc(98vh-var(--header-height))]">
+            <ScrollBar orientation="vertical" />
+            <div className="@container/main flex flex-1 flex-col gap-2 p-4 max-w-5xl mx-auto w-full">
               {/* Page content goes here */}
               {children}
             </div>
-          </div>
+          </ScrollArea>
         </SidebarInset>
       </SidebarProvider>
     </LanguageProvider>

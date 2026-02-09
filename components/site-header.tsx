@@ -55,56 +55,8 @@ export function SiteHeader() {
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               
-              <DropdownMenuItem className="flex gap-3 p-3 cursor-pointer">
-                <div className="shrink-0 mt-1">
-                  <div className="rounded-full bg-green-100 dark:bg-green-900 p-1.5">
-                    <IconCheck className="h-4 w-4 text-green-600 dark:text-green-400" />
-                  </div>
-                </div>
-                <div className="flex-1 space-y-1">
-                  <p className="text-sm font-medium leading-none">
-                    {language === 'en' ? 'Bill Processed Successfully' : 'Bil Berjaya Diproses'}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {language === 'en' ? 'Your TNB bill has been analyzed' : 'Bil TNB anda telah dianalisis'}
-                  </p>
-                  <p className="text-xs text-muted-foreground">2h ago</p>
-                </div>
-              </DropdownMenuItem>
-
-              <DropdownMenuItem className="flex gap-3 p-3 cursor-pointer">
-                <div className="shrink-0 mt-1">
-                  <div className="rounded-full bg-blue-100 dark:bg-blue-900 p-1.5">
-                    <IconInfoCircle className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                  </div>
-                </div>
-                <div className="flex-1 space-y-1">
-                  <p className="text-sm font-medium leading-none">
-                    {language === 'en' ? 'New ESG Report Ready' : 'Laporan ESG Baharu Sedia'}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {language === 'en' ? 'January 2026 report is available' : 'Laporan Januari 2026 tersedia'}
-                  </p>
-                  <p className="text-xs text-muted-foreground">5h ago</p>
-                </div>
-              </DropdownMenuItem>
-
-              <DropdownMenuItem className="flex gap-3 p-3 cursor-pointer">
-                <div className="shrink-0 mt-1">
-                  <div className="rounded-full bg-amber-100 dark:bg-amber-900 p-1.5">
-                    <IconAlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-                  </div>
-                </div>
-                <div className="flex-1 space-y-1">
-                  <p className="text-sm font-medium leading-none">
-                    {language === 'en' ? 'High Usage Alert' : 'Amaran Penggunaan Tinggi'}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {language === 'en' ? 'Electricity usage 20% above average' : 'Penggunaan elektrik 20% melebihi purata'}
-                  </p>
-                  <p className="text-xs text-muted-foreground">1d ago</p>
-                </div>
-              </DropdownMenuItem>
+              {/* NOTIFICATION DETAILS GOES HERE */}
+              notifications details goes here
 
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>

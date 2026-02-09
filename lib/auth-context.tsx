@@ -1,8 +1,10 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { onAuthStateChanged, User, signOut as firebaseSignOut } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { doc, getDoc } from 'firebase/firestore';
+import { auth, db } from '@/lib/firebase';
 
 // User data interface for easy access to display info
 interface UserData {
@@ -11,6 +13,9 @@ interface UserData {
   displayName: string | null;
   photoURL: string | null;
   emailVerified: boolean;
+  tenantId: string | null;
+  tenantName: string | null;
+  role: 'admin' | 'clerk' | 'viewer' | null;
 }
 
 interface AuthContextType {
@@ -18,6 +23,8 @@ interface AuthContextType {
   userData: UserData | null;
   loading: boolean;
   signOut: () => Promise<void>;
+  tenantId: string | null;
+  role: 'admin' | 'clerk' | 'viewer' | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -32,23 +39,61 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!auth) {
+    if (!auth || !db) {
       setLoading(false);
       return;
     }
 
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
       
       if (currentUser) {
-        // Extract user data for easy access
-        setUserData({
-          uid: currentUser.uid,
-          email: currentUser.email,
-          displayName: currentUser.displayName,
-          photoURL: currentUser.photoURL,
-          emailVerified: currentUser.emailVerified,
-        });
+        try {
+          // Fetch user document from Firestore
+          const userDocRef = doc(db, 'users', currentUser.uid);
+          const userDocSnap = await getDoc(userDocRef);
+          
+          if (userDocSnap.exists()) {
+            const firestoreData = userDocSnap.data();
+            
+            // Extract user data including tenant info
+            setUserData({
+              uid: currentUser.uid,
+              email: currentUser.email,
+              displayName: currentUser.displayName || firestoreData.name || null,
+              photoURL: currentUser.photoURL || firestoreData.avatar || null,
+              emailVerified: currentUser.emailVerified,
+              tenantId: firestoreData.tenantId || null,
+              tenantName: firestoreData.tenantName || null,
+              role: firestoreData.role || null,
+            });
+          } else {
+            // Fallback if user document doesn't exist in Firestore yet
+            setUserData({
+              uid: currentUser.uid,
+              email: currentUser.email,
+              displayName: currentUser.displayName,
+              photoURL: currentUser.photoURL,
+              emailVerified: currentUser.emailVerified,
+              tenantId: null,
+              tenantName: null,
+              role: null,
+            });
+          }
+        } catch (error) {
+          console.error('Error fetching user data from Firestore:', error);
+          // Fallback to basic auth data
+          setUserData({
+            uid: currentUser.uid,
+            email: currentUser.email,
+            displayName: currentUser.displayName,
+            photoURL: currentUser.photoURL,
+            emailVerified: currentUser.emailVerified,
+            tenantId: null,
+            tenantName: null,
+            role: null,
+          });
+        }
       } else {
         setUserData(null);
       }
@@ -70,6 +115,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     userData,
     loading,
     signOut,
+    tenantId: userData?.tenantId || null,
+    role: userData?.role || null,
   };
 
   return (
