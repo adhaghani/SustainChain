@@ -21,14 +21,19 @@ service cloud.firestore {
       return request.auth.token.role;
     }
     
-    // Check if user belongs to the tenant
-    function belongsToTenant(tenantId) {
-      return isAuthenticated() && getUserTenantId() == tenantId;
+    // Check if user is superadmin
+    function isSuperAdmin() {
+      return isAuthenticated() && getUserRole() == 'superadmin';
     }
     
-    // Check if user is admin
+    // Check if user belongs to the tenant (or is superadmin with cross-tenant access)
+    function belongsToTenant(tenantId) {
+      return isAuthenticated() && (getUserTenantId() == tenantId || isSuperAdmin());
+    }
+    
+    // Check if user is admin (or superadmin)
     function isAdmin() {
-      return isAuthenticated() && getUserRole() == 'admin';
+      return isAuthenticated() && (getUserRole() == 'admin' || isSuperAdmin());
     }
     
     // Check if user is admin of specific tenant
@@ -36,9 +41,9 @@ service cloud.firestore {
       return belongsToTenant(tenantId) && isAdmin();
     }
     
-    // Check if user can write (admin or clerk)
+    // Check if user can write (admin, clerk, or superadmin)
     function canWrite() {
-      return isAuthenticated() && getUserRole() in ['admin', 'clerk'];
+      return isAuthenticated() && (getUserRole() in ['admin', 'clerk'] || isSuperAdmin());
     }
     
     // Check if resource belongs to user's tenant
@@ -51,6 +56,9 @@ service cloud.firestore {
     // ============================================
     
     match /users/{userId} {
+      // Superadmins can read any user
+      allow read: if isSuperAdmin();
+      
       // Users can read their own profile
       allow read: if isAuthenticated() && request.auth.uid == userId;
       
@@ -86,6 +94,9 @@ service cloud.firestore {
     // ============================================
     
     match /tenants/{tenantId} {
+      // Superadmins can read any tenant
+      allow read: if isSuperAdmin();
+      
       // Users can read their own tenant
       allow read: if belongsToTenant(tenantId);
       
@@ -194,15 +205,15 @@ service cloud.firestore {
     }
     
     // ============================================
-    // SYSTEM CONFIG COLLECTION (Admin-only)
+    // SYSTEM CONFIG COLLECTION (Superadmin-only)
     // ============================================
     
     match /system_config/{configId} {
       // Anyone can read emission factors (needed for calculations)
       allow read: if isAuthenticated();
       
-      // Only super admins can write (via Cloud Functions)
-      allow write: if false;
+      // Only superadmins can write
+      allow write: if isSuperAdmin();
     }
     
     // ============================================

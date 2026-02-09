@@ -3,10 +3,10 @@
  * Enforces permissions based on user roles
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { auth } from 'firebase-admin';
-import { getUserDocument } from './firestore-helpers';
-import type { UserRole, CustomClaims } from '@/types/firestore';
+import { NextRequest, NextResponse } from "next/server";
+import { auth } from "firebase-admin";
+import { getUserDocument } from "./firestore-helpers";
+import type { UserRole, CustomClaims } from "@/types/firestore";
 
 // ============================================
 // PERMISSION DEFINITIONS
@@ -14,35 +14,35 @@ import type { UserRole, CustomClaims } from '@/types/firestore';
 
 export const PERMISSIONS = {
   // User Management
-  VIEW_USERS: ['admin'],
-  CREATE_USERS: ['admin'],
-  UPDATE_USERS: ['admin'],
-  DELETE_USERS: ['admin'],
+  VIEW_USERS: ["superadmin", "admin"],
+  CREATE_USERS: ["superadmin", "admin"],
+  UPDATE_USERS: ["superadmin", "admin"],
+  DELETE_USERS: ["superadmin", "admin"],
 
   // Entry Management
-  VIEW_ENTRIES: ['admin', 'clerk', 'viewer'],
-  CREATE_ENTRIES: ['admin', 'clerk'],
-  UPDATE_OWN_ENTRIES: ['admin', 'clerk'],
-  UPDATE_ANY_ENTRIES: ['admin'],
-  DELETE_ENTRIES: ['admin'],
-  VERIFY_ENTRIES: ['admin'],
+  VIEW_ENTRIES: ["superadmin", "admin", "clerk", "viewer"],
+  CREATE_ENTRIES: ["superadmin", "admin", "clerk"],
+  UPDATE_OWN_ENTRIES: ["superadmin", "admin", "clerk"],
+  UPDATE_ANY_ENTRIES: ["superadmin", "admin"],
+  DELETE_ENTRIES: ["superadmin", "admin"],
+  VERIFY_ENTRIES: ["superadmin", "admin"],
 
   // Report Management
-  VIEW_REPORTS: ['admin', 'clerk', 'viewer'],
-  GENERATE_REPORTS: ['admin', 'clerk'],
-  DELETE_REPORTS: ['admin'],
+  VIEW_REPORTS: ["superadmin", "admin", "clerk", "viewer"],
+  GENERATE_REPORTS: ["superadmin", "admin", "clerk"],
+  DELETE_REPORTS: ["superadmin", "admin"],
 
   // Tenant Management
-  VIEW_TENANT: ['admin', 'clerk', 'viewer'],
-  UPDATE_TENANT: ['admin'],
-  VIEW_ANALYTICS: ['admin', 'clerk', 'viewer'],
+  VIEW_TENANT: ["superadmin", "admin", "clerk", "viewer"],
+  UPDATE_TENANT: ["superadmin", "admin"],
+  VIEW_ANALYTICS: ["superadmin", "admin", "clerk", "viewer"],
 
   // Audit Logs
-  VIEW_AUDIT_LOGS: ['admin'],
+  VIEW_AUDIT_LOGS: ["superadmin", "admin"],
 
-  // System Configuration
-  VIEW_SYSTEM_CONFIG: ['admin'],
-  UPDATE_SYSTEM_CONFIG: ['admin'],
+  // System Configuration (Superadmin only)
+  VIEW_SYSTEM_CONFIG: ["superadmin"],
+  UPDATE_SYSTEM_CONFIG: ["superadmin"],
 } as const;
 
 export type Permission = keyof typeof PERMISSIONS;
@@ -62,14 +62,20 @@ export function hasPermission(role: UserRole, permission: Permission): boolean {
 /**
  * Check if user has any of the required permissions
  */
-export function hasAnyPermission(role: UserRole, permissions: Permission[]): boolean {
+export function hasAnyPermission(
+  role: UserRole,
+  permissions: Permission[],
+): boolean {
   return permissions.some((permission) => hasPermission(role, permission));
 }
 
 /**
  * Check if user has all required permissions
  */
-export function hasAllPermissions(role: UserRole, permissions: Permission[]): boolean {
+export function hasAllPermissions(
+  role: UserRole,
+  permissions: Permission[],
+): boolean {
   return permissions.every((permission) => hasPermission(role, permission));
 }
 
@@ -81,16 +87,16 @@ export function hasAllPermissions(role: UserRole, permissions: Permission[]): bo
  * Verify Firebase ID token and extract custom claims
  */
 export async function verifyAuthToken(
-  request: NextRequest
+  request: NextRequest,
 ): Promise<{ uid: string; claims: CustomClaims } | null> {
   try {
     // Get authorization header
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    const authHeader = request.headers.get("authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return null;
     }
 
-    const idToken = authHeader.split('Bearer ')[1];
+    const idToken = authHeader.split("Bearer ")[1];
 
     // Verify the ID token
     const decodedToken = await auth().verifyIdToken(idToken);
@@ -104,7 +110,7 @@ export async function verifyAuthToken(
 
     // Validate custom claims exist
     if (!claims.role || !claims.tenantId) {
-      console.error('Missing custom claims for user:', decodedToken.uid);
+      console.error("Missing custom claims for user:", decodedToken.uid);
       return null;
     }
 
@@ -113,7 +119,7 @@ export async function verifyAuthToken(
       claims,
     };
   } catch (error) {
-    console.error('Token verification error:', error);
+    console.error("Token verification error:", error);
     return null;
   }
 }
@@ -122,7 +128,7 @@ export async function verifyAuthToken(
  * Get current user with role from request
  */
 export async function getCurrentUser(
-  request: NextRequest
+  request: NextRequest,
 ): Promise<{ uid: string; role: UserRole; tenantId: string } | null> {
   const auth = await verifyAuthToken(request);
   if (!auth) {
@@ -144,9 +150,12 @@ export async function getCurrentUser(
  * Require authentication middleware
  */
 export async function requireAuth(
-  request: NextRequest
+  request: NextRequest,
 ): Promise<
-  | { authenticated: true; user: { uid: string; role: UserRole; tenantId: string } }
+  | {
+      authenticated: true;
+      user: { uid: string; role: UserRole; tenantId: string };
+    }
   | { authenticated: false; response: NextResponse }
 > {
   const user = await getCurrentUser(request);
@@ -155,8 +164,8 @@ export async function requireAuth(
     return {
       authenticated: false,
       response: NextResponse.json(
-        { success: false, error: 'Unauthorized', code: 'UNAUTHORIZED' },
-        { status: 401 }
+        { success: false, error: "Unauthorized", code: "UNAUTHORIZED" },
+        { status: 401 },
       ),
     };
   }
@@ -172,9 +181,12 @@ export async function requireAuth(
  */
 export async function requirePermission(
   request: NextRequest,
-  permission: Permission
+  permission: Permission,
 ): Promise<
-  | { authorized: true; user: { uid: string; role: UserRole; tenantId: string } }
+  | {
+      authorized: true;
+      user: { uid: string; role: UserRole; tenantId: string };
+    }
   | { authorized: false; response: NextResponse }
 > {
   const authResult = await requireAuth(request);
@@ -194,10 +206,10 @@ export async function requirePermission(
       response: NextResponse.json(
         {
           success: false,
-          error: 'Forbidden - Insufficient permissions',
-          code: 'FORBIDDEN',
+          error: "Forbidden - Insufficient permissions",
+          code: "FORBIDDEN",
         },
-        { status: 403 }
+        { status: 403 },
       ),
     };
   }
@@ -212,12 +224,15 @@ export async function requirePermission(
  * Require admin role middleware
  */
 export async function requireAdmin(
-  request: NextRequest
+  request: NextRequest,
 ): Promise<
-  | { authorized: true; user: { uid: string; role: UserRole; tenantId: string } }
+  | {
+      authorized: true;
+      user: { uid: string; role: UserRole; tenantId: string };
+    }
   | { authorized: false; response: NextResponse }
 > {
-  return requirePermission(request, 'UPDATE_SYSTEM_CONFIG');
+  return requirePermission(request, "UPDATE_SYSTEM_CONFIG");
 }
 
 /**
@@ -225,7 +240,7 @@ export async function requireAdmin(
  */
 export async function verifyTenantAccess(
   userId: string,
-  tenantId: string
+  tenantId: string,
 ): Promise<boolean> {
   const userDoc = await getUserDocument(userId);
   if (!userDoc) {
@@ -244,7 +259,7 @@ export async function verifyTenantAccess(
  */
 export async function setUserCustomClaims(
   userId: string,
-  claims: CustomClaims
+  claims: CustomClaims,
 ): Promise<void> {
   await auth().setCustomUserClaims(userId, claims);
 }
@@ -254,14 +269,14 @@ export async function setUserCustomClaims(
  */
 export async function updateUserRoleWithClaims(
   userId: string,
-  newRole: UserRole
+  newRole: UserRole,
 ): Promise<void> {
   // Get current custom claims
   const userRecord = await auth().getUser(userId);
   const currentClaims = userRecord.customClaims as CustomClaims;
 
   if (!currentClaims || !currentClaims.tenantId) {
-    throw new Error('User does not have valid custom claims');
+    throw new Error("User does not have valid custom claims");
   }
 
   // Update custom claims with new role

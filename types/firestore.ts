@@ -183,6 +183,7 @@ export interface CreateTenantData {
 // ============================================
 
 export interface EntryDocument {
+  extractionConfidence: boolean;
   // Identity
   id: string;
   tenantId: string;

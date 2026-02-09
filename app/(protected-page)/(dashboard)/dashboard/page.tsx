@@ -316,8 +316,22 @@ const DashboardPage = () => {
               {recentEntries.length} Bills
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              {recentEntries.filter((e) => e.extractionConfidence && e.extractionConfidence > 70).length} auto-extracted,{" "}
-              {recentEntries.filter((e) => !e.extractionConfidence || e.extractionConfidence <= 70).length} manual
+              {
+                recentEntries.filter(
+                  (e) =>
+                    typeof e.extractionConfidence === "number" &&
+                    e.extractionConfidence > 70,
+                ).length
+              }{" "}
+              auto-extracted,{" "}
+              {
+                recentEntries.filter(
+                  (e) =>
+                    typeof e.extractionConfidence !== "number" ||
+                    e.extractionConfidence <= 70,
+                ).length
+              }{" "}
+              manual
             </p>
           </CardContent>
         </Card>
