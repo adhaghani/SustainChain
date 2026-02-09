@@ -129,10 +129,10 @@ const DashboardPage = () => {
             <CardDescription>Carbon footprint by utility type (January 2026)</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {emissionBreakdown.map((item) => {
+            {emissionBreakdown.map((item, index) => {
               const Icon = item.icon;
               return (
-                <div key={item.type} className="space-y-2">
+                <div key={index} className="space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Icon className={`w-4 h-4 ${item.color}`} />

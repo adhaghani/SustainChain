@@ -1,7 +1,12 @@
+'use client';
+
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 import { 
   IconTrendingDown,
@@ -11,7 +16,8 @@ import {
   IconAward,
   IconDownload,
   IconRefresh,
-  IconArrowDown
+  IconArrowDown,
+  IconAlertTriangle
 } from "@tabler/icons-react";
 import {
   Select,
@@ -20,58 +26,33 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useAnalytics } from '@/hooks/use-analytics';
 
 const AnalyticsPage = () => {
-  // Mock data - will be replaced with BigQuery data
-  const yourPerformance = {
-    currentEmissions: 1247.5,
-    previousEmissions: 1348.2,
-    sectorAverage: 1556.3,
-    percentile: 68, // Top 32%
-    rank: 32,
-    totalCompanies: 100,
-    sector: "Manufacturing"
+  const [period, setPeriod] = useState<'monthly' | 'quarterly' | 'yearly'>('monthly');
+  const { data, loading, error, refetch } = useAnalytics(period);
+
+  // If no data yet, show defaults for UI structure
+  const yourPerformance = data?.yourPerformance || {
+    currentEmissions: 0,
+    previousEmissions: 0,
+    sectorAverage: 0,
+    percentile: 0,
+    rank: 0,
+    totalCompanies: 0,
+    sector: "",
+    improvement: 0,
+    belowAverage: 0,
   };
 
-  const sectorComparison = [
-    { sector: "Your Company", emissions: 1247.5, isYou: true, rank: 1 },
-    { sector: "Top Performer", emissions: 980.2, isYou: false, rank: 1 },
-    { sector: "25th Percentile", emissions: 1120.5, isYou: false, rank: 25 },
-    { sector: "Median (50th)", emissions: 1345.8, isYou: false, rank: 50 },
-    { sector: "Sector Average", emissions: 1556.3, isYou: false, rank: 0 },
-    { sector: "75th Percentile", emissions: 1820.4, isYou: false, rank: 75 },
-    { sector: "Bottom Performer", emissions: 2340.1, isYou: false, rank: 100 },
-  ];
+  const sectorComparison = data?.sectorComparison || [];
+  const regionalComparison = data?.regionalComparison || [];
+  const topPerformers = data?.topPerformers || [];
+  const emissionTrends = data?.emissionTrends || [];
 
-  const regionalComparison = [
-    { region: "Johor", avgEmissions: 1420.5, companies: 45 },
-    { region: "Selangor", avgEmissions: 1380.2, companies: 78 },
-    { region: "Penang", avgEmissions: 1245.8, companies: 34 },
-    { region: "Kuala Lumpur", avgEmissions: 1156.3, companies: 52 },
-  ];
-
-  const topPerformers = [
-    { name: "Green Tech Solutions", sector: "Technology", emissions: 892.3, improvement: -15.2 },
-    { name: "Eco Manufacturing Sdn Bhd", sector: "Manufacturing", emissions: 980.2, improvement: -12.8 },
-    { name: "Your Company (Muar Furniture)", sector: "Manufacturing", emissions: 1247.5, improvement: -7.5, isYou: true },
-    { name: "Sustainable Foods Ltd", sector: "F&B", emissions: 1289.4, improvement: -6.3 },
-    { name: "Clean Logistics Pro", sector: "Logistics", emissions: 1345.7, improvement: -5.1 },
-  ];
-
-  const emissionTrends = [
-    { month: "Jul 25", yours: 1456, sectorAvg: 1620 },
-    { month: "Aug 25", yours: 1420, sectorAvg: 1598 },
-    { month: "Sep 25", yours: 1389, sectorAvg: 1580 },
-    { month: "Oct 25", yours: 1402, sectorAvg: 1572 },
-    { month: "Nov 25", yours: 1380, sectorAvg: 1565 },
-    { month: "Dec 25", yours: 1348, sectorAvg: 1560 },
-    { month: "Jan 26", yours: 1247, sectorAvg: 1556 },
-  ];
-
-  const improvementRate = ((yourPerformance.previousEmissions - yourPerformance.currentEmissions) / yourPerformance.previousEmissions * 100).toFixed(1);
-  const belowAverage = ((1 - yourPerformance.currentEmissions / yourPerformance.sectorAverage) * 100).toFixed(0);
-
-  const maxEmissions = Math.max(...sectorComparison.map(s => s.emissions));
+  const maxEmissions = sectorComparison.length > 0 
+    ? Math.max(...sectorComparison.map(s => s.emissions))
+    : 1;
 
   return (
     <div className="space-y-6">
@@ -84,329 +65,461 @@ const AnalyticsPage = () => {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm">
-            <IconRefresh className="w-4 h-4 mr-2" />
+          <Button variant="outline" size="sm" onClick={() => refetch()} disabled={loading}>
+            <IconRefresh className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
             Refresh Data
           </Button>
-          <Button size="sm">
+          <Button size="sm" disabled={loading || !data}>
             <IconDownload className="w-4 h-4 mr-2" />
             Export Report
           </Button>
         </div>
       </div>
 
+      {/* Error Alert */}
+      {error && (
+        <Alert variant="destructive">
+          <IconAlertTriangle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
+      {/* No Data State */}
+      {!loading && !error && !data && (
+        <Card>
+          <CardContent className="py-12 text-center">
+            <div className="flex flex-col items-center gap-4">
+              <IconChartBar className="w-16 h-16 text-muted-foreground opacity-50" />
+              <div>
+                <h3 className="font-semibold text-lg">No Analytics Data Available</h3>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Upload some bills to start seeing your carbon footprint analysis
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Filters */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex gap-3">
-            <Select defaultValue="manufacturing">
-              <SelectTrigger className="w-50">
-                <SelectValue placeholder="Sector" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="manufacturing">Manufacturing</SelectItem>
-                <SelectItem value="fnb">Food & Beverage</SelectItem>
-                <SelectItem value="logistics">Logistics</SelectItem>
-                <SelectItem value="technology">Technology</SelectItem>
-                <SelectItem value="all">All Sectors</SelectItem>
-              </SelectContent>
-            </Select>
+      {(loading || data) && (
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex gap-3">
+              <Select 
+                value={period} 
+                onValueChange={(value) => setPeriod(value as 'monthly' | 'quarterly' | 'yearly')}
+                disabled={loading}
+              >
+                <SelectTrigger className="w-45">
+                  <SelectValue placeholder="Time Period" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="monthly">Monthly</SelectItem>
+                  <SelectItem value="quarterly">Quarterly</SelectItem>
+                  <SelectItem value="yearly">Yearly</SelectItem>
+                </SelectContent>
+              </Select>
 
-            <Select defaultValue="monthly">
-              <SelectTrigger className="w-45">
-                <SelectValue placeholder="Time Period" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="monthly">Monthly</SelectItem>
-                <SelectItem value="quarterly">Quarterly</SelectItem>
-                <SelectItem value="yearly">Yearly</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select defaultValue="all-regions">
-              <SelectTrigger className="w-45">
-                <SelectValue placeholder="Region" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all-regions">All Malaysia</SelectItem>
-                <SelectItem value="johor">Johor</SelectItem>
-                <SelectItem value="selangor">Selangor</SelectItem>
-                <SelectItem value="penang">Penang</SelectItem>
-                <SelectItem value="kl">Kuala Lumpur</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
+              <Select defaultValue={yourPerformance.sector} disabled={loading}>
+                <SelectTrigger className="w-50">
+                  <SelectValue placeholder="Sector" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={yourPerformance.sector ? yourPerformance.sector : 'NULL'} disabled={!yourPerformance.sector}>
+                    {yourPerformance.sector || 'Your Sector'}
+                  </SelectItem>
+                </SelectContent> 
+              </Select>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Key Metrics */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Your Ranking</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">Top {100 - yourPerformance.percentile}%</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Rank #{yourPerformance.rank} of {yourPerformance.totalCompanies} companies
-            </p>
-            <Progress value={yourPerformance.percentile} className="mt-2 h-2" />
-          </CardContent>
-        </Card>
+      {loading ? (
+        <div className="grid gap-4 md:grid-cols-4">
+          {[...Array(4)].map((_, i) => (
+            <Card key={i}>
+              <CardHeader className="pb-2">
+                <Skeleton className="h-4 w-32" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-8 w-24 mb-2" />
+                <Skeleton className="h-3 w-40" />
+                <Skeleton className="h-2 w-full mt-2" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : data && (
+        <div className="grid gap-4 md:grid-cols-4">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Your Ranking</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {yourPerformance.totalCompanies > 0 
+                  ? `Top ${100 - yourPerformance.percentile}%`
+                  : 'N/A'}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {yourPerformance.rank > 0 
+                  ? `Rank #${yourPerformance.rank} of ${yourPerformance.totalCompanies} companies`
+                  : 'Not enough data'}
+              </p>
+              <Progress value={yourPerformance.percentile} className="mt-2 h-2" />
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">vs Sector Average</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600 dark:text-green-400">-{belowAverage}%</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {belowAverage}% below sector average
-            </p>
-            <div className="flex items-center gap-1 mt-2 text-xs text-green-600 dark:text-green-400">
-              <IconTrendingDown className="w-4 h-4" />
-              <span>Better than average</span>
-            </div>
-          </CardContent>
-        </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">vs Sector Average</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className={`text-2xl font-bold ${yourPerformance.belowAverage > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                {yourPerformance.belowAverage > 0 ? '-' : '+'}{Math.abs(yourPerformance.belowAverage).toFixed(0)}%
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {yourPerformance.belowAverage > 0 
+                  ? `${yourPerformance.belowAverage.toFixed(0)}% below sector average`
+                  : `${Math.abs(yourPerformance.belowAverage).toFixed(0)}% above sector average`}
+              </p>
+              <div className={`flex items-center gap-1 mt-2 text-xs ${yourPerformance.belowAverage > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                <IconTrendingDown className="w-4 h-4" />
+                <span>{yourPerformance.belowAverage > 0 ? 'Better than average' : 'Above average'}</span>
+              </div>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Monthly Improvement</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600 dark:text-green-400">-{improvementRate}%</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              From {yourPerformance.previousEmissions} to {yourPerformance.currentEmissions} kg
-            </p>
-            <div className="flex items-center gap-1 mt-2 text-xs text-green-600 dark:text-green-400">
-              <IconArrowDown className="w-4 h-4" />
-              <span>On track to target</span>
-            </div>
-          </CardContent>
-        </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Monthly Improvement</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className={`text-2xl font-bold ${yourPerformance.improvement > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                {yourPerformance.improvement > 0 ? '-' : '+'}{Math.abs(yourPerformance.improvement).toFixed(1)}%
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                From {yourPerformance.previousEmissions.toFixed(0)} to {yourPerformance.currentEmissions.toFixed(0)} kg
+              </p>
+              <div className={`flex items-center gap-1 mt-2 text-xs ${yourPerformance.improvement > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                <IconArrowDown className="w-4 h-4" />
+                <span>{yourPerformance.improvement > 0 ? 'On track to target' : 'Increasing'}</span>
+              </div>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Sector</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{yourPerformance.sector}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {yourPerformance.totalCompanies} companies tracked
-            </p>
-            <Badge variant="outline" className="mt-2">Medium-sized SME</Badge>
-          </CardContent>
-        </Card>
-      </div>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Sector</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{yourPerformance.sector}</div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {yourPerformance.totalCompanies} companies tracked
+              </p>
+              <Badge variant="outline" className="mt-2">SME</Badge>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Performance Highlight */}
-      <Card className="border-green-200 dark:border-green-900 bg-green-50 dark:bg-green-950">
-        <CardHeader>
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full bg-green-500 flex items-center justify-center">
-              <IconAward className="w-6 h-6 text-white" />
+      {!loading && data && yourPerformance.belowAverage > 0 && (
+        <Card className="border-green-200 dark:border-green-900 bg-green-50 dark:bg-green-950">
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-green-500 flex items-center justify-center">
+                <IconAward className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <CardTitle className="text-green-900 dark:text-green-100">
+                  Excellent Performance! 🎉
+                </CardTitle>
+                <CardDescription className="text-green-700 dark:text-green-300">
+                  You&apos;re emitting {yourPerformance.belowAverage.toFixed(0)}% less than the {yourPerformance.sector} sector average. 
+                  Keep up the great work to maintain your competitive advantage.
+                </CardDescription>
+              </div>
             </div>
-            <div>
-              <CardTitle className="text-green-900 dark:text-green-100">
-                Excellent Performance! 🎉
-              </CardTitle>
-              <CardDescription className="text-green-700 dark:text-green-300">
-                You&apos;re emitting {belowAverage}% less than the {yourPerformance.sector} sector average. 
-                Keep up the great work to maintain your competitive advantage.
-              </CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-      </Card>
+          </CardHeader>
+        </Card>
+      )}
 
       {/* Sector Comparison Chart */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Sector Benchmarking - {yourPerformance.sector}</CardTitle>
-          <CardDescription>Your position relative to industry peers (kg CO2e/month)</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {sectorComparison.map((item) => {
-            const percentage = (item.emissions / maxEmissions) * 100;
-            
-            return (
-              <div key={item.sector} className={`space-y-2 ${item.isYou ? 'p-3 bg-primary/10 rounded-lg border-2 border-primary' : ''}`}>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    {item.isYou && <IconTarget className="w-4 h-4 text-primary" />}
-                    <span className={`text-sm font-medium ${item.isYou ? 'text-primary font-bold' : ''}`}>
-                      {item.sector}
-                    </span>
-                    {item.isYou && <Badge variant="default">You</Badge>}
-                  </div>
-                  <span className={`text-sm font-bold ${item.isYou ? 'text-primary' : ''}`}>
-                    {item.emissions.toFixed(1)} kg
-                  </span>
+      {loading ? (
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-6 w-64" />
+            <Skeleton className="h-4 w-96 mt-2" />
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {[...Array(7)].map((_, i) => (
+                <div key={i} className="space-y-2">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-3 w-full" />
                 </div>
-                <Progress value={percentage} className={`h-3 ${item.isYou ? 'bg-primary/20' : ''}`} />
-              </div>
-            );
-          })}
-        </CardContent>
-      </Card>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      ) : data && sectorComparison.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Sector Benchmarking - {yourPerformance.sector}</CardTitle>
+            <CardDescription>Your position relative to industry peers (kg CO2e/month)</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {sectorComparison.map((item) => {
+              const percentage = maxEmissions > 0 ? (item.emissions / maxEmissions) * 100 : 0;
+              
+              return (
+                <div key={item.label} className={`space-y-2 ${item.isYou ? 'p-3 bg-primary/10 rounded-lg border-2 border-primary' : ''}`}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      {item.isYou && <IconTarget className="w-4 h-4 text-primary" />}
+                      <span className={`text-sm font-medium ${item.isYou ? 'text-primary font-bold' : ''}`}>
+                        {item.label}
+                      </span>
+                      {item.isYou && <Badge variant="default">You</Badge>}
+                    </div>
+                    <span className={`text-sm font-bold ${item.isYou ? 'text-primary' : ''}`}>
+                      {item.emissions.toFixed(1)} kg
+                    </span>
+                  </div>
+                  <Progress value={percentage} className={`h-3 ${item.isYou ? 'bg-primary/20' : ''}`} />
+                </div>
+              );
+            })}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Trend Analysis */}
       <div className="grid gap-4 md:grid-cols-2">
         {/* Emission Trends */}
-        <Card>
-          <CardHeader>
-            <CardTitle>6-Month Emission Trends</CardTitle>
-            <CardDescription>Your emissions vs sector average over time</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {emissionTrends.map((data) => {
-              const maxTrend = Math.max(data.yours, data.sectorAvg);
-              const yourPercentage = (data.yours / maxTrend) * 100;
-              const avgPercentage = (data.sectorAvg / maxTrend) * 100;
-              
-              return (
-                <div key={data.month} className="space-y-2">
-                  <div className="flex items-center justify-between text-xs font-medium">
-                    <span>{data.month}</span>
-                    <div className="flex gap-4">
-                      <span className="text-primary">You: {data.yours} kg</span>
-                      <span className="text-muted-foreground">Avg: {data.sectorAvg} kg</span>
+        {loading ? (
+          <Card>
+            <CardHeader>
+              <Skeleton className="h-6 w-48" />
+              <Skeleton className="h-4 w-64 mt-2" />
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {[...Array(6)].map((_, i) => (
+                  <Skeleton key={i} className="h-10 w-full" />
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        ) : data && emissionTrends.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Emission Trends</CardTitle>
+              <CardDescription>Your emissions vs sector average over time</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {emissionTrends.map((trend) => {
+                const maxTrend = Math.max(trend.tenantEmissions, trend.sectorAverage);
+                const yourPercentage = maxTrend > 0 ? (trend.tenantEmissions / maxTrend) * 100 : 0;
+                const avgPercentage = maxTrend > 0 ? (trend.sectorAverage / maxTrend) * 100 : 0;
+                
+                return (
+                  <div key={trend.month} className="space-y-2">
+                    <div className="flex items-center justify-between text-xs font-medium">
+                      <span>{trend.month}</span>
+                      <div className="flex gap-4">
+                        <span className="text-primary">You: {trend.tenantEmissions.toFixed(0)} kg</span>
+                        <span className="text-muted-foreground">Avg: {trend.sectorAverage.toFixed(0)} kg</span>
+                      </div>
+                    </div>
+                    <div className="relative h-6">
+                      <Progress value={yourPercentage} className="h-3 absolute top-0" />
+                      <Progress value={avgPercentage} className="h-3 absolute top-3 opacity-40" />
                     </div>
                   </div>
-                  <div className="relative h-6">
-                    <Progress value={yourPercentage} className="h-3 absolute top-0" />
-                    <Progress value={avgPercentage} className="h-3 absolute top-3 opacity-40" />
-                  </div>
-                </div>
-              );
-            })}
-          </CardContent>
-        </Card>
+                );
+              })}
+            </CardContent>
+          </Card>
+        )}
 
         {/* Regional Comparison */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Regional Comparison</CardTitle>
-            <CardDescription>Average emissions by state/region</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {regionalComparison.map((region) => {
-              const isYourRegion = region.region === "Johor";
-              const maxRegional = Math.max(...regionalComparison.map(r => r.avgEmissions));
-              const percentage = (region.avgEmissions / maxRegional) * 100;
-              
-              return (
-                <div key={region.region} className={`space-y-2 ${isYourRegion ? 'p-2 bg-primary/10 rounded-lg' : ''}`}>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className={`text-sm font-medium ${isYourRegion ? 'text-primary font-bold' : ''}`}>
-                        {region.region}
-                      </span>
-                      {isYourRegion && <Badge variant="outline" className="text-xs">Your Region</Badge>}
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm font-bold">{region.avgEmissions.toFixed(1)} kg</p>
-                      <p className="text-xs text-muted-foreground">{region.companies} companies</p>
-                    </div>
+        {loading ? (
+          <Card>
+            <CardHeader>
+              <Skeleton className="h-6 w-48" />
+              <Skeleton className="h-4 w-64 mt-2" />
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="space-y-2">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-2 w-full" />
                   </div>
-                  <Progress value={percentage} className="h-2" />
-                </div>
-              );
-            })}
-          </CardContent>
-        </Card>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        ) : data && regionalComparison.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Regional Comparison</CardTitle>
+              <CardDescription>Average emissions by state/region</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {regionalComparison.map((region) => {
+                const maxRegional = Math.max(...regionalComparison.map(r => r.avgEmissions));
+                const percentage = maxRegional > 0 ? (region.avgEmissions / maxRegional) * 100 : 0;
+                
+                return (
+                  <div key={region.region} className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">{region.region}</span>
+                      <div className="text-right">
+                        <p className="text-sm font-bold">{region.avgEmissions.toFixed(1)} kg</p>
+                        <p className="text-xs text-muted-foreground">{region.companyCount} companies</p>
+                      </div>
+                    </div>
+                    <Progress value={percentage} className="h-2" />
+                  </div>
+                );
+              })}
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* Top Performers Leaderboard */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <IconAward className="w-5 h-5 text-yellow-500" />
-            Top Performers - {yourPerformance.sector}
-          </CardTitle>
-          <CardDescription>Companies with the best emission reduction rates</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {topPerformers.map((company, index) => (
-              <div 
-                key={company.name}
-                className={`flex items-center justify-between p-4 border rounded-lg ${company.isYou ? 'bg-primary/10 border-primary' : ''}`}
-              >
-                <div className="flex items-center gap-4">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
-                    index === 0 ? 'bg-yellow-500 text-white' :
-                    index === 1 ? 'bg-gray-400 text-white' :
-                    index === 2 ? 'bg-amber-600 text-white' :
-                    'bg-muted text-muted-foreground'
-                  }`}>
-                    {index + 1}
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <p className={`font-semibold text-sm ${company.isYou ? 'text-primary' : ''}`}>
-                        {company.name}
-                      </p>
-                      {company.isYou && <Badge variant="default">You</Badge>}
+      {loading ? (
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-6 w-64" />
+            <Skeleton className="h-4 w-96 mt-2" />
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {[...Array(5)].map((_, i) => (
+                <Skeleton key={i} className="h-20 w-full" />
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      ) : data && topPerformers.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <IconAward className="w-5 h-5 text-yellow-500" />
+              Top Performers - {yourPerformance.sector}
+            </CardTitle>
+            <CardDescription>Companies with the best emission reduction rates</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {topPerformers.map((company, index) => (
+                <div 
+                  key={company.tenantId}
+                  className={`flex items-center justify-between p-4 border rounded-lg ${company.isYou ? 'bg-primary/10 border-primary' : ''}`}
+                >
+                  <div className="flex items-center gap-4">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
+                      index === 0 ? 'bg-yellow-500 text-white' :
+                      index === 1 ? 'bg-gray-400 text-white' :
+                      index === 2 ? 'bg-amber-600 text-white' :
+                      'bg-muted text-muted-foreground'
+                    }`}>
+                      {index + 1}
                     </div>
-                    <p className="text-xs text-muted-foreground">{company.sector}</p>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <p className={`font-semibold text-sm ${company.isYou ? 'text-primary' : ''}`}>
+                          {company.tenantName}
+                        </p>
+                        {company.isYou && <Badge variant="default">You</Badge>}
+                      </div>
+                      <p className="text-xs text-muted-foreground">{company.sector}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-bold">{company.currentEmissions.toFixed(1)} kg CO2e</p>
+                    <div className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
+                      <IconTrendingDown className="w-3 h-3" />
+                      <span>{Math.abs(company.improvement).toFixed(1)}% reduction</span>
+                    </div>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-sm font-bold">{company.emissions.toFixed(1)} kg CO2e</p>
-                  <div className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
-                    <IconTrendingDown className="w-3 h-3" />
-                    <span>{Math.abs(company.improvement)}% reduction</span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Insights & Recommendations */}
-      <Card>
-        <CardHeader>
-          <CardTitle>AI-Generated Insights</CardTitle>
-          <CardDescription>Personalized recommendations based on benchmarking data</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex gap-3 p-4 border rounded-lg bg-blue-50 dark:bg-blue-950">
-            <IconLeaf className="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
-            <div>
-              <h4 className="font-semibold text-sm mb-1">Competitive Advantage</h4>
-              <p className="text-sm text-muted-foreground">
-                Your low carbon footprint is a strong selling point for ESG-conscious buyers. 
-                Highlight your top 32% ranking in proposals to IKEA and other MNCs.
-              </p>
-            </div>
-          </div>
+      {!loading && data && (
+        <Card>
+          <CardHeader>
+            <CardTitle>AI-Generated Insights</CardTitle>
+            <CardDescription>Personalized recommendations based on benchmarking data</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {yourPerformance.belowAverage > 0 && (
+              <div className="flex gap-3 p-4 border rounded-lg bg-blue-50 dark:bg-blue-950">
+                <IconLeaf className="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="font-semibold text-sm mb-1">Competitive Advantage</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Your low carbon footprint is a strong selling point for ESG-conscious buyers. 
+                    Highlight your top {100 - yourPerformance.percentile}% ranking in proposals to showcase your sustainability commitment.
+                  </p>
+                </div>
+              </div>
+            )}
 
-          <div className="flex gap-3 p-4 border rounded-lg">
-            <IconTarget className="w-5 h-5 text-purple-600 dark:text-purple-400 shrink-0 mt-0.5" />
-            <div>
-              <h4 className="font-semibold text-sm mb-1">Target for Top 25%</h4>
-              <p className="text-sm text-muted-foreground">
-                You&apos;re only 127 kg CO2e away from breaking into the top 25% of manufacturers. 
-                Focus on optimizing electricity usage during peak hours to reach this milestone.
-              </p>
-            </div>
-          </div>
+            {yourPerformance.rank > 0 && yourPerformance.rank <= yourPerformance.totalCompanies * 0.35 && (
+              <div className="flex gap-3 p-4 border rounded-lg">
+                <IconTarget className="w-5 h-5 text-purple-600 dark:text-purple-400 shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="font-semibold text-sm mb-1">Target for Top 25%</h4>
+                  <p className="text-sm text-muted-foreground">
+                    You&apos;re close to breaking into the top 25% of {yourPerformance.sector} companies. 
+                    Focus on optimizing electricity usage during peak hours to reach this milestone.
+                  </p>
+                </div>
+              </div>
+            )}
 
-          <div className="flex gap-3 p-4 border rounded-lg">
-            <IconChartBar className="w-5 h-5 text-green-600 dark:text-green-400 shrink-0 mt-0.5" />
-            <div>
-              <h4 className="font-semibold text-sm mb-1">Consistent Improvement</h4>
-              <p className="text-sm text-muted-foreground">
-                You&apos;ve reduced emissions for 3 consecutive months (-7.5% average). 
-                This trend puts you on track to achieve SDG Goal 12 targets by Q3 2026.
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+            {yourPerformance.improvement > 0 && (
+              <div className="flex gap-3 p-4 border rounded-lg">
+                <IconChartBar className="w-5 h-5 text-green-600 dark:text-green-400 shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="font-semibold text-sm mb-1">Consistent Improvement</h4>
+                  <p className="text-sm text-muted-foreground">
+                    You&apos;ve reduced emissions by {yourPerformance.improvement.toFixed(1)}% this month. 
+                    This trend puts you on track to achieve sustainability targets faster.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {yourPerformance.improvement < 0 && (
+              <div className="flex gap-3 p-4 border rounded-lg bg-yellow-50 dark:bg-yellow-950">
+                <IconAlertTriangle className="w-5 h-5 text-yellow-600 dark:text-yellow-400 shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="font-semibold text-sm mb-1">Emissions Increase Detected</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Your emissions increased by {Math.abs(yourPerformance.improvement).toFixed(1)}% this month. 
+                    Review recent activities and consider implementing energy-saving measures.
+                  </p>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };

@@ -192,10 +192,10 @@ export default function SignUpPage() {
       <div className="flex justify-end">
         <Badge 
           variant="outline" 
-          className="border-white/10 text-gray-400 font-medium cursor-pointer hover:bg-white/5 transition-colors"
+          className="border text-gray-400 font-medium cursor-pointer hover:bg-white/5 transition-colors"
           onClick={toggleLang}
         >
-          <span className={lang === "en" ? "text-white" : ""}>EN</span> / <span className={lang === "bm" ? "text-white" : ""}>BM</span>
+          <span className={lang === "en" ? "text-primary" : ""}>EN</span> / <span className={lang === "bm" ? "text-primary" : ""}>BM</span>
         </Badge>
       </div>
       <Card>

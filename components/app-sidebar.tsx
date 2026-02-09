@@ -2,7 +2,6 @@
 
 import * as React from "react"
 import {
-  IconCamera,
   IconChartBar,
   IconDashboard,
   IconFileAi,
@@ -64,11 +63,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         url: "/reports",
         icon: IconReport,
       },
-      {
-        title: t.dashboard.sidebar.impact,
-        url: "/impact",
-        icon: IconFileAi,
-      },
+      // {
+      //   title: t.dashboard.sidebar.impact,
+      //   url: "/impact",
+      //   icon: IconFileAi,
+      // },
     ],
     navManagement: [
       {
@@ -170,7 +169,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         {isSuperAdmin && (
           <NavSecondary items={data.navSuperAdmin} title="System Administration" />
         )}
-        <NavSecondary items={data.navManagement} title={t.dashboard.sidebar.management} />
+        {!isSuperAdmin && <NavSecondary items={data.navManagement} title={t.dashboard.sidebar.management} />}
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>

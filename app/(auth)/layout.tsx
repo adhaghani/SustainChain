@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 'use client';
 
 import React, { useEffect, useState } from 'react';
@@ -12,9 +13,7 @@ export default function AuthLayout({
 }) {
   const router = useRouter();
   const [isChecking, setIsChecking] = useState(true);
-
   useEffect(() => {
-    // If Firebase is not configured, allow access to auth pages
     if (!isFirebaseConfigured || !auth) {
       setIsChecking(false);
       return;
@@ -22,18 +21,13 @@ export default function AuthLayout({
 
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (currentUser) {
-        // User is already logged in, redirect to dashboard
         router.replace('/dashboard');
       } else {
-        // User is not logged in, allow access to auth pages
         setIsChecking(false);
       }
     });
-
     return () => unsubscribe();
   }, [router]);
-
-  // Don't render auth pages while checking or if user is authenticated
   if (isChecking) {
     return null;
   }

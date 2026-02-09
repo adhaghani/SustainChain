@@ -35,11 +35,21 @@ function initializeFirebaseAdmin(): App {
 // Initialize the app once
 const app = initializeFirebaseAdmin();
 
-// Export the Firestore instance with settings to ignore undefined values
-export const db: Firestore = getFirestore(app);
-db.settings({
-  ignoreUndefinedProperties: true,
-});
+// Initialize Firestore with settings (only once)
+let firestoreInstance: Firestore | null = null;
+
+function initializeFirestore(): Firestore {
+  if (!firestoreInstance) {
+    firestoreInstance = getFirestore(app);
+    firestoreInstance.settings({
+      ignoreUndefinedProperties: true,
+    });
+  }
+  return firestoreInstance;
+}
+
+// Export the Firestore instance
+export const db: Firestore = initializeFirestore();
 
 // Export auth instance
 export const adminAuth = getAuth(app);
