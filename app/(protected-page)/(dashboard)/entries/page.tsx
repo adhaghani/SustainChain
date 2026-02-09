@@ -101,7 +101,7 @@ const EntriesPage = () => {
       });
     }
     // String or number timestamps
-    return new Date(timestamp).toLocaleDateString('en-MY', {
+    return new Date(timestamp as string | number).toLocaleDateString('en-MY', {
       year: 'numeric',
       month: 'short',
       day: 'numeric'

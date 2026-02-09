@@ -126,30 +126,6 @@ const HelpPage = () => {
     }
   ];
 
-  const videoTutorials = [
-    {
-      id: 1,
-      title: "SustainChain Quick Start (3 min)",
-      thumbnail: "https://via.placeholder.com/300x180?text=Quick+Start",
-      duration: "3:24",
-      views: 2450
-    },
-    {
-      id: 2,
-      title: "Uploading Bills with AI Extraction (5 min)",
-      thumbnail: "https://via.placeholder.com/300x180?text=Bill+Upload",
-      duration: "5:12",
-      views: 1890
-    },
-    {
-      id: 3,
-      title: "Understanding Your Analytics Dashboard (7 min)",
-      thumbnail: "https://via.placeholder.com/300x180?text=Analytics",
-      duration: "7:45",
-      views: 1234
-    }
-  ];
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -313,54 +289,6 @@ const HelpPage = () => {
                 </Card>
               );
             })}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Video Tutorials */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <IconVideo className="w-5 h-5" />
-                Video Tutorials
-              </CardTitle>
-              <CardDescription>Watch step-by-step guides</CardDescription>
-            </div>
-            <Button variant="outline" size="sm">
-              View All
-              <IconExternalLink className="w-4 h-4 ml-2" />
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-3">
-            {videoTutorials.map((video) => (
-              <Card key={video.id} className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow">
-                <div className="relative">
-                  <Image 
-                  width={100}
-                  height={100}
-                    src={video.thumbnail} 
-                    alt={video.title}
-                    className="w-full h-40 object-cover"
-                  />
-                  <Badge className="absolute top-2 right-2 bg-black/70 text-white">
-                    {video.duration}
-                  </Badge>
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/40 transition-colors">
-                    <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center">
-                      <IconVideo className="w-6 h-6 text-primary" />
-                    </div>
-                  </div>
-                </div>
-                <CardContent className="p-4">
-                  <h4 className="font-semibold text-sm mb-1">{video.title}</h4>
-                  <p className="text-xs text-muted-foreground">{video.views} views</p>
-                </CardContent>
-              </Card>
-            ))}
           </div>
         </CardContent>
       </Card>

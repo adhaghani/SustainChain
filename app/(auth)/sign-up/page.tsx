@@ -8,6 +8,7 @@ import { auth } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -15,22 +16,29 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Mail, Lock, User, Building2, Loader2, AlertCircle, Hash, MapPin } from 'lucide-react';
 import type { CompanySector } from '@/types/firestore';
 import { cn } from '@/lib/utils';
-
-const SECTORS: { value: CompanySector; label: string }[] = [
-  { value: 'Manufacturing', label: 'Manufacturing' },
-  { value: 'Technology', label: 'Technology' },
-  { value: 'Food & Beverage', label: 'Food & Beverage' },
-  { value: 'Logistics', label: 'Logistics' },
-  { value: 'Retail', label: 'Retail' },
-  { value: 'Agriculture', label: 'Agriculture' },
-  { value: 'Construction', label: 'Construction' },
-  { value: 'Healthcare', label: 'Healthcare' },
-  { value: 'Education', label: 'Education' },
-  { value: 'Hospitality', label: 'Hospitality' },
-  { value: 'Other', label: 'Other' },
-];
+import { translations } from '@/lib/i18n';
 
 export default function SignUpPage() {
+  const [lang, setLang] = useState<"en" | "bm">("en");
+  const t = translations[lang];
+
+  const toggleLang = () => {
+    setLang(lang === "en" ? "bm" : "en");
+  };
+
+  const SECTORS: { value: CompanySector; label: string }[] = [
+    { value: 'Manufacturing', label: t.auth.sectors.manufacturing },
+    { value: 'Technology', label: t.auth.sectors.technology },
+    { value: 'Food & Beverage', label: t.auth.sectors.foodBeverage },
+    { value: 'Logistics', label: t.auth.sectors.logistics },
+    { value: 'Retail', label: t.auth.sectors.retail },
+    { value: 'Agriculture', label: t.auth.sectors.agriculture },
+    { value: 'Construction', label: t.auth.sectors.construction },
+    { value: 'Healthcare', label: t.auth.sectors.healthcare },
+    { value: 'Education', label: t.auth.sectors.education },
+    { value: 'Hospitality', label: t.auth.sectors.hospitality },
+    { value: 'Other', label: t.auth.sectors.other },
+  ];
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
@@ -70,38 +78,38 @@ export default function SignUpPage() {
     switch (step) {
       case 1: // Company Information
         if (!formData.companyName || !formData.uen || !formData.sector || !formData.address) {
-          setError('Please fill in all required company information fields');
+          setError(t.auth.errors.fillRequired);
           return false;
         }
         return true;
       
       case 2: // Admin Account
         if (!formData.adminName || !formData.adminEmail) {
-          setError('Please fill in all required admin account fields');
+          setError(t.auth.errors.fillRequired);
           return false;
         }
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(formData.adminEmail)) {
-          setError('Please enter a valid email address');
+          setError(t.auth.errors.validEmail);
           return false;
         }
         return true;
       
       case 3: // Password & Consent
         if (!formData.adminPassword || !formData.confirmPassword) {
-          setError('Please fill in all password fields');
+          setError(t.auth.errors.fillRequired);
           return false;
         }
         if (formData.adminPassword !== formData.confirmPassword) {
-          setError('Passwords do not match');
+          setError(t.auth.errors.passwordMismatch);
           return false;
         }
         if (formData.adminPassword.length < 6) {
-          setError('Password must be at least 6 characters');
+          setError(t.auth.errors.passwordLength);
           return false;
         }
         if (!pdpaConsent) {
-          setError('Please agree to the Terms of Service and Privacy Policy');
+          setError(t.auth.errors.agreeTerms);
           return false;
         }
         return true;
@@ -155,7 +163,7 @@ export default function SignUpPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Registration failed');
+        throw new Error(data.error || t.auth.errors.registrationFailed);
       }
 
       // Sign in the user
@@ -181,14 +189,23 @@ export default function SignUpPage() {
 
   return (
     <div className={cn("flex w-full max-w-sm flex-col gap-6")}>
+      <div className="flex justify-end">
+        <Badge 
+          variant="outline" 
+          className="border-white/10 text-gray-400 font-medium cursor-pointer hover:bg-white/5 transition-colors"
+          onClick={toggleLang}
+        >
+          <span className={lang === "en" ? "text-white" : ""}>EN</span> / <span className={lang === "bm" ? "text-white" : ""}>BM</span>
+        </Badge>
+      </div>
       <Card>
           <CardHeader className="text-center">
-            <CardTitle>Create your account</CardTitle>
+            <CardTitle>{t.auth.signUp.title}</CardTitle>
           <CardDescription>
-            Step {currentStep} of {totalSteps}: {
-              currentStep === 1 ? 'Company Information' :
-              currentStep === 2 ? 'Admin Account' :
-              'Password & Agreement'
+            {t.auth.signUp.stepIndicator.replace('{currentStep}', currentStep.toString()).replace('{totalSteps}', totalSteps.toString())} {
+              currentStep === 1 ? t.auth.signUp.steps.company :
+              currentStep === 2 ? t.auth.signUp.steps.admin :
+              t.auth.signUp.steps.password
             }
           </CardDescription>
           {/* Progress Indicator */}
@@ -216,18 +233,18 @@ export default function SignUpPage() {
               {/* Step 1: Company Information */}
               {currentStep === 1 && (
                 <div className="grid gap-4">
-                  <h3 className="text-sm font-semibold">Company Information</h3>
+                  <h3 className="text-sm font-semibold">{t.auth.signUp.companyInfo.title}</h3>
                   
                   <div className="grid md:grid-cols-2 gap-4">
                     <div className="grid gap-2">
-                      <Label htmlFor="companyName">Company Name *</Label>
+                      <Label htmlFor="companyName">{t.auth.signUp.companyInfo.companyName}</Label>
                       <div className="relative">
                         <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
                           id="companyName"
                           name="companyName"
                           type="text"
-                          placeholder="Syarikat ABC Sdn Bhd"
+                          placeholder={t.auth.signUp.companyInfo.companyPlaceholder}
                           value={formData.companyName}
                           onChange={handleChange}
                           className="pl-10"
@@ -237,14 +254,14 @@ export default function SignUpPage() {
                     </div>
 
                     <div className="grid gap-2">
-                      <Label htmlFor="uen">UEN / ROC Number *</Label>
+                      <Label htmlFor="uen">{t.auth.signUp.companyInfo.uen}</Label>
                       <div className="relative">
                         <Hash className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
                           id="uen"
                           name="uen"
                           type="text"
-                          placeholder="ROC123456"
+                          placeholder={t.auth.signUp.companyInfo.uenPlaceholder}
                           value={formData.uen}
                           onChange={handleChange}
                           className="pl-10"
@@ -255,10 +272,10 @@ export default function SignUpPage() {
                   </div>
 
                   <div className="grid gap-2">
-                    <Label htmlFor="sector">Industry Sector *</Label>
+                    <Label htmlFor="sector">{t.auth.signUp.companyInfo.sector}</Label>
                     <Select value={formData.sector} onValueChange={handleSectorChange}>
                       <SelectTrigger className='w-full'>
-                        <SelectValue placeholder="Select your industry" />
+                        <SelectValue placeholder={t.auth.signUp.companyInfo.sectorPlaceholder} />
                       </SelectTrigger>
                       <SelectContent>
                         {SECTORS.map((sector) => (
@@ -271,14 +288,14 @@ export default function SignUpPage() {
                   </div>
 
                   <div className="grid gap-2">
-                    <Label htmlFor="address">Business Address *</Label>
+                    <Label htmlFor="address">{t.auth.signUp.companyInfo.address}</Label>
                     <div className="relative">
                       <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input
                         id="address"
                         name="address"
                         type="text"
-                        placeholder="123 Jalan Example"
+                        placeholder={t.auth.signUp.companyInfo.addressPlaceholder}
                         value={formData.address}
                         onChange={handleChange}
                         className="pl-10"
@@ -289,34 +306,34 @@ export default function SignUpPage() {
 
                   <div className="grid md:grid-cols-3 gap-4">
                     <div className="grid gap-2">
-                      <Label htmlFor="city">City</Label>
+                      <Label htmlFor="city">{t.auth.signUp.companyInfo.city}</Label>
                       <Input
                         id="city"
                         name="city"
                         type="text"
-                        placeholder="Kuala Lumpur"
+                        placeholder={t.auth.signUp.companyInfo.cityPlaceholder}
                         value={formData.city}
                         onChange={handleChange}
                       />
                     </div>
                     <div className="grid gap-2">
-                      <Label htmlFor="state">State</Label>
+                      <Label htmlFor="state">{t.auth.signUp.companyInfo.state}</Label>
                       <Input
                         id="state"
                         name="state"
                         type="text"
-                        placeholder="Selangor"
+                        placeholder={t.auth.signUp.companyInfo.statePlaceholder}
                         value={formData.state}
                         onChange={handleChange}
                       />
                     </div>
                     <div className="grid gap-2">
-                      <Label htmlFor="postalCode">Postcode</Label>
+                      <Label htmlFor="postalCode">{t.auth.signUp.companyInfo.postcode}</Label>
                       <Input
                         id="postalCode"
                         name="postalCode"
                         type="text"
-                        placeholder="50000"
+                        placeholder={t.auth.signUp.companyInfo.postcodePlaceholder}
                         value={formData.postalCode}
                         onChange={handleChange}
                       />
@@ -328,18 +345,18 @@ export default function SignUpPage() {
               {/* Step 2: Admin Account Information */}
               {currentStep === 2 && (
                 <div className="grid gap-4">
-                  <h3 className="text-sm font-semibold">Admin Account</h3>
+                  <h3 className="text-sm font-semibold">{t.auth.signUp.adminAccount.title}</h3>
                   
                   <div className="grid gap-4">
                     <div className="grid gap-2">
-                      <Label htmlFor="adminName">Full Name *</Label>
+                      <Label htmlFor="adminName">{t.auth.signUp.adminAccount.fullName}</Label>
                       <div className="relative">
                         <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
                           id="adminName"
                           name="adminName"
                           type="text"
-                          placeholder="Ahmad Rahman"
+                          placeholder={t.auth.signUp.adminAccount.namePlaceholder}
                           value={formData.adminName}
                           onChange={handleChange}
                           className="pl-10"
@@ -349,14 +366,14 @@ export default function SignUpPage() {
                     </div>
 
                     <div className="grid gap-2">
-                      <Label htmlFor="adminEmail">Work Email *</Label>
+                      <Label htmlFor="adminEmail">{t.auth.signUp.adminAccount.workEmail}</Label>
                       <div className="relative">
                         <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
                           id="adminEmail"
                           name="adminEmail"
                           type="email"
-                          placeholder="you@company.com"
+                          placeholder={t.auth.signUp.adminAccount.emailPlaceholder}
                           value={formData.adminEmail}
                           onChange={handleChange}
                           className="pl-10"
@@ -366,12 +383,12 @@ export default function SignUpPage() {
                     </div>
 
                     <div className="grid gap-2">
-                      <Label htmlFor="adminPhone">Phone Number</Label>
+                      <Label htmlFor="adminPhone">{t.auth.signUp.adminAccount.phone}</Label>
                       <Input
                         id="adminPhone"
                         name="adminPhone"
                         type="tel"
-                        placeholder="+60123456789"
+                        placeholder={t.auth.signUp.adminAccount.phonePlaceholder}
                         value={formData.adminPhone}
                         onChange={handleChange}
                       />
@@ -383,11 +400,11 @@ export default function SignUpPage() {
               {/* Step 3: Password & Consent */}
               {currentStep === 3 && (
                 <div className="grid gap-4">
-                  <h3 className="text-sm font-semibold">Secure Your Account</h3>
+                  <h3 className="text-sm font-semibold">{t.auth.signUp.password.title}</h3>
                   
                   <div className="grid gap-4">
                     <div className="grid gap-2">
-                      <Label htmlFor="adminPassword">Password *</Label>
+                      <Label htmlFor="adminPassword">{t.auth.signUp.password.password}</Label>
                       <div className="relative">
                         <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
@@ -402,11 +419,11 @@ export default function SignUpPage() {
                           minLength={6}
                         />
                       </div>
-                      <p className="text-xs text-muted-foreground">Must be at least 6 characters</p>
+                      <p className="text-xs text-muted-foreground">{t.auth.signUp.password.passwordHint}</p>
                     </div>
 
                     <div className="grid gap-2">
-                      <Label htmlFor="confirmPassword">Confirm Password *</Label>
+                      <Label htmlFor="confirmPassword">{t.auth.signUp.password.confirmPassword}</Label>
                       <div className="relative">
                         <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
@@ -431,13 +448,13 @@ export default function SignUpPage() {
                         className="mt-1"
                       />
                       <label htmlFor="pdpa" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                        I agree to the{' '}
+                        {t.auth.signUp.password.agreeTo}{' '}
                         <Link href="#" className="underline underline-offset-4 hover:text-primary">
-                          Terms of Service
+                          {t.auth.signUp.password.termsOfService}
                         </Link>
-                        {' '}and{' '}
+                        {' '}{t.auth.signUp.password.and}{' '}
                         <Link href="#" className="underline underline-offset-4 hover:text-primary">
-                          Privacy Policy
+                          {t.auth.signUp.password.privacyPolicy}
                         </Link>
                       </label>
                     </div>
@@ -455,7 +472,7 @@ export default function SignUpPage() {
                     className="flex-1"
                     disabled={loading}
                   >
-                    Back
+                    {t.auth.signUp.buttons.back}
                   </Button>
                 )}
                 
@@ -465,7 +482,7 @@ export default function SignUpPage() {
                     onClick={handleNext}
                     className="flex-1"
                   >
-                    Next
+                    {t.auth.signUp.buttons.next}
                   </Button>
                 ) : (
                   <Button
@@ -476,10 +493,10 @@ export default function SignUpPage() {
                     {loading ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Creating account...
+                        {t.auth.signUp.buttons.creating}
                       </>
                     ) : (
-                      'Create account'
+                      t.auth.signUp.buttons.createAccount
                     )}
                   </Button>
                 )}
@@ -487,12 +504,12 @@ export default function SignUpPage() {
             </form>
 
             <p className="text-center text-sm text-muted-foreground mt-4">
-              Already have an account?{' '}
+              {t.auth.signUp.haveAccount}{' '}
               <Link
                 href="/sign-in"
                 className="underline underline-offset-4 hover:text-primary"
               >
-                Sign in
+                {t.auth.signUp.signInLink}
               </Link>
             </p>
           </CardContent>

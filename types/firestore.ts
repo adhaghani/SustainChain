@@ -9,7 +9,7 @@ import { Timestamp } from 'firebase-admin/firestore';
 // ENUMS & CONSTANTS
 // ============================================
 
-export type UserRole = 'admin' | 'clerk' | 'viewer';
+export type UserRole = 'superadmin' | 'admin' | 'clerk' | 'viewer';
 export type UserStatus = 'active' | 'pending' | 'inactive';
 export type TenantStatus = 'active' | 'trial' | 'inactive' | 'suspended';
 export type SubscriptionTier = 'trial' | 'standard' | 'premium' | 'enterprise';
@@ -38,8 +38,9 @@ export type NotificationPriority = 'low' | 'medium' | 'high' | 'urgent';
 
 export interface CustomClaims {
   role: UserRole;
-  tenantId: string;
+  tenantId: string; // 'system' for superadmins
   tenantName: string;
+  isSuperAdmin?: boolean; // Flag for cross-tenant access
 }
 
 // ============================================

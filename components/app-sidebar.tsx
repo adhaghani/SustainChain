@@ -18,6 +18,9 @@ import {
   IconUsers,
   IconBell,
   IconDownload,
+  IconShield,
+  IconBuilding,
+  IconActivity,
 } from "@tabler/icons-react"
 import { NavMain } from "@/components/nav-main"
 import { NavSecondary } from "@/components/nav-secondary"
@@ -36,7 +39,7 @@ import { useLanguage } from "@/lib/language-context"
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { t } = useLanguage();
-  const { userData, signOut } = useAuth();
+  const { userData, signOut, isSuperAdmin } = useAuth();
   
   const data = {
     user: {
@@ -98,6 +101,33 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         icon: IconFileDescription,
       },
     ],
+    navSuperAdmin: [
+      {
+        title: "System Overview",
+        url: "/system-admin",
+        icon: IconShield,
+      },
+      {
+        title: "All Tenants",
+        url: "/system-admin/tenants",
+        icon: IconBuilding,
+      },
+      {
+        title: "All Users",
+        url: "/system-admin/users",
+        icon: IconUsers,
+      },
+      {
+        title: "System Activity",
+        url: "/system-admin/system-activity",
+        icon: IconActivity,
+      },
+      {
+        title: "Global Config",
+        url: "/system-admin/config",
+        icon: IconSettings,
+      },
+    ],
     navSecondary: [
       {
         title: t.dashboard.sidebar.settings,
@@ -134,10 +164,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenuItem>
             <SidebarMenuButton
               asChild
-              className="data-[slot=sidebar-menu-button]:!p-1.5"
+              className="data-[slot=sidebar-menu-button]:p-1.5!"
             >
               <a href="/dashboard">
-                <IconInnerShadowTop className="!size-5" />
+                <IconInnerShadowTop className="size-5!" />
                 <span className="text-base font-semibold">SustainChain</span>
               </a>
             </SidebarMenuButton>
@@ -146,6 +176,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
+        {isSuperAdmin && (
+          <NavSecondary items={data.navSuperAdmin} title="System Administration" />
+        )}
         <NavSecondary items={data.navManagement} title={t.dashboard.sidebar.management} />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>

@@ -6,6 +6,98 @@ export const translations = {
       howItWorks: "How it Works",
       getStarted: "Get Started",
     },
+    auth: {
+      signIn: {
+        title: "Login to your account",
+        description: "Enter your email below to login to your account",
+        emailLabel: "Email",
+        emailPlaceholder: "m@example.com",
+        passwordLabel: "Password",
+        loginButton: "Login",
+        loggingIn: "Logging in...",
+        googleButton: "Login with Google",
+        noAccount: "Don't have an account?",
+        signUpLink: "Sign up"
+      },
+      signUp: {
+        title: "Create your account",
+        stepIndicator: "Step {currentStep} of {totalSteps}:",
+        steps: {
+          company: "Company Information",
+          admin: "Admin Account",
+          password: "Password & Agreement"
+        },
+        companyInfo: {
+          title: "Company Information",
+          companyName: "Company Name *",
+          companyPlaceholder: "ABC Company Sdn Bhd",
+          uen: "UEN / ROC Number *",
+          uenPlaceholder: "ROC123456",
+          sector: "Industry Sector *",
+          sectorPlaceholder: "Select your industry",
+          address: "Business Address *",
+          addressPlaceholder: "123 Example Street",
+          city: "City",
+          cityPlaceholder: "Kuala Lumpur",
+          state: "State",
+          statePlaceholder: "Selangor",
+          postcode: "Postcode",
+          postcodePlaceholder: "50000"
+        },
+        adminAccount: {
+          title: "Admin Account",
+          fullName: "Full Name *",
+          namePlaceholder: "John Doe",
+          workEmail: "Work Email *",
+          emailPlaceholder: "you@company.com",
+          phone: "Phone Number",
+          phonePlaceholder: "+60123456789"
+        },
+        password: {
+          title: "Secure Your Account",
+          password: "Password *",
+          confirmPassword: "Confirm Password *",
+          passwordHint: "Must be at least 6 characters",
+          agreeTo: "I agree to the",
+          termsOfService: "Terms of Service",
+          and: "and",
+          privacyPolicy: "Privacy Policy"
+        },
+        buttons: {
+          back: "Back",
+          next: "Next",
+          createAccount: "Create account",
+          creating: "Creating account..."
+        },
+        haveAccount: "Already have an account?",
+        signInLink: "Sign in"
+      },
+      errors: {
+        firebaseNotConfigured: "Firebase is not configured. Please set up environment variables.",
+        signInFailed: "Failed to sign in. Please try again.",
+        googleSignInFailed: "Failed to sign in with Google.",
+        linkedinComingSoon: "LinkedIn SSO integration coming soon",
+        fillRequired: "Please fill in all required fields",
+        validEmail: "Please enter a valid email address",
+        passwordMismatch: "Passwords do not match",
+        passwordLength: "Password must be at least 6 characters",
+        agreeTerms: "Please agree to the Terms of Service and Privacy Policy",
+        registrationFailed: "Registration failed"
+      },
+      sectors: {
+        manufacturing: "Manufacturing",
+        technology: "Technology",
+        foodBeverage: "Food & Beverage",
+        logistics: "Logistics",
+        retail: "Retail",
+        agriculture: "Agriculture",
+        construction: "Construction",
+        healthcare: "Healthcare",
+        education: "Education",
+        hospitality: "Hospitality",
+        other: "Other"
+      }
+    },
     hero: {
       badge: "Ready for MITI & Bursa ESG Mandates 2027",
       title: "Business Survival,",
@@ -373,6 +465,98 @@ export const translations = {
       impact: "Impak",
       howItWorks: "Cara Berfungsi",
       getStarted: "Mula Sekarang",
+    },
+    auth: {
+      signIn: {
+        title: "Log masuk ke akaun anda",
+        description: "Masukkan e-mel anda di bawah untuk log masuk ke akaun anda",
+        emailLabel: "E-mel",
+        emailPlaceholder: "anda@syarikat.com",
+        passwordLabel: "Kata Laluan",
+        loginButton: "Log Masuk",
+        loggingIn: "Sedang log masuk...",
+        googleButton: "Log Masuk dengan Google",
+        noAccount: "Tiada akaun?",
+        signUpLink: "Daftar"
+      },
+      signUp: {
+        title: "Cipta akaun anda",
+        stepIndicator: "Langkah {currentStep} daripada {totalSteps}:",
+        steps: {
+          company: "Maklumat Syarikat",
+          admin: "Akaun Pentadbir",
+          password: "Kata Laluan & Perjanjian"
+        },
+        companyInfo: {
+          title: "Maklumat Syarikat",
+          companyName: "Nama Syarikat *",
+          companyPlaceholder: "Syarikat ABC Sdn Bhd",
+          uen: "Nombor UEN / ROC *",
+          uenPlaceholder: "ROC123456",
+          sector: "Sektor Industri *",
+          sectorPlaceholder: "Pilih industri anda",
+          address: "Alamat Perniagaan *",
+          addressPlaceholder: "123 Jalan Contoh",
+          city: "Bandar",
+          cityPlaceholder: "Kuala Lumpur",
+          state: "Negeri",
+          statePlaceholder: "Selangor",
+          postcode: "Poskod",
+          postcodePlaceholder: "50000"
+        },
+        adminAccount: {
+          title: "Akaun Pentadbir",
+          fullName: "Nama Penuh *",
+          namePlaceholder: "Ahmad Rahman",
+          workEmail: "E-mel Kerja *",
+          emailPlaceholder: "anda@syarikat.com",
+          phone: "Nombor Telefon",
+          phonePlaceholder: "+60123456789"
+        },
+        password: {
+          title: "Lindungi Akaun Anda",
+          password: "Kata Laluan *",
+          confirmPassword: "Sahkan Kata Laluan *",
+          passwordHint: "Mesti sekurang-kurangnya 6 aksara",
+          agreeTo: "Saya bersetuju dengan",
+          termsOfService: "Terma Perkhidmatan",
+          and: "dan",
+          privacyPolicy: "Dasar Privasi"
+        },
+        buttons: {
+          back: "Kembali",
+          next: "Seterusnya",
+          createAccount: "Cipta Akaun",
+          creating: "Sedang mencipta akaun..."
+        },
+        haveAccount: "Sudah mempunyai akaun?",
+        signInLink: "Log masuk"
+      },
+      errors: {
+        firebaseNotConfigured: "Firebase tidak dikonfigurasi. Sila tetapkan pemboleh ubah persekitaran.",
+        signInFailed: "Gagal log masuk. Sila cuba lagi.",
+        googleSignInFailed: "Gagal log masuk dengan Google.",
+        linkedinComingSoon: "Integrasi SSO LinkedIn akan datang tidak lama lagi",
+        fillRequired: "Sila isi semua medan yang diperlukan",
+        validEmail: "Sila masukkan alamat e-mel yang sah",
+        passwordMismatch: "Kata laluan tidak sepadan",
+        passwordLength: "Kata laluan mesti sekurang-kurangnya 6 aksara",
+        agreeTerms: "Sila bersetuju dengan Terma Perkhidmatan dan Dasar Privasi",
+        registrationFailed: "Pendaftaran gagal"
+      },
+      sectors: {
+        manufacturing: "Pengilangan",
+        technology: "Teknologi",
+        foodBeverage: "Makanan & Minuman",
+        logistics: "Logistik",
+        retail: "Peruncitan",
+        agriculture: "Pertanian",
+        construction: "Pembinaan",
+        healthcare: "Penjagaan Kesihatan",
+        education: "Pendidikan",
+        hospitality: "Hosptaliti",
+        other: "Lain-lain"
+      }
     },
     hero: {
       badge: "Sedia untuk Mandat ESG MITI & Bursa 2027",

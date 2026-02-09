@@ -15,7 +15,8 @@ interface UserData {
   emailVerified: boolean;
   tenantId: string | null;
   tenantName: string | null;
-  role: 'admin' | 'clerk' | 'viewer' | null;
+  role: 'superadmin' | 'admin' | 'clerk' | 'viewer' | null;
+  isSuperAdmin?: boolean;
 }
 
 interface AuthContextType {
@@ -24,7 +25,8 @@ interface AuthContextType {
   loading: boolean;
   signOut: () => Promise<void>;
   tenantId: string | null;
-  role: 'admin' | 'clerk' | 'viewer' | null;
+  role: 'superadmin' | 'admin' | 'clerk' | 'viewer' | null;
+  isSuperAdmin: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -55,6 +57,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
           
           if (userDocSnap.exists()) {
             const firestoreData = userDocSnap.data();
+            const role = firestoreData.role || null;
+            const isSuperAdmin = role === 'superadmin' || firestoreData.tenantId === 'system';
             
             // Extract user data including tenant info
             setUserData({
@@ -65,7 +69,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
               emailVerified: currentUser.emailVerified,
               tenantId: firestoreData.tenantId || null,
               tenantName: firestoreData.tenantName || null,
-              role: firestoreData.role || null,
+              role: role,
+              isSuperAdmin: isSuperAdmin,
             });
           } else {
             // Fallback if user document doesn't exist in Firestore yet
@@ -117,6 +122,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     signOut,
     tenantId: userData?.tenantId || null,
     role: userData?.role || null,
+    isSuperAdmin: userData?.isSuperAdmin || false,
   };
 
   return (

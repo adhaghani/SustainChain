@@ -11,6 +11,7 @@ import {
 import { auth } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
 
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
@@ -26,9 +27,16 @@ import {
   FieldLabel,
 } from "@/components/ui/field"
 import { cn } from '@/lib/utils';
+import { translations } from '@/lib/i18n';
 
 
 export default function LoginForm(){
+  const [lang, setLang] = useState<"en" | "bm">("en");
+  const t = translations[lang];
+
+  const toggleLang = () => {
+    setLang(lang === "en" ? "bm" : "en");
+  };
 
 
       const router = useRouter();
@@ -44,7 +52,7 @@ export default function LoginForm(){
 
     try {
       if (!auth) {
-        throw new Error('Firebase is not configured. Please set up environment variables.');
+        throw new Error(t.auth.errors.firebaseNotConfigured);
       }
       
       // Step 1: Sign in with Firebase
@@ -62,7 +70,7 @@ export default function LoginForm(){
       const data = await response.json();
       
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to complete sign-in');
+        throw new Error(data.error || t.auth.errors.signInFailed);
       }
       
       // Step 3: Force token refresh to get new custom claims
@@ -71,14 +79,14 @@ export default function LoginForm(){
       router.push('/dashboard');
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : 'Failed to sign in. Please try again.'
+        err instanceof Error ? err.message : t.auth.errors.signInFailed
       );
     } finally {
       setLoading(false);
     }
   };
   const handleLinkedInSignIn = async () => {
-    setError('LinkedIn SSO integration coming soon');
+    setError(t.auth.errors.linkedinComingSoon);
     setTimeout(() => setError(''), 3000);
   };
 
@@ -88,7 +96,7 @@ export default function LoginForm(){
 
     try {
       if (!auth) {
-        throw new Error('Firebase is not configured. Please set up environment variables.');
+        throw new Error(t.auth.errors.firebaseNotConfigured);
       }
       
       const provider = new GoogleAuthProvider();
@@ -106,7 +114,7 @@ export default function LoginForm(){
       const data = await response.json();
       
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to complete sign-in');
+        throw new Error(data.error || t.auth.errors.signInFailed);
       }
       
       // Force token refresh to get new custom claims
@@ -115,7 +123,7 @@ export default function LoginForm(){
       router.push('/dashboard');
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : 'Failed to sign in with Google.'
+        err instanceof Error ? err.message : t.auth.errors.googleSignInFailed
       );
     } finally {
       setLoading(false);
@@ -125,11 +133,20 @@ export default function LoginForm(){
 
   return (
     <div className={cn("flex w-full max-w-sm flex-col gap-6")}>
+      <div className="flex justify-end">
+        <Badge 
+          variant="outline" 
+          className="border-white/10 text-gray-400 font-medium cursor-pointer hover:bg-white/5 transition-colors"
+          onClick={toggleLang}
+        >
+          <span className={lang === "en" ? "text-white" : ""}>EN</span> / <span className={lang === "bm" ? "text-white" : ""}>BM</span>
+        </Badge>
+      </div>
       <Card>
         <CardHeader>
-          <CardTitle>Login to your account</CardTitle>
+          <CardTitle>{t.auth.signIn.title}</CardTitle>
           <CardDescription>
-            Enter your email below to login to your account
+            {t.auth.signIn.description}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -142,11 +159,11 @@ export default function LoginForm(){
           <form onSubmit={handleEmailSignIn}>
             <FieldGroup>
               <Field>
-                <FieldLabel htmlFor="email">Email</FieldLabel>
+                <FieldLabel htmlFor="email">{t.auth.signIn.emailLabel}</FieldLabel>
                 <Input
                   id="email"
                   type="email"
-                  placeholder="m@example.com"
+                  placeholder={t.auth.signIn.emailPlaceholder}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={loading}
@@ -155,7 +172,7 @@ export default function LoginForm(){
               </Field>
               <Field>
              
-                  <FieldLabel htmlFor="password">Password</FieldLabel>
+                  <FieldLabel htmlFor="password">{t.auth.signIn.passwordLabel}</FieldLabel>
 
                 
                 <Input 
@@ -172,10 +189,10 @@ export default function LoginForm(){
                   {loading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Logging in...
+                      {t.auth.signIn.loggingIn}
                     </>
                   ) : (
-                    'Login'
+                    t.auth.signIn.loginButton
                   )}
                 </Button>
                 <Button 
@@ -186,12 +203,12 @@ export default function LoginForm(){
                   className="w-full"
                 >
                   <IconBrandGoogle className="mr-2 h-4 w-4" />
-                  Login with Google
+                  {t.auth.signIn.googleButton}
                 </Button>
                 <FieldDescription className="text-center">
-                  Don&apos;t have an account?{' '}
+                  {t.auth.signIn.noAccount}{' '}
                   <Link href="/sign-up" className="underline underline-offset-4 hover:text-primary">
-                    Sign up
+                    {t.auth.signIn.signUpLink}
                   </Link>
                 </FieldDescription>
               </Field>
