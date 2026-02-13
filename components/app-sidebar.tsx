@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client"
 
 import * as React from "react"
@@ -31,12 +32,31 @@ import {
 } from "@/components/ui/sidebar"
 import { useLanguage } from "@/lib/language-context"
 import Link from "next/link"
+import type { UserRole } from "@/types/firestore"
+
+// Permission mappings for navigation items
+const ROUTE_PERMISSIONS = {
+  "/dashboard": [ "admin", "clerk", "viewer"],
+  "/entries": [ "admin", "clerk", "viewer"],
+  "/analytics": [ "admin", "clerk", "viewer"],
+  "/reports": [ "admin", "clerk", "viewer"],
+  "/users": ["superadmin", "admin"],
+  "/audit-log": ["superadmin", "admin"],
+  "/help": ["superadmin", "admin", "clerk", "viewer"],
+  "/changelog": ["superadmin", "admin", "clerk", "viewer"],
+} as const;
+
+const canAccessRoute = (route: string, role: UserRole | null | any): boolean => {
+  if (!role) return false;
+  const allowedRoles = ROUTE_PERMISSIONS[route as keyof typeof ROUTE_PERMISSIONS];
+  return allowedRoles?.includes(role) ?? false;
+};
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { t } = useLanguage();
-  const { userData, signOut, isSuperAdmin } = useAuth();
+  const { userData, signOut, isSuperAdmin, role } = useAuth();
   
-  const data = {
+  const allNavItems = {
     user: {
       name: userData?.displayName || "",
       email: userData?.email || "",
@@ -63,11 +83,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         url: "/reports",
         icon: IconReport,
       },
-      // {
-      //   title: t.dashboard.sidebar.impact,
-      //   url: "/impact",
-      //   icon: IconFileAi,
-      // },
     ],
     navManagement: [
       {
@@ -75,16 +90,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         url: "/users",
         icon: IconUsers,
       },
-      // {
-      //   title: t.dashboard.sidebar.tenants,
-      //   url: "/tenants",
-      //   icon: IconFolder,
-      // },
-      // {
-      //   title: t.dashboard.sidebar.systemConfig,
-      //   url: "/system-config",
-      //   icon: IconDatabase,
-      // },
       {
         title: t.dashboard.sidebar.auditLog,
         url: "/audit-log",
@@ -119,11 +124,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       },
     ],
     navSecondary: [
-      // {
-      //   title: t.dashboard.sidebar.settings,
-      //   url: "/settings",
-      //   icon: IconSettings,
-      // },
       {
         title: t.dashboard.header.helpCenter,
         url: "/help",
@@ -134,17 +134,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         url: "/changelog",
         icon: IconFileWord,
       },
-      // {
-      //   title: t.dashboard.sidebar.notifications,
-      //   url: "/notifications",
-      //   icon: IconBell,
-      // },
-      // {
-      //   title: t.dashboard.sidebar.export,
-      //   url: "/export",
-      //   icon: IconDownload,
-      // },
     ],
+  };
+
+  // Filter navigation items based on user role permissions
+  const data = {
+    user: allNavItems.user,
+    navMain: allNavItems.navMain.filter((item) => canAccessRoute(item.url, role)),
+    navManagement: allNavItems.navManagement.filter((item) => canAccessRoute(item.url, role)),
+    navSuperAdmin: allNavItems.navSuperAdmin,
+    navSecondary: allNavItems.navSecondary.filter((item) => canAccessRoute(item.url, role)),
   };
 
   return (
@@ -166,11 +165,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
-        {isSuperAdmin && (
+        {isSuperAdmin && data.navSuperAdmin.length > 0 && (
           <NavSecondary items={data.navSuperAdmin} title="System Administration" />
         )}
-        {!isSuperAdmin && <NavSecondary items={data.navManagement} title={t.dashboard.sidebar.management} />}
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
+        {!isSuperAdmin && data.navManagement.length > 0 && (
+          <NavSecondary items={data.navManagement} title={t.dashboard.sidebar.management} />
+        )}
+        {data.navSecondary.length > 0 && (
+          <NavSecondary items={data.navSecondary} className="mt-auto" />
+        )}
       </SidebarContent>
       <SidebarFooter>
         <NavUser signOut={signOut} user={data.user} />

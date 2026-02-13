@@ -75,7 +75,6 @@ export default function LoginForm(){
       
       // Step 3: Force token refresh to get new custom claims
       await userCredential.user.getIdToken(true);
-      
       router.push('/dashboard');
     } catch (err) {
       setError(

@@ -43,11 +43,14 @@ const DashboardPage = () => {
   const { entries: recentEntries, loading: entriesLoading } =
     useRecentEntries();
 
+    
   // Compute emission breakdown from analytics data
   const emissionBreakdown = useMemo(() => {
     if (!analyticsData?.yourPerformance) {
       return [];
     }
+
+    
 
     const total = analyticsData.yourPerformance.currentEmissions;
 
@@ -77,6 +80,8 @@ const DashboardPage = () => {
     ];
   }, [analyticsData, t]);
 
+  
+
   // Format trend data
   const monthlyTrend = useMemo(() => {
     if (!analyticsData?.emissionTrends) return [];
@@ -95,6 +100,12 @@ const DashboardPage = () => {
     if (!previous) return null;
     return (((current - previous) / previous) * 100).toFixed(1);
   }, [analyticsData]);
+
+
+  if(userData?.role === "superadmin") {
+    return router.replace("/system-admin");
+  }
+
 
   // Check permissions based on role
   const canUploadBills = role === "admin" || role === "clerk";
