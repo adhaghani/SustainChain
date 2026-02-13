@@ -4,7 +4,6 @@ import * as React from "react"
 import {
   IconChartBar,
   IconDashboard,
-  IconFileAi,
   IconFileDescription,
   IconFileWord,
   IconHelp,
@@ -31,6 +30,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 import { useLanguage } from "@/lib/language-context"
+import Link from "next/link"
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { t } = useLanguage();
@@ -156,10 +156,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               asChild
               className="data-[slot=sidebar-menu-button]:p-1.5!"
             >
-              <a href="/dashboard">
+              <Link href="/dashboard">
                 <IconInnerShadowTop className="size-5!" />
                 <span className="text-base font-semibold">SustainChain</span>
-              </a>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

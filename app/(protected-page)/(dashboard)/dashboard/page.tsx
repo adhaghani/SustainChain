@@ -10,7 +10,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   IconLeaf,
@@ -172,7 +171,6 @@ const DashboardPage = () => {
     analyticsData?.yourPerformance?.currentEmissions || 0;
   const sectorPercentile = analyticsData?.yourPerformance?.percentile || 0;
   const sectorName = analyticsData?.yourPerformance?.sector || "N/A";
-  const improvement = analyticsData?.yourPerformance?.improvement || 0;
 
   return (
     <div className="space-y-6">
@@ -409,6 +407,10 @@ const DashboardPage = () => {
                     maxValue > 0 ? (data.value / maxValue) * 100 : 0;
                   const isLatest = idx === monthlyTrend.length - 1;
 
+                  if(data.value.toFixed(0) === "0") {
+                    return null; // Skip months with 0 emissions
+                  }
+
                   return (
                     <div key={data.month} className="space-y-2">
                       <div className="flex items-center justify-between">
@@ -444,123 +446,6 @@ const DashboardPage = () => {
           </CardContent>
         </Card>
       </div>
-
-      {/* Insights & Recommendations - Admin/Clerk only */}
-      {canViewDetailedAnalytics && (
-        <Card>
-          <CardHeader>
-            <CardTitle>{t.dashboard.insights}</CardTitle>
-            <CardDescription>
-              Recommendations to reduce your carbon footprint
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {improvement < 0 ? (
-                <div className="flex gap-4 p-4 border rounded-lg">
-                  <div className="shrink-0 w-10 h-10 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center">
-                    <IconTrendingDown className="w-5 h-5 text-green-600 dark:text-green-400" />
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="font-semibold text-sm mb-1">
-                      Great Progress!
-                    </h4>
-                    <p className="text-sm text-muted-foreground">
-                      Your emissions decreased by{" "}
-                      {Math.abs(improvement).toFixed(1)}% compared to last
-                      month. Your optimization efforts are working well.
-                    </p>
-                  </div>
-                </div>
-              ) : improvement > 0 ? (
-                <div className="flex gap-4 p-4 border rounded-lg border-amber-200">
-                  <div className="shrink-0 w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900 flex items-center justify-center">
-                    <IconTrendingUp className="w-5 h-5 text-amber-600 dark:text-amber-400" />
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="font-semibold text-sm mb-1">
-                      Emissions Increased
-                    </h4>
-                    <p className="text-sm text-muted-foreground">
-                      Your emissions increased by {improvement.toFixed(1)}%
-                      compared to last month. Consider reviewing your energy
-                      usage patterns.
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex gap-4 p-4 border rounded-lg">
-                  <div className="shrink-0 w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
-                    <IconLeaf className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="font-semibold text-sm mb-1">
-                      Stable Performance
-                    </h4>
-                    <p className="text-sm text-muted-foreground">
-                      Your emissions remain stable. Continue monitoring your
-                      usage to identify optimization opportunities.
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              <Separator />
-
-              <div className="flex gap-4 p-4 border rounded-lg">
-                <div className="shrink-0 w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
-                  <IconBolt className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                </div>
-                <div className="flex-1">
-                  <h4 className="font-semibold text-sm mb-1">
-                    Peak Hour Usage
-                  </h4>
-                  <p className="text-sm text-muted-foreground">
-                    Consider shifting high-energy operations to off-peak hours
-                    (10 PM - 8 AM) to reduce costs by up to 30%.
-                  </p>
-                </div>
-              </div>
-
-              <Separator />
-
-              <div className="flex gap-4 p-4 border rounded-lg">
-                <div className="shrink-0 w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900 flex items-center justify-center">
-                  <IconLeaf className="w-5 h-5 text-amber-600 dark:text-amber-400" />
-                </div>
-                <div className="flex-1">
-                  <h4 className="font-semibold text-sm mb-1">SDG Alignment</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Your current performance aligns with SDG Goals 8, 9, and 12.
-                    Maintain this trend to qualify for ESG incentives.
-                  </p>
-                </div>
-              </div>
-
-              {sectorPercentile >= 75 && (
-                <>
-                  <Separator />
-                  <div className="flex gap-4 p-4 border rounded-lg border-green-200 bg-green-50 dark:bg-green-950">
-                    <div className="shrink-0 w-10 h-10 rounded-full bg-green-200 dark:bg-green-800 flex items-center justify-center">
-                      <IconLeaf className="w-5 h-5 text-green-700 dark:text-green-300" />
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-semibold text-sm mb-1 text-green-900 dark:text-green-100">
-                        🎉 Top Performer!
-                      </h4>
-                      <p className="text-sm text-green-800 dark:text-green-200">
-                        You&apos;re in the top {100 - sectorPercentile}% of
-                        companies in your sector. Consider sharing your best
-                        practices with others!
-                      </p>
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Viewer-specific message */}
       {role === "viewer" && (

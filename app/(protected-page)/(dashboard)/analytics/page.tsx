@@ -32,6 +32,9 @@ const AnalyticsPage = () => {
   const [period, setPeriod] = useState<'monthly' | 'quarterly' | 'yearly'>('monthly');
   const { data, loading, error, refetch } = useAnalytics(period);
 
+
+
+
   // If no data yet, show defaults for UI structure
   const yourPerformance = data?.yourPerformance || {
     currentEmissions: 0,
@@ -54,6 +57,36 @@ const AnalyticsPage = () => {
     ? Math.max(...sectorComparison.map(s => s.emissions))
     : 1;
 
+
+  if((data?.yourPerformance && data.yourPerformance.totalCompanies < 5)){
+    return (
+      <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Analytics & Benchmarking</h1>
+          <p className="text-muted-foreground mt-1">
+            Compare your carbon footprint against sector peers and track improvements
+          </p>
+        </div>
+      </div>
+        <Card>
+          <CardContent className="py-12 text-center">
+            <div className="flex flex-col items-center gap-4">
+              <IconChartBar className="w-16 h-16 text-muted-foreground opacity-50" />
+              <div>
+                <h3 className="font-semibold text-lg">No Analytics Data Available Yet</h3>
+                <p className="text-sm text-muted-foreground max-w-lg mt-1">
+                  The system either does not have enough data to generate analytics or your sector is not represented sufficiently for benchmarking. Do not worry, it will be available the more company/entries you uploaded.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        </div>
+    )
+  }
+    
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -91,9 +124,9 @@ const AnalyticsPage = () => {
             <div className="flex flex-col items-center gap-4">
               <IconChartBar className="w-16 h-16 text-muted-foreground opacity-50" />
               <div>
-                <h3 className="font-semibold text-lg">No Analytics Data Available</h3>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Upload some bills to start seeing your carbon footprint analysis
+                <h3 className="font-semibold text-lg">No Analytics Data Available Yet</h3>
+                <p className="text-sm text-muted-foreground max-w-lg mt-1">
+                  The system either does not have enough data to generate analytics or your sector is not represented sufficiently for benchmarking. Do not worry, it will be available the more company/entries you uploaded.
                 </p>
               </div>
             </div>

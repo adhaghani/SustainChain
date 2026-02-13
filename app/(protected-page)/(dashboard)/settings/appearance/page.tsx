@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
 import {
@@ -179,7 +180,7 @@ const AppearanceSettingsPage = () => {
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-white to-gray-900 border flex items-center justify-center">
+                        <div className="w-8 h-8 rounded-full bg-linear-to-br from-white to-gray-900 border flex items-center justify-center">
                           <IconDeviceDesktop className="w-4 h-4" />
                         </div>
                         <span className="font-medium">System</span>
@@ -192,7 +193,7 @@ const AppearanceSettingsPage = () => {
                       )}
                     </div>
                     <div className="rounded-md overflow-hidden border">
-                      <div className="bg-gradient-to-br from-white to-gray-900 p-4 space-y-2">
+                      <div className="bg-linear-to-br from-white to-gray-900 p-4 space-y-2">
                         <div className="h-2 bg-gray-400 rounded w-3/4"></div>
                         <div className="h-2 bg-gray-400 rounded w-1/2"></div>
                       </div>

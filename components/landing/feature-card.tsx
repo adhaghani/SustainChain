@@ -15,7 +15,7 @@ export function FeatureCard({ icon: Icon, title, description, className = "", hi
     <Card className={cn("bg-white/5 border-white/10 hover:border-emerald-500/50 hover:bg-white/10 transition-all duration-300 group selection:bg-emerald-500/30", className)}>
       <CardHeader>
         {Icon && (
-          <div className="mb-4 inline-flex p-3 rounded-lg bg-gradient-to-br from-emerald-500/20 to-teal-500/20 group-hover:from-emerald-500/30 group-hover:to-teal-500/30 transition-colors w-fit">
+          <div className="mb-4 inline-flex p-3 rounded-lg bg-linear-to-br from-emerald-500/20 to-teal-500/20 group-hover:from-emerald-500/30 group-hover:to-teal-500/30 transition-colors w-fit">
             <Icon className="w-6 h-6 text-emerald-400" />
           </div>
         )}
