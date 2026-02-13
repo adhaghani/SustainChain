@@ -109,6 +109,7 @@ const AuditLogPage = () => {
   };
 
   const getInitials = (name: string) => {
+    if (!name) return 'NA';
     return name
       .split(' ')
       .map(word => word[0])
@@ -121,6 +122,8 @@ const AuditLogPage = () => {
     // TODO: Implement CSV/PDF export
     console.log('Export audit logs');
   };
+
+  console.log(auditLogs);
 
   if (error) {
     return (

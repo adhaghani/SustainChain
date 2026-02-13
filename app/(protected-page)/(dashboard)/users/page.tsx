@@ -25,7 +25,9 @@ import {
   IconBan,
   IconSettings,
   IconAlertCircle,
-  IconLoader2
+  IconLoader2,
+  IconX,
+  IconSend
 } from "@tabler/icons-react";
 import {
   DropdownMenu,
@@ -42,16 +44,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { UserDocument, UserRole, UserStatus } from '@/types/firestore';
+import type { UserDocument, UserRole,UserStatus } from '@/types/firestore';
 import { InviteUserDialog } from '@/components/users/invite-user-dialog';
 import { EditUserDialog } from '@/components/users/edit-user-dialog';
 import { DeleteUserDialog } from '@/components/users/delete-user-dialog';
+import { useInvitations, type InvitationData } from '@/hooks/use-invitations';
 
 const UsersPage = () => {
   const [users, setUsers] = useState<UserDocument[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<UserDocument[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all-status');
@@ -74,6 +78,14 @@ const UsersPage = () => {
     status: 'active' as UserStatus,
   });
   const [actionLoading, setActionLoading] = useState(false);
+
+  // Invitations hook
+  const { 
+    invitations, 
+    loading: invitationsLoading,
+    cancelInvitation,
+    resendInvitation,
+  } = useInvitations();
 
   // Fetch users
   useEffect(() => {
@@ -142,6 +154,7 @@ const UsersPage = () => {
     try {
       setActionLoading(true);
       setError('');
+      setSuccessMessage('');
 
       const currentUser = auth?.currentUser;
       if (!currentUser) throw new Error('Not authenticated');
@@ -163,9 +176,15 @@ const UsersPage = () => {
         throw new Error(data.error || 'Failed to invite user');
       }
 
-      // Reset form and close dialog
-      setInviteForm({ name: '', email: '', phone: '', role: 'clerk' });
-      setInviteDialogOpen(false);
+      // Show success message
+      setSuccessMessage(`Invitation sent successfully to ${inviteForm.email}`);
+
+      // Reset form and close dialog after a delay
+      setTimeout(() => {
+        setInviteForm({ name: '', email: '', phone: '', role: 'clerk' });
+        setInviteDialogOpen(false);
+        setSuccessMessage('');
+      }, 2000);
       
       // Refresh users list
       await fetchUsers();
@@ -727,6 +746,125 @@ const UsersPage = () => {
         </CardContent>
       </Card>
 
+      {/* Pending Invitations */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Pending Invitations</CardTitle>
+          <CardDescription>
+            Manage user invitations that haven&apos;t been accepted yet
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {invitationsLoading && (
+            <div className="flex items-center justify-center py-8">
+              <IconLoader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+            </div>
+          )}
+
+          {!invitationsLoading && invitations.filter(inv => inv.status === 'pending').length === 0 && (
+            <div className="text-center py-8 text-muted-foreground">
+              <IconMail className="w-12 h-12 mx-auto mb-2 opacity-50" />
+              <p>No pending invitations</p>
+            </div>
+          )}
+
+          {!invitationsLoading && invitations.filter(inv => inv.status === 'pending').length > 0 && (
+            <div className="space-y-4">
+              {invitations
+                .filter(inv => inv.status === 'pending')
+                .map((invitation: InvitationData) => {
+                  const isExpired = new Date(invitation.expiresAt) < new Date();
+                  return (
+                    <div
+                      key={invitation.id}
+                      className="flex items-center justify-between p-4 border rounded-lg"
+                    >
+                      <div className="flex items-start gap-4 flex-1">
+                        <Avatar>
+                          <AvatarFallback>
+                            {invitation.name
+                              .split(' ')
+                              .map(n => n[0])
+                              .join('')
+                              .toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <p className="font-medium">{invitation.name}</p>
+                            <Badge variant="outline">
+                              {invitation.role === 'admin' && <IconShieldCheck className="w-3 h-3 mr-1" />}
+                              {invitation.role === 'clerk' && <IconShield className="w-3 h-3 mr-1" />}
+                              {invitation.role === 'viewer' && <IconUser className="w-3 h-3 mr-1" />}
+                              {invitation.role.charAt(0).toUpperCase() + invitation.role.slice(1)}
+                            </Badge>
+                            {isExpired && (
+                              <Badge variant="destructive">Expired</Badge>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
+                            <IconMail className="w-3 h-3" />
+                            <span>{invitation.email}</span>
+                          </div>
+                          {invitation.phone && (
+                            <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
+                              <IconPhone className="w-3 h-3" />
+                              <span>{invitation.phone}</span>
+                            </div>
+                          )}
+                          <div className="flex items-center gap-4 text-xs text-muted-foreground mt-2">
+                            <span>Invited by {invitation.invitedByName}</span>
+                            <span>•</span>
+                            <div className="flex items-center gap-1">
+                              <IconClock className="w-3 h-3" />
+                              Expires {new Date(invitation.expiresAt).toLocaleDateString()}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {isExpired && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={async () => {
+                              const result = await resendInvitation(invitation);
+                              if (!result.success) {
+                                setError(result.error || 'Failed to resend invitation');
+                              } else {
+                                setSuccessMessage('Invitation resent successfully');
+                                setTimeout(() => setSuccessMessage(''), 3000);
+                              }
+                            }}
+                          >
+                            <IconSend className="w-4 h-4 mr-1" />
+                            Resend
+                          </Button>
+                        )}
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={async () => {
+                            const result = await cancelInvitation(invitation.id);
+                            if (!result.success) {
+                              setError(result.error || 'Failed to cancel invitation');
+                            } else {
+                              setSuccessMessage('Invitation cancelled successfully');
+                              setTimeout(() => setSuccessMessage(''), 3000);
+                            }
+                          }}
+                        >
+                          <IconX className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Dialogs */}
       <InviteUserDialog
         open={inviteDialogOpen}
@@ -735,6 +873,8 @@ const UsersPage = () => {
         setInviteForm={setInviteForm}
         onInvite={handleInviteUser}
         loading={actionLoading}
+        error={error}
+        successMessage={successMessage}
       />
 
       <EditUserDialog

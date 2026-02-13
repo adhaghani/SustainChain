@@ -83,6 +83,8 @@
       │   └── {notificationId} (document)
       ├── /reports (subcollection)     ← PDF reports metadata
       │   └── {reportId} (document)
+      ├── /invitations (subcollection) ← User invitation tracking
+      │   └── {invitationId} (document)
       └── /subscriptions (subcollection) ← Billing data
           └── {subscriptionId} (document)
 
@@ -240,7 +242,133 @@ Composite Indexes:
 
 ---
 
-### 3. `/system_config` Collection
+### 3. `/tenants/{tenantId}/invitations` Subcollection
+
+**Purpose**: User invitation tracking for multi-tenant access management
+
+#### Document Schema: `/tenants/{tenantId}/invitations/{invitationId}`
+
+```typescript
+interface InvitationDocument {
+  // Identity
+  id: string;                    // Auto-generated invitation ID
+  token: string;                 // Unique secure token for invitation link (64 chars hex)
+  
+  // Invitee Information
+  email: string;                 // Email address of invitee
+  name: string;                  // Full name of invitee
+  phone?: string | null;         // Optional phone number
+  role: 'admin' | 'clerk' | 'viewer';  // Assigned role for invitee
+  
+  // Tenant Context
+  tenantId: string;              // Reference to parent tenant
+  tenantName: string;            // Denormalized for email display
+  
+  // Inviter Information
+  invitedBy: string;             // User ID of admin who sent invitation
+  invitedByName: string;         // Name of inviter (for email display)
+  invitedByEmail: string;        // Email of inviter (for email display)
+  
+  // Status & Lifecycle
+  status: 'pending' | 'accepted' | 'expired' | 'cancelled';
+  
+  // Timestamps
+  createdAt: FirebaseFirestore.Timestamp;
+  expiresAt: FirebaseFirestore.Timestamp;  // 7 days from createdAt
+  acceptedAt?: FirebaseFirestore.Timestamp | null;  // Set when invitation is accepted
+  cancelledAt?: FirebaseFirestore.Timestamp | null;  // Set if admin cancels
+  
+  // Email Tracking
+  emailSent: boolean;            // Whether email was successfully sent
+  emailSentAt?: FirebaseFirestore.Timestamp;
+  emailProvider: 'resend';       // Email service used
+  
+  // User Creation
+  userId?: string | null;        // Firebase Auth UID (set after acceptance)
+}
+```
+
+#### Indexes
+
+```
+Composite Indexes:
+- (status ASC, expiresAt ASC)        // For finding expired invitations
+- (email ASC, status ASC)            // For checking duplicate invitations
+- (token ASC)                        // For fast token lookup (single field)
+- (invitedBy ASC, createdAt DESC)    // For showing what admin invited
+```
+
+#### Security Rules
+
+```javascript
+match /tenants/{tenantId}/invitations/{invitationId} {
+  // Admins can create, read, and cancel invitations
+  allow create: if isAuthenticated() && 
+                   hasRole('admin') && 
+                   belongsToTenant(tenantId);
+  
+  allow read: if isAuthenticated() && belongsToTenant(tenantId);
+  
+  allow update: if isAuthenticated() && 
+                   hasRole('admin') && 
+                   belongsToTenant(tenantId) &&
+                   // Only allow cancelling (not modifying other fields)
+                   request.resource.data.diff(resource.data).affectedKeys()
+                     .hasOnly(['status', 'cancelledAt']);
+  
+  allow delete: if false;  // Never delete, only soft-delete via status
+}
+```
+
+#### Usage Examples
+
+**1. Creating an invitation**
+```typescript
+const invitationData = {
+  id: crypto.randomUUID(),
+  token: crypto.randomBytes(32).toString('hex'),
+  email: 'john@example.com',
+  name: 'John Doe',
+  phone: '+60123456789',
+  role: 'clerk',
+  tenantId: 'tenant_abc123',
+  tenantName: 'Acme Corp',
+  invitedBy: 'user_xyz789',
+  invitedByName: 'Admin User',
+  invitedByEmail: 'admin@acme.com',
+  status: 'pending',
+  createdAt: Timestamp.now(),
+  expiresAt: Timestamp.fromDate(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)),
+  emailSent: false,
+  emailProvider: 'resend',
+};
+```
+
+**2. Checking for existing invitation**
+```typescript
+const existingInvite = await db
+  .collection('tenants')
+  .doc(tenantId)
+  .collection('invitations')
+  .where('email', '==', email)
+  .where('status', '==', 'pending')
+  .where('expiresAt', '>', Timestamp.now())
+  .limit(1)
+  .get();
+```
+
+**3. Accepting invitation**
+```typescript
+await invitationRef.update({
+  status: 'accepted',
+  acceptedAt: Timestamp.now(),
+  userId: newUserAuthUid,
+});
+```
+
+---
+
+### 4. `/system_config` Collection
 
 **Purpose**: Global system configuration (admin-only access)
 

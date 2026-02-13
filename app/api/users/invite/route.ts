@@ -1,15 +1,19 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Invite User API Route
- * Sends invitation email and creates pending user account
+ * Creates invitation record and sends email with registration link
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from 'firebase-admin';
+import { db } from '@/lib/firebase-admin';
 import { requirePermission } from '@/lib/rbac';
-import { createUserDocument, getTenantDocument } from '@/lib/firestore-helpers';
+import { getTenantDocument } from '@/lib/firestore-helpers';
 import { createAuditLog } from '@/lib/audit-logger';
-import type { ApiResponse, UserRole, CreateUserData } from '@/types/firestore';
+import { sendInvitationEmail } from '@/lib/email-service';
+import type { ApiResponse, UserRole } from '@/types/firestore';
+import { Timestamp } from 'firebase-admin/firestore';
+import crypto from 'crypto';
 
 export const runtime = 'nodejs';
 
@@ -70,7 +74,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if user already exists
+    // Check if user already exists in Firebase Auth
     try {
       const existingUser = await auth().getUserByEmail(body.email);
       if (existingUser) {
@@ -90,45 +94,100 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Generate random password (user will reset on first login)
-    const temporaryPassword = `Temp${Math.random().toString(36).slice(-8)}!`;
+    // Check for existing non-expired invitation
+    const now = new Date();
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    
+    const existingInvitations = await db
+      .collection('tenants')
+      .doc(currentUser.tenantId)
+      .collection('invitations')
+      .where('email', '==', body.email.toLowerCase())
+      .where('status', '==', 'pending')
+      .where('expiresAt', '>', Timestamp.fromDate(now))
+      .limit(1)
+      .get();
 
-    // Create Firebase Auth user
-    const newUser = await auth().createUser({
-      email: body.email,
-      password: temporaryPassword,
-      displayName: body.name,
-      emailVerified: false,
-    });
+    if (!existingInvitations.empty) {
+      return NextResponse.json<ApiResponse>(
+        {
+          success: false,
+          error: 'An active invitation for this email already exists. Please wait for it to expire or cancel it first.',
+          code: 'INVITATION_EXISTS',
+        },
+        { status: 409 }
+      );
+    }
 
-    // Create user document
-    const userData: CreateUserData = {
-      email: body.email,
+    // Generate secure token
+    const token = crypto.randomBytes(32).toString('hex');
+
+    // Create invitation document
+    const invitationRef = db
+      .collection('tenants')
+      .doc(currentUser.tenantId)
+      .collection('invitations')
+      .doc();
+
+    const expiresAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 days
+
+    const invitationData = {
+      id: invitationRef.id,
+      token,
+      email: body.email.toLowerCase(),
       name: body.name,
-      phone: body.phone,
+      phone: body.phone || null,
+      role: body.role,
       tenantId: currentUser.tenantId,
       tenantName: tenant.name,
-      role: body.role,
-      pdpaConsentGiven: false, // Will be set on first login
+      invitedBy: currentUser.uid,
+      invitedByName: currentUser.name,
+      invitedByEmail: currentUser.email,
+      status: 'pending',
+      createdAt: Timestamp.now(),
+      expiresAt: Timestamp.fromDate(expiresAt),
+      acceptedAt: null,
+      cancelledAt: null,
+      emailSent: false,
+      emailProvider: 'resend',
+      userId: null,
     };
 
-    const userDoc = await createUserDocument(newUser.uid, userData);
+    await invitationRef.set(invitationData);
 
-    // Set custom claims
-    await auth().setCustomUserClaims(newUser.uid, {
-      role: body.role,
-      tenantId: currentUser.tenantId,
-      tenantName: tenant.name,
-    });
+    // Send invitation email via Resend
+    const inviteLink = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/accept-invite?token=${token}`;
+    
+    try {
+      await sendInvitationEmail({
+        to: body.email,
+        name: body.name,
+        inviterName: currentUser.name,
+        tenantName: tenant.name,
+        role: body.role,
+        inviteLink,
+        expiresAt,
+      });
+
+      // Update invitation to mark email as sent
+      await invitationRef.update({
+        emailSent: true,
+        emailSentAt: Timestamp.now(),
+      });
+    } catch (emailError:any) {
+      console.error('Failed to send invitation email:', emailError);
+      // Don't fail the entire request if email fails
+      // The invitation is still created and can be resent
+    }
 
     // Create audit log
     await createAuditLog({
       tenantId: currentUser.tenantId,
       userId: currentUser.uid,
-      userName: 'Admin',
+      userName: currentUser.name,
       action: 'CREATE',
-      resource: 'User',
-      resourceId: newUser.uid,
+      resource: 'Invitation',
+      resourceId: invitationRef.id,
       details: `Invited user "${body.name}" (${body.email}) with role ${body.role}`,
       ipAddress: request.headers.get('x-forwarded-for') || 'unknown',
       userAgent: request.headers.get('user-agent') || 'unknown',
@@ -136,24 +195,37 @@ export async function POST(request: NextRequest) {
       severity: 'info',
     });
 
-    // TODO: Send invitation email with temporary password
-    // await sendInvitationEmail(body.email, body.name, temporaryPassword, tenant.name);
-
     return NextResponse.json<ApiResponse>({
       success: true,
       data: {
-        userId: newUser.uid,
+        invitationId: invitationRef.id,
         email: body.email,
-        temporaryPassword, // Return for now, remove in production
+        expiresAt: expiresAt.toISOString(),
       },
+      message: 'Invitation sent successfully',
     });
   } catch (error: any) {
     console.error('Invite user error:', error);
 
+    // Log failed attempt
+    await createAuditLog({
+      tenantId: currentUser.tenantId,
+      userId: currentUser.uid,
+      userName: currentUser.name,
+      action: 'CREATE',
+      resource: 'Invitation',
+      resourceId: '',
+      details: `Failed to invite user: ${error.message}`,
+      ipAddress: request.headers.get('x-forwarded-for') || 'unknown',
+      userAgent: request.headers.get('user-agent') || 'unknown',
+      status: 'failure',
+      severity: 'error',
+    });
+
     return NextResponse.json<ApiResponse>(
       {
         success: false,
-        error: error.message || 'Failed to invite user',
+        error: error.message || 'Failed to send invitation',
         code: 'INVITE_ERROR',
       },
       { status: 500 }

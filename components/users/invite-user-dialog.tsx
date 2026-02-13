@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Alert } from "@/components/ui/alert";
 import {
   Dialog,
   DialogContent,
@@ -18,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { IconLoader2 } from "@tabler/icons-react";
+import { IconLoader2, IconCheck, IconAlertCircle } from "@tabler/icons-react";
 import type { UserRole } from "@/types/firestore";
 
 interface InviteUserDialogProps {
@@ -38,6 +39,8 @@ interface InviteUserDialogProps {
   }) => void;
   onInvite: () => Promise<void>;
   loading: boolean;
+  error?: string;
+  successMessage?: string;
 }
 
 export function InviteUserDialog({
@@ -47,6 +50,8 @@ export function InviteUserDialog({
   setInviteForm,
   onInvite,
   loading,
+  error,
+  successMessage,
 }: InviteUserDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -58,6 +63,24 @@ export function InviteUserDialog({
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
+          {error && (
+            <Alert variant="destructive">
+              <IconAlertCircle className="h-4 w-4" />
+              <div className="ml-2">
+                <p className="text-sm font-medium">Error</p>
+                <p className="text-sm">{error}</p>
+              </div>
+            </Alert>
+          )}
+          {successMessage && (
+            <Alert>
+              <IconCheck className="h-4 w-4" />
+              <div className="ml-2">
+                <p className="text-sm font-medium">Success</p>
+                <p className="text-sm">{successMessage}</p>
+              </div>
+            </Alert>
+          )}
           <div className="space-y-2">
             <Label htmlFor="name">Full Name</Label>
             <Input
@@ -67,6 +90,7 @@ export function InviteUserDialog({
               onChange={(e) =>
                 setInviteForm({ ...inviteForm, name: e.target.value })
               }
+              disabled={loading}
             />
           </div>
           <div className="space-y-2">
@@ -79,6 +103,7 @@ export function InviteUserDialog({
               onChange={(e) =>
                 setInviteForm({ ...inviteForm, email: e.target.value })
               }
+              disabled={loading}
             />
           </div>
           <div className="space-y-2">
@@ -90,6 +115,7 @@ export function InviteUserDialog({
               onChange={(e) =>
                 setInviteForm({ ...inviteForm, phone: e.target.value })
               }
+              disabled={loading}
             />
           </div>
           <div className="space-y-2">
@@ -99,6 +125,7 @@ export function InviteUserDialog({
               onValueChange={(value: UserRole) =>
                 setInviteForm({ ...inviteForm, role: value })
               }
+              disabled={loading}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select role" />
@@ -112,7 +139,7 @@ export function InviteUserDialog({
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
             Cancel
           </Button>
           <Button onClick={onInvite} disabled={loading}>
