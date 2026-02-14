@@ -1,3 +1,6 @@
+'use client';
+
+import { useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -22,8 +25,37 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useTenantQuota } from "@/hooks/use-tenant-quota";
+import { toast } from "sonner";
 
 const ReportsPage = () => {
+  const { data: quotaData, loading: quotaLoading } = useTenantQuota();
+
+  // Check report generation quota
+  const reportQuotaExceeded = quotaData && !quotaData.reportGeneration.unlimited && quotaData.reportGeneration.remaining === 0;
+
+  // Show warning toast when approaching quota limit
+  useEffect(() => {
+    if (!quotaLoading && quotaData && !quotaData.reportGeneration.unlimited) {
+      if (reportQuotaExceeded) {
+        const resetDate = new Date(quotaData.reportGeneration.resetTime).toLocaleDateString('en-US', { 
+          month: 'short', 
+          day: 'numeric',
+          year: 'numeric'
+        });
+        
+        toast.error("Report Generation Quota Exceeded", {
+          description: `You have used all ${quotaData.reportGeneration.limit} report generations for this month. Your quota resets on ${resetDate}.`,
+          duration: 6000,
+        });
+      } else if (quotaData.reportGeneration.percentUsed >= 80) {
+        toast.warning("Approaching Quota Limit", {
+          description: `You have ${quotaData.reportGeneration.remaining} report generations remaining this month.`,
+          duration: 5000,
+        });
+      }
+    }
+  }, [quotaData, quotaLoading, reportQuotaExceeded]);
   // Mock data - will be replaced with real data
   const reports = [
     {
@@ -95,9 +127,18 @@ const ReportsPage = () => {
             Generate and download compliance-ready ESG reports
           </p>
         </div>
-        <Button>
+        <Button 
+          disabled={reportQuotaExceeded || quotaLoading}
+          onClick={() => {
+            if (reportQuotaExceeded) {
+              toast.error("Cannot Generate Report", {
+                description: "You have exceeded your monthly report generation quota.",
+              });
+            }
+          }}
+        >
           <IconDownload className="w-4 h-4 mr-2" />
-          Generate New Report
+          {reportQuotaExceeded ? 'Quota Exceeded' : 'Generate New Report'}
         </Button>
       </div>
 
@@ -291,12 +332,50 @@ const ReportsPage = () => {
             </Card>
           </div>
 
+          {/* Quota Warning Alert */}
+          {!quotaLoading && quotaData && !quotaData.reportGeneration.unlimited && quotaData.reportGeneration.remaining <= 3 && (
+            <div className="p-4 border rounded-lg bg-yellow-50 dark:bg-yellow-500/10 border-yellow-200 dark:border-yellow-500/20">
+              <div className="flex items-start gap-3">
+                <IconLeaf className="w-5 h-5 text-yellow-600 mt-0.5" />
+                <div className="flex-1">
+                  <p className="font-semibold text-yellow-900 dark:text-yellow-200">
+                    {reportQuotaExceeded ? 'Monthly Report Quota Exceeded' : 'Low Report Quota'}
+                  </p>
+                  <p className="text-sm text-yellow-800 dark:text-yellow-300 mt-1">
+                    {reportQuotaExceeded 
+                      ? `You have used all ${quotaData.reportGeneration.limit} report generations. Quota resets on ${new Date(quotaData.reportGeneration.resetTime).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}.`
+                      : `Only ${quotaData.reportGeneration.remaining} report generation${quotaData.reportGeneration.remaining === 1 ? '' : 's'} remaining this month.`
+                    }
+                  </p>
+                </div>
+                <Badge variant={reportQuotaExceeded ? "destructive" : "default"}>
+                  {quotaData.reportGeneration.current} / {quotaData.reportGeneration.limit}
+                </Badge>
+              </div>
+            </div>
+          )}
+
           <div className="flex gap-2 pt-4">
-            <Button className="flex-1" size="lg">
+            <Button 
+              className="flex-1" 
+              size="lg"
+              disabled={reportQuotaExceeded || quotaLoading}
+              onClick={() => {
+                if (reportQuotaExceeded) {
+                  toast.error("Cannot Generate Report", {
+                    description: "You have exceeded your monthly report generation quota.",
+                  });
+                }
+              }}
+            >
               <IconDownload className="w-4 h-4 mr-2" />
-              Generate & Download Report
+              {reportQuotaExceeded ? 'Quota Exceeded' : 'Generate & Download Report'}
             </Button>
-            <Button variant="outline" size="lg">
+            <Button 
+              variant="outline" 
+              size="lg"
+              disabled={reportQuotaExceeded || quotaLoading}
+            >
               <IconEye className="w-4 h-4 mr-2" />
               Preview
             </Button>

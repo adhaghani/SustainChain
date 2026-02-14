@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
 import { useState, useEffect } from "react";
@@ -175,7 +176,7 @@ export default function AcceptInvitePage() {
   // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen w-screen flex items-center justify-center bg-gradient-to-b from-green-50 to-white dark:from-gray-900 dark:to-gray-800">
+      <div className="min-h-screen w-screen flex items-center justify-center bg-linear-to-b from-green-50 to-white dark:from-gray-900 dark:to-gray-800">
         <Card className="w-full max-w-md">
           <CardContent className="flex items-center justify-center py-12">
             <IconLoader2 className="w-8 h-8 animate-spin text-primary" />
@@ -188,7 +189,7 @@ export default function AcceptInvitePage() {
   // Error state
   if (error && !invitation) {
     return (
-      <div className="min-h-screen w-screen flex items-center justify-center bg-gradient-to-b from-green-50 to-white dark:from-gray-900 dark:to-gray-800 p-4">
+      <div className="min-h-screen w-screen flex items-center justify-center bg-linear-to-b from-green-50 to-white dark:from-gray-900 dark:to-gray-800 p-4">
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-red-600">

@@ -1,13 +1,17 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { Upload, FileText, Loader2, CheckCircle, XCircle, ImageIcon } from 'lucide-react';
+import { Upload, FileText, Loader2, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
 import { uploadBillImage, validateBillFile } from '@/lib/storage-helpers';
 import { auth } from '@/lib/firebase';
 import EntryReviewForm, { type ExtractedBillData } from './entry-review-form';
 import { useLanguage } from '@/lib/language-context';
+import { useTenantQuota } from '@/hooks/use-tenant-quota';
+import { toast } from 'sonner';
 
 type UploadState = 'idle' | 'dragover' | 'uploading' | 'analyzing' | 'review' | 'success' | 'error';
 
@@ -17,12 +21,17 @@ interface BillUploaderProps {
 
 export default function BillUploader({ onEntryCreated }: BillUploaderProps) {
   const { t } = useLanguage();
+  const { data: quotaData, loading: quotaLoading } = useTenantQuota();
   const [state, setState] = useState<UploadState>('idle');
   const [fileName, setFileName] = useState<string>('');
   const [error, setError] = useState<string>('');
   const [extractedData, setExtractedData] = useState<ExtractedBillData | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [currentFile, setCurrentFile] = useState<File | null>(null);
+
+  // Check if quota is exceeded
+  const quotaExceeded = quotaData && !quotaData.billAnalysis.unlimited && quotaData.billAnalysis.remaining === 0;
+  const quotaWarning = quotaData && !quotaData.billAnalysis.unlimited && quotaData.billAnalysis.percentUsed > 80;
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -128,6 +137,7 @@ export default function BillUploader({ onEntryCreated }: BillUploaderProps) {
       setState('analyzing');
 
       // Step 2: Analyze with Gemini
+      const idToken = await currentUser.getIdToken();
       const formData = new FormData();
       formData.append('image', file);
       formData.append('tenantId', tenantId);
@@ -135,12 +145,27 @@ export default function BillUploader({ onEntryCreated }: BillUploaderProps) {
 
       const response = await fetch('/api/analyze', {
         method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${idToken}`,
+        },
         body: formData,
       });
 
       const data = await response.json();
 
       if (!response.ok) {
+        // Handle quota exceeded error specifically
+        if (response.status === 429) {
+          const resetDate = data.resetTime ? new Date(data.resetTime).toLocaleDateString('en-US', { month: 'long', day: 'numeric' }) : 'next month';
+          const errorMsg = data.message || `Monthly quota exceeded. Your quota will reset on ${resetDate}.`;
+          
+          toast.error('Monthly Quota Exceeded', {
+            description: errorMsg,
+            duration: 6000,
+          });
+          
+          throw new Error(errorMsg);
+        }
         throw new Error(data.error || t.upload.error.analyzeFailed);
       }
 
@@ -154,13 +179,26 @@ export default function BillUploader({ onEntryCreated }: BillUploaderProps) {
 
     } catch (err) {
       console.error('Error processing bill:', err);
-      setError(err instanceof Error ? err.message : 'Failed to process bill');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to process bill';
+      setError(errorMessage);
       setState('error');
+      
+      // Show toast for errors (excluding quota exceeded which is already shown)
+      if (!(err instanceof Error && err.message.includes('quota exceeded'))) {
+        toast.error('Upload Failed', {
+          description: errorMessage,
+          duration: 5000,
+        });
+      }
     }
   };
 
   const handleSave = (entryId: string) => {
     setState('success');
+    toast.success('Bill Saved Successfully', {
+      description: 'Your emissions entry has been recorded.',
+      duration: 4000,
+    });
     onEntryCreated?.(entryId);
   };
 
@@ -205,10 +243,46 @@ export default function BillUploader({ onEntryCreated }: BillUploaderProps) {
   }
 
   return (
-    <div className="w-full">
+    <div className="w-full space-y-4">
+      {/* Quota Display */}
+      {!quotaLoading && quotaData && !quotaData.billAnalysis.unlimited && (
+        <Alert variant={quotaExceeded ? "destructive" : quotaWarning ? "default" : "default"} 
+               className={quotaExceeded ? "border-red-500 bg-red-50 dark:bg-red-500/10" : quotaWarning ? "border-yellow-500 bg-yellow-50 dark:bg-yellow-500/10" : "border-blue-500 bg-blue-50 dark:bg-blue-500/10"}>
+          {quotaExceeded ? (
+            <XCircle className="h-4 w-4 text-red-600" />
+          ) : quotaWarning ? (
+            <AlertTriangle className="h-4 w-4 text-yellow-600" />
+          ) : (
+            <CheckCircle className="h-4 w-4 text-blue-600" />
+          )}
+          <AlertDescription className="flex items-center justify-between">
+            <div className="flex-1 mr-4">
+              <p className="font-semibold mb-1">
+                {quotaExceeded ? "Monthly Quota Exceeded" : quotaWarning ? "Approaching Quota Limit" : "Bill Analysis Quota"}
+              </p>
+              <p className="text-sm">
+                {quotaExceeded 
+                  ? `You have used all ${quotaData.billAnalysis.limit} bill analyses for this month. Your quota resets on ${new Date(quotaData.billAnalysis.resetTime).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}.`
+                  : `${quotaData.billAnalysis.current} of ${quotaData.billAnalysis.limit} used this month (${quotaData.billAnalysis.remaining} remaining)`
+                }
+              </p>
+            </div>
+            <div className="flex flex-col items-end gap-2 min-w-30">
+              <Badge variant={quotaExceeded ? "destructive" : quotaWarning ? "default" : "secondary"}>
+                {quotaData.billAnalysis.current} / {quotaData.billAnalysis.limit}
+              </Badge>
+              <Progress 
+                value={quotaData.billAnalysis.percentUsed} 
+                className="h-2 w-full"
+              />
+            </div>
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Error state */}
       {state === 'error' && (
-        <Alert variant="destructive" className="mb-4 bg-red-50 dark:bg-red-500/10 border-red-200 dark:border-red-500/20">
+        <Alert variant="destructive" className="bg-red-50 dark:bg-red-500/10 border-red-200 dark:border-red-500/20">
           <XCircle className="h-4 w-4" />
           <AlertDescription>{error}</AlertDescription>
         </Alert>
@@ -278,20 +352,23 @@ export default function BillUploader({ onEntryCreated }: BillUploaderProps) {
       {/* Idle and dragover states */}
       {(state === 'idle' || state === 'dragover' || state === 'error') && (
         <div
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-          className={`relative border-2 border-dashed rounded-xl p-8 text-center transition-all cursor-pointer ${
-            state === 'dragover'
-              ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10'
-              : 'border-slate-300 dark:border-slate-600 hover:border-emerald-400 hover:bg-slate-50 dark:hover:bg-slate-700/30'
+          onDragOver={quotaExceeded ? undefined : handleDragOver}
+          onDragLeave={quotaExceeded ? undefined : handleDragLeave}
+          onDrop={quotaExceeded ? undefined : handleDrop}
+          className={`relative border-2 border-dashed rounded-xl p-8 text-center transition-all ${
+            quotaExceeded 
+              ? 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 opacity-50 cursor-not-allowed' 
+              : state === 'dragover'
+              ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 cursor-pointer'
+              : 'border-slate-300 dark:border-slate-600 hover:border-emerald-400 hover:bg-slate-50 dark:hover:bg-slate-700/30 cursor-pointer'
           }`}
         >
           <input
             type="file"
             accept=".pdf,.png,.jpg,.jpeg,.heic"
             onChange={handleFileInput}
-            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            disabled={quotaExceeded || false}
+            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
           />
 
           <div className="space-y-4">
@@ -311,7 +388,9 @@ export default function BillUploader({ onEntryCreated }: BillUploaderProps) {
 
             <div>
               <p className="text-slate-900 dark:text-white font-medium">
-                {state === 'dragover' ? (
+                {quotaExceeded ? (
+                  'Monthly quota exceeded'
+                ) : state === 'dragover' ? (
                   t.upload.placeholder.dropHere
                 ) : (
                   <>
@@ -323,16 +402,21 @@ export default function BillUploader({ onEntryCreated }: BillUploaderProps) {
                 )}
               </p>
               <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                {t.upload.supportedFormats}
+                {quotaExceeded 
+                  ? `Quota resets on ${quotaData ? new Date(quotaData.billAnalysis.resetTime).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'next month'}`
+                  : t.upload.supportedFormats
+                }
               </p>
             </div>
 
-            <div className="flex items-center justify-center gap-2 text-xs text-slate-400">
-              <span className="px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded">{t.upload.formats.PDF}</span>
-              <span className="px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded">{t.upload.formats.PNG}</span>
-              <span className="px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded">{t.upload.formats.JPG}</span>
-              <span className="px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded">{t.upload.formats.HEIC}</span>
-            </div>
+            {!quotaExceeded && (
+              <div className="flex items-center justify-center gap-2 text-xs text-slate-400">
+                <span className="px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded">{t.upload.formats.PDF}</span>
+                <span className="px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded">{t.upload.formats.PNG}</span>
+                <span className="px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded">{t.upload.formats.JPG}</span>
+                <span className="px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded">{t.upload.formats.HEIC}</span>
+              </div>
+            )}
           </div>
         </div>
       )}

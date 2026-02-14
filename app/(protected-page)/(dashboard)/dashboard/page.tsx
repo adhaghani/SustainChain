@@ -27,8 +27,11 @@ import { useLanguage } from "@/lib/language-context";
 import { useAuth } from "@/lib/auth-context";
 import { useAnalytics } from "@/hooks/use-analytics";
 import { useRecentEntries } from "@/hooks/use-entries";
+import { useTenantQuota } from "@/hooks/use-tenant-quota";
 import { useRouter } from "next/navigation";
 import { useMemo } from "react";
+import { useDebouncedCallback } from "@/hooks/use-debounced-callback";
+import { CLIENT_RATE_LIMITS } from "@/lib/client-rate-limiter";
 
 const DashboardPage = () => {
   const { t } = useLanguage();
@@ -42,6 +45,16 @@ const DashboardPage = () => {
   } = useAnalytics("monthly");
   const { entries: recentEntries, loading: entriesLoading } =
     useRecentEntries();
+  const { data: quotaData } = useTenantQuota();
+
+  // Debounced refresh function for dashboard data
+  const debouncedRefetch = useDebouncedCallback(
+    () => {
+      refetchAnalytics();
+    },
+    CLIENT_RATE_LIMITS.DEBOUNCE_MS,
+    [refetchAnalytics]
+  );
 
     
   // Compute emission breakdown from analytics data
@@ -168,7 +181,7 @@ const DashboardPage = () => {
             <CardDescription>{analyticsError}</CardDescription>
           </CardHeader>
           <CardContent>
-            <Button onClick={refetchAnalytics} className="w-full">
+            <Button onClick={() => debouncedRefetch()} className="w-full">
               <IconRefresh className="w-4 h-4 mr-2" />
               {t.dashboard.pages.dashboard.retry}
             </Button>
@@ -345,6 +358,106 @@ const DashboardPage = () => {
         </Card>
       </div>
 
+      {/* Tenant Monthly Quota (Admin Only) */}
+      {role === "admin" && quotaData && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Monthly Quota Usage</CardTitle>
+                <CardDescription>
+                  {quotaData.billAnalysis.unlimited ? "Unlimited plan" : "Track your monthly API usage limits"}
+                </CardDescription>
+              </div>
+              {!quotaData.billAnalysis.unlimited && (
+                <Badge variant={
+                  quotaData.billAnalysis.percentUsed > 80 || quotaData.reportGeneration.percentUsed > 80
+                    ? "destructive"
+                    : quotaData.billAnalysis.percentUsed > 50 || quotaData.reportGeneration.percentUsed > 50
+                    ? "default"
+                    : "secondary"
+                }>
+                  {quotaData.billAnalysis.current + quotaData.reportGeneration.current} / {quotaData.billAnalysis.limit + quotaData.reportGeneration.limit} used
+                </Badge>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Bill Analysis Usage */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-2">
+                  <IconBolt className="w-4 h-4 text-primary" />
+                  <span className="font-medium">Bill Analysis (Gemini API)</span>
+                </div>
+                <span className="text-muted-foreground">
+                  {quotaData.billAnalysis.unlimited ? "Unlimited" : `${quotaData.billAnalysis.current} / ${quotaData.billAnalysis.limit}`}
+                </span>
+              </div>
+              {!quotaData.billAnalysis.unlimited && (
+                <>
+                  <Progress 
+                    value={quotaData.billAnalysis.percentUsed} 
+                    className="h-2"
+                  />
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>
+                      {quotaData.billAnalysis.remaining} remaining
+                    </span>
+                    <span>
+                      Resets {new Date(quotaData.billAnalysis.resetTime).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    </span>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Report Generation Usage */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-2">
+                  <IconDownload className="w-4 h-4 text-primary" />
+                  <span className="font-medium">Report Generation (PDF)</span>
+                </div>
+                <span className="text-muted-foreground">
+                  {quotaData.reportGeneration.unlimited ? "Unlimited" : `${quotaData.reportGeneration.current} / ${quotaData.reportGeneration.limit}`}
+                </span>
+              </div>
+              {!quotaData.reportGeneration.unlimited && (
+                <>
+                  <Progress 
+                    value={quotaData.reportGeneration.limit === 0 ? 100 : quotaData.reportGeneration.percentUsed} 
+                    className="h-2"
+                  />
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>
+                      {quotaData.reportGeneration.remaining} remaining
+                    </span>
+                    <span>
+                      Resets {new Date(quotaData.reportGeneration.resetTime).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    </span>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Warning if approaching quota limit */}
+            {!quotaData.billAnalysis.unlimited && (quotaData.billAnalysis.percentUsed > 80 || quotaData.reportGeneration.percentUsed > 80) && (
+              <div className="flex items-start gap-2 p-3 bg-destructive/10 rounded-lg">
+                <IconAlertCircle className="w-4 h-4 text-destructive mt-0.5" />
+                <div className="text-xs">
+                  <p className="font-medium text-destructive">Approaching Monthly Quota Limit</p>
+                  <p className="text-muted-foreground mt-1">
+                    You&apos;ve used over 80% of your monthly quota. Consider upgrading to avoid service interruption.
+                  </p>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* 
       {/* Charts and Breakdown */}
       <div className="grid gap-4 md:grid-cols-2">
         {/* Emission Breakdown */}

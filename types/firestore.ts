@@ -140,6 +140,15 @@ export interface TenantDocument {
   sectorRank?: string;
   lastBenchmarkUpdate?: Timestamp;
 
+  // Monthly Usage Quotas
+  monthlyUsage?: {
+    billAnalysisCount: number;
+    reportGenerationCount: number;
+    periodStart: Timestamp; // 1st of current month
+    periodEnd: Timestamp;   // 1st of next month
+    lastReset: Timestamp;
+  };
+
   // Settings
   settings: {
     defaultCurrency: "MYR";

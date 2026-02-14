@@ -7,6 +7,7 @@ import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth, isFirebaseConfigured } from '@/lib/firebase';
 import { AuthProvider } from '@/lib/auth-context';
 import { Spinner } from '@/components/ui/spinner';
+import { Toaster } from '@/components/ui/sonner';
 
 interface ProtectedLayoutProps {
   children: React.ReactNode;
@@ -43,6 +44,7 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
   return (
     <AuthProvider>
       {children}
+      <Toaster />
     </AuthProvider>
   );
 }

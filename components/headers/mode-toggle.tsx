@@ -11,7 +11,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useLanguage } from "@/lib/language-context";
-import { translations } from "@/lib/i18n";
 
 export function ModeToggle() {
   const { setTheme } = useTheme();

@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { useDebouncedCallback } from '@/hooks/use-debounced-callback';
+import { CLIENT_RATE_LIMITS } from '@/lib/client-rate-limiter';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -31,6 +33,15 @@ import { useAnalytics } from '@/hooks/use-analytics';
 const AnalyticsPage = () => {
   const [period, setPeriod] = useState<'monthly' | 'quarterly' | 'yearly'>('monthly');
   const { data, loading, error, refetch } = useAnalytics(period);
+
+  // Debounced refresh function for analytics data
+  const debouncedRefetch = useDebouncedCallback(
+    () => {
+      refetch();
+    },
+    CLIENT_RATE_LIMITS.DEBOUNCE_MS,
+    [refetch]
+  );
 
 
 
@@ -98,7 +109,7 @@ const AnalyticsPage = () => {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => refetch()} disabled={loading}>
+          <Button variant="outline" size="sm" onClick={() => debouncedRefetch()} disabled={loading}>
             <IconRefresh className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
             Refresh Data
           </Button>

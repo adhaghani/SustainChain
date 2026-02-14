@@ -7,6 +7,9 @@ import {
 import { Kbd, KbdGroup } from "@/components/ui/kbd"
 import { Search } from "lucide-react"
 import { useLanguage } from "@/lib/language-context"
+// Debouncing imports for future search functionality
+// import { useDebouncedValue } from "@/hooks/use-debounced-callback"
+// import { CLIENT_RATE_LIMITS } from "@/lib/client-rate-limiter"
 
 import {
   Command,
@@ -22,6 +25,9 @@ import {
 
 const SearchCommand = () => {
     const [open, setOpen] = useState(false)
+    const [searchQuery, setSearchQuery] = useState('')
+    // Debounced search query for future search implementation
+    // const debouncedSearchQuery = useDebouncedValue(searchQuery, CLIENT_RATE_LIMITS.DEBOUNCE_MS)
     const { t } = useLanguage();
   return (
 <div className="flex flex-col gap-4">
@@ -39,7 +45,11 @@ const SearchCommand = () => {
     </InputGroup>
       <CommandDialog open={open} onOpenChange={setOpen}>
         <Command>
-          <CommandInput placeholder={t.header.command.placeholder} />
+          <CommandInput 
+            placeholder={t.header.command.placeholder} 
+            value={searchQuery}
+            onValueChange={setSearchQuery}
+          />
           <CommandList>
             <CommandEmpty>{t.header.command.empty}</CommandEmpty>
             <CommandGroup heading={t.header.command.suggestions.heading}>

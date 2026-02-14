@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenAI } from '@google/genai';
+import { checkQuota, QUOTA_OPERATIONS } from '@/lib/quota-tracker';
+import { adminAuth } from '@/lib/firebase-admin';
 
 // Initialize Gemini client
 const genAI = new GoogleGenAI({
@@ -63,11 +65,85 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Authenticate user and get tenant ID
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return NextResponse.json(
+        { error: 'Missing or invalid authorization header' },
+        { status: 401 }
+      );
+    }
+
+    const idToken = authHeader.split('Bearer ')[1];
+    let decodedToken;
+    
+    try {
+      decodedToken = await adminAuth.verifyIdToken(idToken);
+    } catch {
+      return NextResponse.json(
+        { error: 'Invalid or expired token' },
+        { status: 401 }
+      );
+    }
+
+    const tenantId = decodedToken.tenantId as string;
+    const userRole = decodedToken.role as string;
+
+    if (!tenantId) {
+      return NextResponse.json(
+        { error: 'User is not associated with a tenant' },
+        { status: 403 }
+      );
+    }
+
+    // Check monthly quotas (only superadmin bypasses quotas)
+    const bypassQuota = userRole === 'superadmin';
+    
+    const quotaResult = await checkQuota(
+      tenantId,
+      QUOTA_OPERATIONS.BILL_ANALYSIS,
+      bypassQuota
+    );
+
+    if (!quotaResult.allowed) {
+      const resetDate = quotaResult.resetTime.toLocaleDateString('en-US', { 
+        month: 'long', 
+        day: 'numeric',
+        year: 'numeric'
+      });
+      
+      return NextResponse.json(
+        {
+          error: 'Monthly quota exceeded',
+          message: `You have used all ${quotaResult.limit} bill analysis requests for this month. Your quota will reset on ${resetDate}.`,
+          current: quotaResult.current,
+          limit: quotaResult.limit,
+          resetTime: quotaResult.resetTime,
+        },
+        { 
+          status: 429,
+          headers: {
+            'X-Quota-Limit': quotaResult.limit.toString(),
+            'X-Quota-Remaining': '0',
+            'X-Quota-Reset': quotaResult.resetTime.toISOString(),
+          }
+        }
+      );
+    }
+
     // Get form data with image/PDF
     const formData = await request.formData();
     const imageFile = formData.get('image') as File | null;
-    const tenantId = formData.get('tenantId') as string | null;
+    const tenantIdFromForm = formData.get('tenantId') as string | null;
     const imageUrl = formData.get('imageUrl') as string | null;
+
+    // Validate tenant ID from form matches authenticated user's tenant
+    if (tenantIdFromForm && tenantIdFromForm !== tenantId) {
+      return NextResponse.json(
+        { error: 'Tenant ID mismatch' },
+        { status: 403 }
+      );
+    }
 
     if (!imageUrl && !imageFile) {
       return NextResponse.json(
@@ -85,13 +161,6 @@ export async function POST(request: NextRequest) {
           { status: 400 }
         );
       }
-    }
-
-    if (!tenantId) {
-      return NextResponse.json(
-        { error: 'tenantId is required' },
-        { status: 400 }
-      );
     }
 
     // Prepare file for Gemini (supports images and PDFs)
@@ -165,7 +234,7 @@ export async function POST(request: NextRequest) {
       }
       extractedData = JSON.parse(jsonMatch[0]);
       extractedData.rawResponse = responseText;
-    } catch (parseError) {
+    } catch {
       console.error('Failed to parse Gemini response:', responseText);
       return NextResponse.json(
         { 
@@ -192,14 +261,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Return extracted data
-    return NextResponse.json({
-      success: true,
-      data: extractedData,
-      message: extractedData.confidence < 0.7 
-        ? 'Low confidence extraction - please review carefully'
-        : 'Bill extracted successfully',
-    });
+    // Return extracted data with quota headers
+    return NextResponse.json(
+      {
+        success: true,
+        data: extractedData,
+        message: extractedData.confidence < 0.7 
+          ? 'Low confidence extraction - please review carefully'
+          : 'Bill extracted successfully',
+      },
+      {
+        headers: {
+          'X-Quota-Limit': quotaResult.limit.toString(),
+          'X-Quota-Remaining': quotaResult.remaining.toString(),
+          'X-Quota-Reset': quotaResult.resetTime.toISOString(),
+        }
+      }
+    );
 
   } catch (error) {
     console.error('Error analyzing bill:', error);

@@ -226,14 +226,14 @@ const NotificationsPage = () => {
                     <div className="flex items-start gap-4">
                       {/* Unread Indicator */}
                       {!notification.read && (
-                        <div className={`w-2 h-2 rounded-full ${colors.badge} mt-2 flex-shrink-0`} />
+                        <div className={`w-2 h-2 rounded-full ${colors.badge} mt-2 shrink-0`} />
                       )}
                       {notification.read && (
-                        <div className="w-2 h-2 mt-2 flex-shrink-0" />
+                        <div className="w-2 h-2 mt-2 shrink-0" />
                       )}
 
                       {/* Icon */}
-                      <div className={`w-12 h-12 rounded-lg ${colors.bg} border ${colors.border} flex items-center justify-center flex-shrink-0`}>
+                      <div className={`w-12 h-12 rounded-lg ${colors.bg} border ${colors.border} flex items-center justify-center shrink-0`}>
                         <Icon className={`w-6 h-6 ${colors.icon}`} />
                       </div>
 

@@ -17,6 +17,8 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/lib/auth-context";
 import { useLanguage } from "@/lib/language-context";
+import { useTenantQuota } from "@/hooks/use-tenant-quota";
+import { toast } from "sonner";
 import {
   IconCheck,
   IconAlertTriangle,
@@ -39,7 +41,11 @@ interface ManualEntryDialogProps {
 const ManualEntryDialog = ({ onEntryCreated }: ManualEntryDialogProps) => {
   const { user } = useAuth();
   const { t } = useLanguage();
+  const { data: quotaData, loading: quotaLoading } = useTenantQuota();
   const [open, setOpen] = useState(false);
+
+  // Check if quota is exceeded
+  const quotaExceeded = quotaData && !quotaData.billAnalysis.unlimited && quotaData.billAnalysis.remaining === 0;
 
   // Manual entry form state
   const [manualEntry, setManualEntry] = useState({
@@ -60,6 +66,23 @@ const ManualEntryDialog = ({ onEntryCreated }: ManualEntryDialogProps) => {
       setIsSubmitting(true);
       setManualError(null);
       setManualSuccess(false);
+
+      // Check quota before proceeding
+      if (quotaExceeded) {
+        const resetDate = quotaData ? new Date(quotaData.billAnalysis.resetTime).toLocaleDateString('en-US', { 
+          month: 'short', 
+          day: 'numeric',
+          year: 'numeric'
+        }) : 'next month';
+        
+        toast.error('Monthly Quota Exceeded', {
+          description: `You have used all your bill analyses for this month. Your quota resets on ${resetDate}.`,
+          duration: 5000,
+        });
+        
+        setManualError(`Monthly quota exceeded. Resets on ${resetDate}.`);
+        return;
+      }
 
       // Validate required fields
       if (
@@ -113,6 +136,11 @@ const ManualEntryDialog = ({ onEntryCreated }: ManualEntryDialogProps) => {
 
       // Success!
       setManualSuccess(true);
+      
+      toast.success('Manual Entry Saved', {
+        description: 'Your emissions entry has been recorded successfully.',
+        duration: 4000,
+      });
 
       // Clear form
       setManualEntry({
@@ -326,13 +354,18 @@ const ManualEntryDialog = ({ onEntryCreated }: ManualEntryDialogProps) => {
           <div className="flex gap-2 pt-4">
             <Button
               onClick={handleManualSubmit}
-              disabled={isSubmitting}
+              disabled={isSubmitting || quotaExceeded || quotaLoading}
               className="flex-1"
             >
               {isSubmitting ? (
                 <>
                   <IconLoader2 className="w-4 h-4 mr-2 animate-spin" />
                   {t.manualEntry.actions.saving}
+                </>
+              ) : quotaExceeded ? (
+                <>
+                  <IconAlertTriangle className="w-4 h-4 mr-2" />
+                  Quota Exceeded
                 </>
               ) : (
                 <>

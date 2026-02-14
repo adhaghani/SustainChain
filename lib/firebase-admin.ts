@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { initializeApp, getApps, cert, type App } from "firebase-admin/app";
 import { getFirestore, type Firestore } from "firebase-admin/firestore";
 import { getAuth } from "firebase-admin/auth";
@@ -38,7 +39,6 @@ const app = initializeFirebaseAdmin();
 // Initialize Firestore with settings (only once)
 // Use global variable to prevent re-initialization during hot reloads
 declare global {
-  // eslint-disable-next-line no-var
   var _firestoreInstance: Firestore | undefined;
 }
 

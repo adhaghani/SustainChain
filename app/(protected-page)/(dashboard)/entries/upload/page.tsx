@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   Card,
@@ -21,11 +21,49 @@ import {
   IconSparkles,
 } from "@tabler/icons-react";
 import { useLanguage } from "@/lib/language-context";
+import { useTenantQuota } from "@/hooks/use-tenant-quota";
+import { toast } from "sonner";
 
 const UploadPage = () => {
   const { t } = useLanguage();
   const router = useRouter();
   const [recentEntryId, setRecentEntryId] = useState<string | null>(null);
+  const { data: quotaData, loading: quotaLoading } = useTenantQuota();
+
+  // Redirect if quota exceeded
+  useEffect(() => {
+    if (!quotaLoading && quotaData) {
+      const quotaExceeded = !quotaData.billAnalysis.unlimited && quotaData.billAnalysis.remaining === 0;
+      
+      if (quotaExceeded) {
+        const resetDate = new Date(quotaData.billAnalysis.resetTime).toLocaleDateString('en-US', { 
+          month: 'short', 
+          day: 'numeric',
+          year: 'numeric'
+        });
+        
+        toast.error("Monthly Quota Exceeded", {
+          description: `You have used all ${quotaData.billAnalysis.limit} bill analyses for this month. Your quota resets on ${resetDate}.`,
+          duration: 5000,
+        });
+        
+        // Redirect to entries page
+        router.push('/entries');
+      }
+    }
+  }, [quotaData, quotaLoading, router]);
+
+  // Show loading state while checking quota
+  if (quotaLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-100">
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="text-muted-foreground">Checking quota...</p>
+        </div>
+      </div>
+    );
+  }
 
   const handleEntryCreated = (entryId: string) => {
     setRecentEntryId(entryId);
