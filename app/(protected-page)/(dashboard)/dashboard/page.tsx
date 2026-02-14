@@ -56,42 +56,62 @@ const DashboardPage = () => {
     [refetchAnalytics]
   );
 
-    
-  // Compute emission breakdown from analytics data
+  // Compute emission breakdown from actual entry data
   const emissionBreakdown = useMemo(() => {
-    if (!analyticsData?.yourPerformance) {
+    if (!recentEntries || recentEntries.length === 0) {
       return [];
     }
 
-    
+    // Group entries by utility type and sum up emissions
+    const breakdown: Record<string, { value: number; icon: typeof IconLeaf; color: string; displayName: string }> = {};
+    let total = 0;
 
-    const total = analyticsData.yourPerformance.currentEmissions;
+    recentEntries.forEach((entry) => {
+      const co2e = entry.co2e || 0;
+      total += co2e;
 
-    // Mock breakdown - in production, this would come from aggregated entry data
-    return [
-      {
-        type: t.dashboard.electricity,
-        value: total * 0.7,
-        icon: IconBolt,
-        color: "text-yellow-500",
-        percentage: 70,
-      },
-      {
-        type: t.dashboard.fuel,
-        value: total * 0.2,
-        icon: IconGasStation,
-        color: "text-blue-500",
-        percentage: 20,
-      },
-      {
-        type: t.dashboard.water,
-        value: total * 0.1,
-        icon: IconDroplet,
-        color: "text-cyan-500",
-        percentage: 10,
-      },
-    ];
-  }, [analyticsData, t]);
+      if (!breakdown[entry.utilityType]) {
+        // Determine icon and color based on utility type
+        let icon = IconLeaf;
+        let color = "text-green-500";
+        let displayName = entry.utilityType;
+
+        if (entry.utilityType === "electricity") {
+          icon = IconBolt;
+          color = "text-yellow-500";
+          displayName = t.dashboard.electricity;
+        } else if (entry.utilityType === "fuel") {
+          icon = IconGasStation;
+          color = "text-blue-500";
+          displayName = t.dashboard.fuel;
+        } else if (entry.utilityType === "water") {
+          icon = IconDroplet;
+          color = "text-cyan-500";
+          displayName = t.dashboard.water;
+        }
+
+        breakdown[entry.utilityType] = {
+          value: 0,
+          icon,
+          color,
+          displayName,
+        };
+      }
+
+      breakdown[entry.utilityType].value += co2e;
+    });
+
+    // Convert to array and calculate percentages
+    return Object.entries(breakdown)
+      .map(([, data]) => ({
+        type: data.displayName,
+        value: data.value,
+        icon: data.icon,
+        color: data.color,
+        percentage: total > 0 ? Math.round((data.value / total) * 100) : 0,
+      }))
+      .sort((a, b) => b.value - a.value); // Sort by value descending
+  }, [recentEntries, t]);
 
   
 
@@ -195,6 +215,7 @@ const DashboardPage = () => {
     analyticsData?.yourPerformance?.currentEmissions || 0;
   const sectorPercentile = analyticsData?.yourPerformance?.percentile || 0;
   const sectorName = analyticsData?.yourPerformance?.sector || "N/A";
+  const hasEmissionData = currentEmissions > 0 || recentEntries.length > 0;
 
   return (
     <div className="space-y-6">
@@ -251,28 +272,39 @@ const DashboardPage = () => {
             <IconLeaf className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {currentEmissions.toFixed(1)} kg
-            </div>
-            {percentageChange && (
-              <p className="text-xs text-muted-foreground flex items-center mt-1">
-                {parseFloat(percentageChange) < 0 ? (
-                  <>
-                    <IconTrendingDown className="w-4 h-4 text-green-500 mr-1" />
-                    <span className="text-green-500">
-                      {Math.abs(parseFloat(percentageChange))}%{" "}
-                      {t.dashboard.common.fromLastMonth}
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    <IconTrendingUp className="w-4 h-4 text-red-500 mr-1" />
-                    <span className="text-red-500">
-                      {percentageChange}% {t.dashboard.common.fromLastMonth}
-                    </span>
-                  </>
+            {hasEmissionData ? (
+              <>
+                <div className="text-2xl font-bold">
+                  {currentEmissions.toFixed(1)} kg
+                </div>
+                {percentageChange && (
+                  <p className="text-xs text-muted-foreground flex items-center mt-1">
+                    {parseFloat(percentageChange) < 0 ? (
+                      <>
+                        <IconTrendingDown className="w-4 h-4 text-green-500 mr-1" />
+                        <span className="text-green-500">
+                          {Math.abs(parseFloat(percentageChange))}%{" "}
+                          {t.dashboard.common.fromLastMonth}
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <IconTrendingUp className="w-4 h-4 text-red-500 mr-1" />
+                        <span className="text-red-500">
+                          {percentageChange}% {t.dashboard.common.fromLastMonth}
+                        </span>
+                      </>
+                    )}
+                  </p>
                 )}
-              </p>
+              </>
+            ) : (
+              <>
+                <div className="text-2xl font-bold text-muted-foreground">0 kg</div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  No data yet
+                </p>
+              </>
             )}
           </CardContent>
         </Card>
@@ -286,16 +318,27 @@ const DashboardPage = () => {
               <Badge variant="secondary">{sectorName}</Badge>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
-                Top {100 - sectorPercentile}%
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {t.dashboard.common.betterThanPeers.replace(
-                  "{percent}",
-                  sectorPercentile.toString(),
-                )}
-              </p>
-              <Progress value={sectorPercentile} className="mt-2" />
+              {hasEmissionData && sectorPercentile > 0 ? (
+                <>
+                  <div className="text-2xl font-bold">
+                    Top {100 - sectorPercentile}%
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {t.dashboard.common.betterThanPeers.replace(
+                      "{percent}",
+                      sectorPercentile.toString(),
+                    )}
+                  </p>
+                  <Progress value={sectorPercentile} className="mt-2" />
+                </>
+              ) : (
+                <>
+                  <div className="text-2xl font-bold text-muted-foreground">N/A</div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Insufficient data for ranking
+                  </p>
+                </>
+              )}
             </CardContent>
           </Card>
         )}
@@ -308,22 +351,27 @@ const DashboardPage = () => {
             <IconBolt className="h-4 w-4 text-yellow-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {emissionBreakdown.length > 0
-                ? (emissionBreakdown[0].value / 0.586).toFixed(0)
-                : "0"}{" "}
-              kWh
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {emissionBreakdown.length > 0
-                ? emissionBreakdown[0].value.toFixed(1)
-                : "0"}{" "}
-              kg CO2e (
-              {emissionBreakdown.length > 0
-                ? emissionBreakdown[0].percentage
-                : 0}
-              % {t.dashboard.common.ofTotal})
-            </p>
+            {emissionBreakdown.length > 0 && emissionBreakdown.find(item => item.type === t.dashboard.electricity) ? (
+              <>
+                <div className="text-2xl font-bold">
+                  {(emissionBreakdown.find(item => item.type === t.dashboard.electricity)!.value / 0.586).toFixed(0)}{" "}
+                  kWh
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {emissionBreakdown.find(item => item.type === t.dashboard.electricity)!.value.toFixed(1)}{" "}
+                  kg CO2e (
+                  {emissionBreakdown.find(item => item.type === t.dashboard.electricity)!.percentage}
+                  % {t.dashboard.common.ofTotal})
+                </p>
+              </>
+            ) : (
+              <>
+                <div className="text-2xl font-bold text-muted-foreground">0 kWh</div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  No electricity data
+                </p>
+              </>
+            )}
           </CardContent>
         </Card>
 
@@ -520,7 +568,7 @@ const DashboardPage = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {monthlyTrend.length > 0 ? (
+            {monthlyTrend.length > 0 && monthlyTrend.some((d) => d.value > 0) ? (
               <div className="space-y-4">
                 {monthlyTrend.map((data, idx) => {
                   const maxValue = Math.max(
