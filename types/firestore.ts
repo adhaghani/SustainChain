@@ -269,6 +269,73 @@ export interface EntryDocument {
 }
 
 // ============================================
+// REPORT DOCUMENT
+// ============================================
+
+export type ReportType = "monthly" | "quarterly" | "annual" | "custom";
+export type ReportStatus = "generating" | "completed" | "failed";
+export type ReportLanguage = "en" | "ms";
+
+export interface ReportDocument {
+  // Identity
+  id: string;
+  tenantId: string;
+  userId: string;
+  userName: string;
+
+  // Report Details
+  reportType: ReportType;
+  title: string;
+
+  // Period Covered
+  periodStart: Timestamp;
+  periodEnd: Timestamp;
+
+  // Entries Included
+  entriesIncluded: string[];
+  totalEntries: number;
+
+  // Summary Metrics (denormalized for quick access)
+  totalCo2e: number;
+  totalElectricity: number;
+  totalWater?: number;
+  totalFuel?: number;
+  totalCost: number;
+
+  // Benchmarking Data (snapshot at generation time)
+  sectorAverage: number;
+  sectorPercentile: number;
+  comparisonText: string;
+  comparisonTextMs?: string;
+
+  // PDF File
+  pdfUrl: string;
+  pdfStoragePath: string;
+  fileSize: number;
+
+  // Generation Metadata
+  status: ReportStatus;
+  generationStartedAt: Timestamp;
+  generationCompletedAt?: Timestamp;
+  generationDuration?: number;
+  errorMessage?: string;
+
+  // Template
+  templateVersion: string;
+  language: ReportLanguage;
+  includesBillImages: boolean;
+
+  // Access Control
+  downloadCount: number;
+  lastDownloadedAt?: Timestamp;
+  expiresAt?: Timestamp;
+
+  // Timestamps
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+// ============================================
 // AUDIT LOG DOCUMENT
 // ============================================
 

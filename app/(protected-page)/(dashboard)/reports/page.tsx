@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -26,13 +26,59 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useTenantQuota } from "@/hooks/use-tenant-quota";
+import { useCompletedReports } from "@/hooks/use-reports";
+import { useEntries } from "@/hooks/use-entries";
 import { toast } from "sonner";
 
 const ReportsPage = () => {
   const { data: quotaData, loading: quotaLoading } = useTenantQuota();
+  const { reports, loading: reportsLoading, error: reportsError, refetch: refetchReports } = useCompletedReports(20);
+  const { entries, loading: entriesLoading } = useEntries({ limitCount: 100 });
 
   // Check report generation quota
   const reportQuotaExceeded = quotaData && !quotaData.reportGeneration.unlimited && quotaData.reportGeneration.remaining === 0;
+
+  // Compute emission trends from entries
+  const emissionTrend = useMemo(() => {
+    if (entriesLoading || !entries.length) {
+      return { current: 0, previous: 0, change: 0 };
+    }
+
+    const now = new Date();
+    const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const previousMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const previousMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
+
+    let currentMonthEmissions = 0;
+    let previousMonthEmissions = 0;
+
+    entries.forEach(entry => {
+      let entryDate: Date;
+      if (entry.billingDate && typeof entry.billingDate === 'object' && 'toDate' in entry.billingDate) {
+        entryDate = entry.billingDate.toDate();
+      } else if (entry.billingDate) {
+        entryDate = new Date(entry.billingDate as string);
+      } else {
+        return; // Skip entries without billing date
+      }
+      
+      if (entryDate >= currentMonthStart) {
+        currentMonthEmissions += entry.co2e || 0;
+      } else if (entryDate >= previousMonthStart && entryDate <= previousMonthEnd) {
+        previousMonthEmissions += entry.co2e || 0;
+      }
+    });
+
+    const change = previousMonthEmissions > 0 
+      ? ((currentMonthEmissions - previousMonthEmissions) / previousMonthEmissions) * 100 
+      : 0;
+
+    return {
+      current: parseFloat(currentMonthEmissions.toFixed(2)),
+      previous: parseFloat(previousMonthEmissions.toFixed(2)),
+      change: parseFloat(change.toFixed(1))
+    };
+  }, [entries, entriesLoading]);
 
   // Show warning toast when approaching quota limit
   useEffect(() => {
@@ -56,61 +102,46 @@ const ReportsPage = () => {
       }
     }
   }, [quotaData, quotaLoading, reportQuotaExceeded]);
-  // Mock data - will be replaced with real data
-  const reports = [
-    {
-      id: "1",
-      title: "ESG Report - January 2026",
-      period: "Jan 2026",
-      generatedDate: "2026-01-17",
-      totalEmissions: 1247.5,
-      status: "ready",
-      downloads: 3,
-      format: "PDF"
-    },
-    {
-      id: "2",
-      title: "ESG Report - December 2025",
-      period: "Dec 2025",
-      generatedDate: "2025-12-31",
-      totalEmissions: 1348.2,
-      status: "ready",
-      downloads: 5,
-      format: "PDF"
-    },
-    {
-      id: "3",
-      title: "ESG Report - November 2025",
-      period: "Nov 2025",
-      generatedDate: "2025-11-30",
-      totalEmissions: 1380.7,
-      status: "ready",
-      downloads: 2,
-      format: "PDF"
-    },
-  ];
 
+  // Show error toast if reports failed to load
+  useEffect(() => {
+    if (reportsError) {
+      toast.error("Failed to load reports", {
+        description: "Please try refreshing the page.",
+      });
+    }
+  }, [reportsError]);
+
+  // Sector comparison data (placeholder - will be calculated during actual report generation)
   const sectorComparison = {
-    yourEmissions: 1247.5,
+    yourEmissions: emissionTrend.current,
     sectorAverage: 1556.3,
     percentile: 68,
     sector: "Manufacturing"
   };
 
-  const emissionTrend = {
-    current: 1247.5,
-    previous: 1348.2,
-    change: -7.5
-  };
-
+  // SDG goals data (placeholder - will be calculated during actual report generation)
   const sdgGoals = [
     { number: 8, title: "Decent Work and Economic Growth", alignment: 85 },
     { number: 9, title: "Industry, Innovation and Infrastructure", alignment: 78 },
     { number: 12, title: "Responsible Consumption and Production", alignment: 92 },
   ];
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-MY', {
+  const formatDate = (date: string | Date | { toDate: () => Date } | undefined) => {
+    if (!date) return 'N/A';
+    
+    let dateObj: Date;
+    if (typeof date === 'string') {
+      dateObj = new Date(date);
+    } else if (date instanceof Date) {
+      dateObj = date;
+    } else if (typeof date === 'object' && 'toDate' in date) {
+      dateObj = date.toDate();
+    } else {
+      return 'N/A';
+    }
+    
+    return dateObj.toLocaleDateString('en-MY', {
       year: 'numeric',
       month: 'long',
       day: 'numeric'
@@ -391,81 +422,80 @@ const ReportsPage = () => {
               <CardTitle>Previous Reports</CardTitle>
               <CardDescription>Access previously generated ESG reports</CardDescription>
             </div>
-            <Button variant="outline" size="sm">
-              <IconRefresh className="w-4 h-4 mr-2" />
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => refetchReports()}
+              disabled={reportsLoading}
+            >
+              <IconRefresh className={`w-4 h-4 mr-2 ${reportsLoading ? 'animate-spin' : ''}`} />
               Refresh
             </Button>
           </div>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
-            {reports.map((report) => (
-              <div
-                key={report.id}
-                className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-lg bg-red-100 dark:bg-red-900 flex items-center justify-center">
-                    <IconFileTypePdf className="w-6 h-6 text-red-600 dark:text-red-400" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-sm">{report.title}</h4>
-                    <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-                      <span className="flex items-center gap-1">
-                        <IconCalendar className="w-3 h-3" />
-                        {formatDate(report.generatedDate)}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <IconBuildingFactory className="w-3 h-3" />
-                        {report.totalEmissions} kg CO2e
-                      </span>
-                      <span>{report.downloads} downloads</span>
+          {reportsLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="text-center space-y-2">
+                <IconRefresh className="w-8 h-8 animate-spin mx-auto text-muted-foreground" />
+                <p className="text-sm text-muted-foreground">Loading reports...</p>
+              </div>
+            </div>
+          ) : reports.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 px-4 border rounded-lg bg-muted/20">
+              <IconFileTypePdf className="w-12 h-12 text-muted-foreground mb-3" />
+              <h3 className="font-semibold text-lg mb-1">No Reports Yet</h3>
+              <p className="text-sm text-muted-foreground text-center max-w-sm">
+                Generate your first ESG report to see it here. Reports help you track your emissions progress over time.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {reports.map((report) => (
+                <div
+                  key={report.id}
+                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-lg bg-red-100 dark:bg-red-900 flex items-center justify-center">
+                      <IconFileTypePdf className="w-6 h-6 text-red-600 dark:text-red-400" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-sm">{report.title}</h4>
+                      <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          <IconCalendar className="w-3 h-3" />
+                          {formatDate(report.createdAt)}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <IconBuildingFactory className="w-3 h-3" />
+                          {report.totalCo2e?.toFixed(2) || 0} kg CO2e
+                        </span>
+                        <span>{report.downloadCount || 0} downloads</span>
+                      </div>
                     </div>
                   </div>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline">PDF</Badge>
+                    <Badge variant="default" className="bg-green-500">
+                      {report.status === 'completed' ? 'Ready' : report.status}
+                    </Badge>
+                    <Button variant="outline" size="sm">
+                      <IconEye className="w-4 h-4 mr-2" />
+                      View
+                    </Button>
+                    <Button size="sm" disabled={!report.pdfUrl}>
+                      <IconDownload className="w-4 h-4 mr-2" />
+                      Download
+                    </Button>
+                    <Button variant="ghost" size="sm">
+                      <IconShare className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline">{report.format}</Badge>
-                  <Badge variant="default" className="bg-green-500">Ready</Badge>
-                  <Button variant="outline" size="sm">
-                    <IconEye className="w-4 h-4 mr-2" />
-                    View
-                  </Button>
-                  <Button size="sm">
-                    <IconDownload className="w-4 h-4 mr-2" />
-                    Download
-                  </Button>
-                  <Button variant="ghost" size="sm">
-                    <IconShare className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Report Tips */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm">Report Usage Tips</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2 text-sm text-muted-foreground">
-          <div className="flex gap-2">
-            <span className="font-bold text-primary">•</span>
-            <p>Reports are generated in real-time with the latest emissions data from your verified entries.</p>
-          </div>
-          <div className="flex gap-2">
-            <span className="font-bold text-primary">•</span>
-            <p>PDF reports are compliant with Bursa Malaysia ESG reporting standards (2026).</p>
-          </div>
-          <div className="flex gap-2">
-            <span className="font-bold text-primary">•</span>
-            <p>Bilingual reports include both English and Bahasa Malaysia sections for local stakeholders.</p>
-          </div>
-          <div className="flex gap-2">
-            <span className="font-bold text-primary">•</span>
-            <p>Share reports directly with corporate buyers or regulatory bodies via secure links.</p>
-          </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
