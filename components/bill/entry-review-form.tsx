@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { auth } from '@/lib/firebase';
 import { calculateCO2e, inferRegionFromProvider, type UtilityType } from '@/lib/carbon-calculator';
+import { useLanguage } from '@/lib/language-context';
 
 export interface ExtractedBillData {
   utilityType: UtilityType;
@@ -58,6 +59,7 @@ export default function EntryReviewForm({
   onReanalyze,
   onCancel,
 }: EntryReviewFormProps) {
+  const { t } = useLanguage();
   const [formData, setFormData] = useState<ExtractedBillData>(extractedData);
   const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
@@ -120,11 +122,11 @@ export default function EntryReviewForm({
 
   const getConfidenceBadge = (confidence: number) => {
     if (confidence >= 0.9) {
-      return <Badge className="bg-green-500"><CheckCircle className="w-3 h-3 mr-1" />High Confidence</Badge>;
+      return <Badge className="bg-green-500"><CheckCircle className="w-3 h-3 mr-1" />{t.entryReview.confidence.high}</Badge>;
     } else if (confidence >= 0.7) {
-      return <Badge className="bg-yellow-500"><AlertTriangle className="w-3 h-3 mr-1" />Medium Confidence</Badge>;
+      return <Badge className="bg-yellow-500"><AlertTriangle className="w-3 h-3 mr-1" />{t.entryReview.confidence.medium}</Badge>;
     } else {
-      return <Badge variant="destructive"><AlertTriangle className="w-3 h-3 mr-1" />Low Confidence - Review Required</Badge>;
+      return <Badge variant="destructive"><AlertTriangle className="w-3 h-3 mr-1" />{t.entryReview.confidence.low}</Badge>;
     }
   };
 
@@ -135,10 +137,10 @@ export default function EntryReviewForm({
           <div>
             <CardTitle className="flex items-center gap-2">
               {getUtilityIcon(formData.utilityType)}
-              Review Extracted Data
+              {t.entryReview.title}
             </CardTitle>
             <CardDescription>
-              Verify the AI-extracted data before saving
+              {t.entryReview.description}
             </CardDescription>
           </div>
           {getConfidenceBadge(formData.confidence)}
@@ -149,7 +151,7 @@ export default function EntryReviewForm({
           <Alert className="mb-4 bg-yellow-50 dark:bg-yellow-500/10 border-yellow-200 dark:border-yellow-500/20">
             <AlertTriangle className="h-4 w-4 text-yellow-600" />
             <AlertDescription className="text-yellow-800 dark:text-yellow-200">
-              The AI confidence is low ({Math.round(formData.confidence * 100)}%). Please review all fields carefully.
+              {t.entryReview.confidence.lowDesc.replace('{percent}', Math.round(formData.confidence * 100).toString())}
             </AlertDescription>
           </Alert>
         )}
@@ -164,7 +166,7 @@ export default function EntryReviewForm({
           <div className="grid grid-cols-2 gap-4">
             {/* Utility Type */}
             <div className="space-y-2">
-              <Label htmlFor="utilityType">Utility Type</Label>
+              <Label htmlFor="utilityType">{t.entryReview.labels.utilityType}</Label>
               <Select 
                 value={formData.utilityType}
                 onValueChange={(value: UtilityType) => setFormData({...formData, utilityType: value})}
@@ -183,7 +185,7 @@ export default function EntryReviewForm({
 
             {/* Provider */}
             <div className="space-y-2">
-              <Label htmlFor="provider">Provider</Label>
+              <Label htmlFor="provider">{t.entryReview.labels.provider}</Label>
               <Input
                 id="provider"
                 value={formData.provider}
@@ -194,7 +196,7 @@ export default function EntryReviewForm({
 
             {/* Usage */}
             <div className="space-y-2">
-              <Label htmlFor="usage">Usage</Label>
+              <Label htmlFor="usage">{t.entryReview.labels.usage}</Label>
               <div className="flex gap-2">
                 <Input
                   id="usage"
@@ -212,10 +214,10 @@ export default function EntryReviewForm({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="kWh">kWh</SelectItem>
-                    <SelectItem value="m³">m³</SelectItem>
-                    <SelectItem value="L">L</SelectItem>
-                    <SelectItem value="kg">kg</SelectItem>
+                    <SelectItem value="kWh">{t.entryReview.units.kWh}</SelectItem>
+                    <SelectItem value="m³">{t.entryReview.units.m3}</SelectItem>
+                    <SelectItem value="L">{t.entryReview.units.L}</SelectItem>
+                    <SelectItem value="kg">{t.entryReview.units.kg}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -223,7 +225,7 @@ export default function EntryReviewForm({
 
             {/* Amount */}
             <div className="space-y-2">
-              <Label htmlFor="amount">Amount (MYR)</Label>
+              <Label htmlFor="amount">{t.entryReview.labels.amount}</Label>
               <Input
                 id="amount"
                 type="number"
@@ -235,7 +237,7 @@ export default function EntryReviewForm({
 
             {/* Billing Date */}
             <div className="space-y-2">
-              <Label htmlFor="billingDate">Billing Date</Label>
+              <Label htmlFor="billingDate">{t.entryReview.labels.billingDate}</Label>
               <Input
                 id="billingDate"
                 type="date"
@@ -246,7 +248,7 @@ export default function EntryReviewForm({
 
             {/* Account Number */}
             <div className="space-y-2">
-              <Label htmlFor="accountNumber">Account Number</Label>
+              <Label htmlFor="accountNumber">{t.entryReview.labels.accountNumber}</Label>
               <Input
                 id="accountNumber"
                 value={formData.accountNumber || ''}
@@ -260,7 +262,7 @@ export default function EntryReviewForm({
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-emerald-800 dark:text-emerald-200">
-                  Calculated CO2 Emissions
+                  {t.entryReview.co2e.title}
                 </p>
                 <p className="text-xs text-emerald-600 dark:text-emerald-400">
                   {co2eResult.calculationMethod}
@@ -271,7 +273,7 @@ export default function EntryReviewForm({
                   {co2eResult.co2e.toLocaleString()} kg
                 </p>
                 <p className="text-xs text-emerald-600 dark:text-emerald-400">
-                  CO2e
+                  {t.entryReview.co2e.unit}
                 </p>
               </div>
             </div>
@@ -279,7 +281,7 @@ export default function EntryReviewForm({
 
           {/* Notes */}
           <div className="space-y-2">
-            <Label htmlFor="notes">Notes (Optional)</Label>
+            <Label htmlFor="notes">{t.entryReview.labels.notes}</Label>
             <Textarea
               id="notes"
               value={notes}
@@ -299,12 +301,12 @@ export default function EntryReviewForm({
               {saving ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Saving...
+                  {t.entryReview.actions.saving}
                 </>
               ) : (
                 <>
                   <Save className="w-4 h-4 mr-2" />
-                  Save Entry
+                  {t.entryReview.actions.saveEntry}
                 </>
               )}
             </Button>
@@ -315,7 +317,7 @@ export default function EntryReviewForm({
               disabled={saving}
             >
               <RotateCcw className="w-4 h-4 mr-2" />
-              Re-analyze
+              {t.entryReview.actions.reanalyze}
             </Button>
             <Button 
               type="button" 
@@ -323,7 +325,7 @@ export default function EntryReviewForm({
               onClick={onCancel}
               disabled={saving}
             >
-              Cancel
+              {t.entryReview.actions.cancel}
             </Button>
           </div>
         </form>

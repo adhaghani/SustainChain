@@ -230,14 +230,34 @@ export const translations = {
         dashboard: {
           title: "Dashboard",
           subtitle: "Overview of your carbon footprint and ESG metrics",
+          readOnlyAccess: "(Read-only access)",
+          viewerBanner: "👁️ You have view-only access. Contact your administrator to request additional permissions.",
           emissionBreakdown: "Emission Breakdown",
+          emissionBreakdownDesc: "Carbon footprint by utility type (Current Month)",
           monthlyTrend: "Monthly Trend",
+          monthlyTrendDesc: "Carbon emissions over time (kg CO2e)",
           topEmitters: "Top Emitters",
           recentActivity: "Recent Activity",
           insights: "AI Insights",
           electricity: "Electricity",
           fuel: "Fuel",
           water: "Water",
+          dataEntries: "Data Entries",
+          thisMonth: "This Month",
+          bills: "Bills",
+          autoExtracted: "auto-extracted",
+          manual: "manual",
+          noEmissionData: "No emission data available yet.",
+          uploadFirstBill: "Upload Your First Bill",
+          sectorAvg: "Sector avg",
+          noTrendData: "No trend data available yet.",
+          uploadForTrends: "Upload bills for at least 2 months to see trends.",
+          failedToLoad: "Failed to Load Dashboard",
+          retry: "Retry",
+          needMoreAccess: "Need More Access?",
+          contactAdmin: "Contact your administrator for additional permissions",
+          viewerMessage: "As a viewer, you can see emission data and reports but cannot upload bills or make changes. If you need to contribute data or generate reports, please contact {tenantName} administrator.",
+          viewReports: "View Reports",
           viewAllEntries: "View All Entries"
         },
         uploadBills: {
@@ -457,8 +477,173 @@ export const translations = {
           customBuilder: "Custom Export Builder"
         }
       }
-    }
+    },
+      common: {
+    retry: "Retry",
+    yes: "Yes",
+    no: "No",
+    darkMode: "Dark Mode",
+    lightMode: "Light Mode",
+    system: "System",
   },
+  header: {
+    search: {
+      placeholder: "Search...",
+    },
+    command: {
+      placeholder: "Type a command or search...",
+      empty: "No results found.",
+      suggestions: {
+        heading: "Suggestions",
+        items: {
+          calendar: "Calendar",
+          searchEmoji: "Search Emoji",
+          calculator: "Calculator",
+        },
+      },
+    },
+    langToggle: "Toggle language",
+  },
+  notifications: {
+    title: "Notifications",
+    viewAll: "View All Notifications",
+    sample: {
+      first: "First notification",
+      second: "Second notification",
+    },
+  },
+  upload: {
+    error: {
+      invalidFile: "Invalid file",
+      signInRequired: "Please sign in to upload bills",
+      noTenant: "No tenant associated with your account. Please sign out and sign back in.",
+      noRole: "No role assigned. Please sign out and sign back in.",
+      analyzeFailed: "Failed to analyze bill",
+    },
+    success: {
+      entrySavedTitle: "Entry Saved Successfully!",
+      entrySavedDesc: "Your bill \"{fileName}\" has been processed and saved.",
+      uploadAnother: "Upload Another Bill",
+    },
+    state: {
+      analyzingTitle: "Gemini AI is analyzing your bill...",
+      analyzingDesc: "Extracting energy usage, calculating CO2 emissions, and generating insights.",
+      uploadingTitle: "Uploading...",
+    },
+    placeholder: {
+      dropHere: "Drop your bill here",
+      clickToUpload: "Click to upload",
+    },
+    supportedFormats: "TNB, SAJ, IWK, SESB, SEB bills • PDF or images up to 10MB",
+    formats: {
+      PDF: "PDF",
+      PNG: "PNG",
+      JPG: "JPG",
+      HEIC: "HEIC",
+    },
+  },
+  entryReview: {
+    title: "Review Extracted Data",
+    description: "Verify the AI-extracted data before saving",
+    confidence: {
+      high: "High Confidence",
+      medium: "Medium Confidence",
+      low: "Low Confidence - Review Required",
+      lowDesc: "The AI confidence is low ({percent}%). Please review all fields carefully.",
+    },
+    labels: {
+      utilityType: "Utility Type",
+      provider: "Provider",
+      usage: "Usage",
+      unit: "Unit",
+      amount: "Amount (MYR)",
+      billingDate: "Billing Date",
+      accountNumber: "Account Number",
+      notes: "Notes (Optional)",
+    },
+    co2e: {
+      title: "Calculated CO2 Emissions",
+      unit: "CO2e",
+    },
+    actions: {
+      saving: "Saving...",
+      saveEntry: "Save Entry",
+      reanalyze: "Re-analyze",
+      cancel: "Cancel",
+    },
+    units: {
+      kWh: "kWh",
+      m3: "m³",
+      L: "L",
+      kg: "kg",
+    },
+  },
+  manualEntry: {
+    trigger: "Input data manually instead",
+    title: "Manual Data Entry",
+    description: "Enter your utility bill data manually. All fields marked with * are required.",
+    validation: {
+      fillRequired: "Please fill in all required fields",
+      loginRequired: "You must be logged in to create entries",
+    },
+    placeholders: {
+      selectType: "Select type",
+      provider: "e.g., TNB, SAJ, Petron",
+      usage: "850",
+      unitSelect: "Select unit",
+      amount: "320.50",
+      accountNumber: "12345678",
+    },
+    labels: {
+      utilityType: "Utility Type",
+      provider: "Provider",
+      usageAmount: "Usage Amount",
+      unit: "Unit",
+      billAmount: "Bill Amount (RM)",
+      billingDate: "Billing Date",
+      accountNumberOptional: "Account Number (Optional)",
+    },
+    actions: {
+      saving: "Saving...",
+      saveEntry: "Save Entry",
+      clear: "Clear",
+    },
+    success: {
+      saved: "Manual entry saved successfully!",
+      viewEntries: "View in entries list",
+    },
+  },
+  sidebar: {
+    superadmin: {
+      systemOverview: "System Overview",
+      allTenants: "All Tenants",
+      allUsers: "All Users",
+      systemActivity: "System Activity",
+      globalConfig: "Global Config",
+      systemAdministration: "System Administration",
+    },
+    brandName: "SustainChain",
+  },
+  landing: {
+    stats: {
+      enterprises: "Enterprises",
+      billsAnalyzed: "Bills Analyzed",
+      accuracy: "Accuracy",
+    },
+    badges: {
+      features: "Platform Features",
+      simpleProcess: "Simple Process",
+      currentChallenges: "Current Challenges",
+      ourSolution: "Our Solution",
+      unSdgAligned: "UN SDG Aligned",
+    },
+    buttons: {
+      signIn: "Sign In",
+      viewDemo: "View Demo",
+    },
+  },
+  },
+
   bm: {
     nav: {
       features: "Ciri-ciri",
@@ -469,13 +654,13 @@ export const translations = {
     auth: {
       signIn: {
         title: "Log masuk ke akaun anda",
-        description: "Masukkan e-mel anda di bawah untuk log masuk ke akaun anda",
-        emailLabel: "E-mel",
-        emailPlaceholder: "anda@syarikat.com",
-        passwordLabel: "Kata Laluan",
-        loginButton: "Log Masuk",
-        loggingIn: "Sedang log masuk...",
-        googleButton: "Log Masuk dengan Google",
+      description: "Masukkan e-mel anda di bawah untuk log masuk ke akaun anda",
+      emailLabel: "E-mel",
+      emailPlaceholder: "anda@syarikat.com",
+      passwordLabel: "Kata Laluan",
+      loginButton: "Log Masuk",
+      loggingIn: "Sedang log masuk...",
+      googleButton: "Log Masuk dengan Google",
         noAccount: "Tiada akaun?",
         signUpLink: "Daftar"
       },
@@ -690,14 +875,34 @@ export const translations = {
         dashboard: {
           title: "Papan Pemuka",
           subtitle: "Gambaran keseluruhan jejak karbon dan metrik ESG anda",
+          readOnlyAccess: "(Akses baca sahaja)",
+          viewerBanner: "👁️ Anda mempunyai akses lihat sahaja. Hubungi pentadbir anda untuk meminta kebenaran tambahan.",
           emissionBreakdown: "Pecahan Pelepasan",
+          emissionBreakdownDesc: "Jejak karbon mengikut jenis utiliti (Bulan Semasa)",
           monthlyTrend: "Trend Bulanan",
+          monthlyTrendDesc: "Pelepasan karbon sepanjang masa (kg CO2e)",
           topEmitters: "Pelepas Tertinggi",
           recentActivity: "Aktiviti Terkini",
           insights: "Wawasan AI",
           electricity: "Elektrik",
           fuel: "Bahan Api",
           water: "Air",
+          dataEntries: "Catatan Data",
+          thisMonth: "Bulan Ini",
+          bills: "Bil",
+          autoExtracted: "diekstrak automatik",
+          manual: "manual",
+          noEmissionData: "Tiada data pelepasan tersedia lagi.",
+          uploadFirstBill: "Muat Naik Bil Pertama Anda",
+          sectorAvg: "Purata sektor",
+          noTrendData: "Tiada data trend tersedia lagi.",
+          uploadForTrends: "Muat naik bil untuk sekurang-kurangnya 2 bulan untuk melihat trend.",
+          failedToLoad: "Gagal Memuatkan Papan Pemuka",
+          retry: "Cuba Lagi",
+          needMoreAccess: "Perlukan Lebih Akses?",
+          contactAdmin: "Hubungi pentadbir anda untuk kebenaran tambahan",
+          viewerMessage: "Sebagai penonton, anda boleh melihat data pelepasan dan laporan tetapi tidak boleh memuat naik bil atau membuat perubahan. Jika anda perlu menyumbang data atau menjana laporan, sila hubungi pentadbir {tenantName}.",
+          viewReports: "Lihat Laporan",
           viewAllEntries: "Lihat Semua Catatan"
         },
         uploadBills: {
@@ -917,6 +1122,171 @@ export const translations = {
           customBuilder: "Pembina Eksport Tersuai"
         }
       }
-    }
-  }
+    },
+    common: {
+      retry: "Cuba Semula",
+      yes: "Ya",
+      no: "Tidak",
+      darkMode: "Mod Gelap",
+      lightMode: "Mod Terang",
+      system: "Sistem",
+    },
+    header: {
+      search: {
+        placeholder: "Cari...",
+      },
+      command: {
+        placeholder: "Taip arahan atau cari...",
+        empty: "Tiada keputusan.",
+        suggestions: {
+          heading: "Cadangan",
+          items: {
+            calendar: "Kalendar",
+            searchEmoji: "Cari Emoji",
+            calculator: "Kalkulator",
+          },
+        },
+      },
+      langToggle: "Tukar bahasa",
+    },
+    notifications: {
+      title: "Pemberitahuan",
+      viewAll: "Lihat Semua Pemberitahuan",
+      sample: {
+        first: "Pemberitahuan pertama",
+        second: "Pemberitahuan kedua",
+      },
+    },
+    upload: {
+      error: {
+        invalidFile: "Fail tidak sah",
+        signInRequired: "Sila log masuk untuk memuat naik bil",
+        noTenant: "Tiada penyewa dikaitkan dengan akaun anda. Sila log keluar dan log masuk semula.",
+        noRole: "Tiada peranan ditetapkan. Sila log keluar dan log masuk semula.",
+        analyzeFailed: "Gagal menganalisis bil",
+      },
+      success: {
+        entrySavedTitle: "Catatan Berjaya Disimpan!",
+        entrySavedDesc: "Bil anda \"{fileName}\" telah diproses dan disimpan.",
+        uploadAnother: "Muat Naik Bil Lain",
+      },
+      state: {
+        analyzingTitle: "Gemini AI sedang menganalisis bil anda...",
+        analyzingDesc: "Mengekstrak penggunaan tenaga, mengira pelepasan CO2, dan menjana wawasan.",
+        uploadingTitle: "Sedang memuat naik...",
+      },
+      placeholder: {
+        dropHere: "Lepaskan bil anda di sini",
+        clickToUpload: "Klik untuk muat naik",
+      },
+      supportedFormats: "Bil TNB, SAJ, IWK, SESB, SEB • PDF atau imej sehingga 10MB",
+      formats: {
+        PDF: "PDF",
+        PNG: "PNG",
+        JPG: "JPG",
+        HEIC: "HEIC",
+      },
+    },
+    entryReview: {
+      title: "Semak Data yang Diekstrak",
+      description: "Sahkan data yang diekstrak AI sebelum menyimpan",
+      confidence: {
+        high: "Keyakinan Tinggi",
+        medium: "Keyakinan Sederhana",
+        low: "Keyakinan Rendah - Sila Semak",
+        lowDesc: "Keyakinan AI adalah rendah ({percent}%). Sila semak semua medan dengan teliti.",
+      },
+      labels: {
+        utilityType: "Jenis Utiliti",
+        provider: "Pembekal",
+        usage: "Penggunaan",
+        unit: "Unit",
+        amount: "Jumlah (MYR)",
+        billingDate: "Tarikh Bil",
+        accountNumber: "Nombor Akaun",
+        notes: "Nota (Pilihan)",
+      },
+      co2e: {
+        title: "Pengiraan Pelepasan CO2",
+        unit: "CO2e",
+      },
+      actions: {
+        saving: "Menyimpan...",
+        saveEntry: "Simpan Catatan",
+        reanalyze: "Analisis semula",
+        cancel: "Batal",
+      },
+      units: {
+        kWh: "kWh",
+        m3: "m³",
+        L: "L",
+        kg: "kg",
+      },
+    },
+    manualEntry: {
+      trigger: "Masukkan data secara manual",
+      title: "Masukan Data Manual",
+      description: "Masukkan data bil utiliti anda secara manual. Semua medan yang bertanda * adalah wajib.",
+      validation: {
+        fillRequired: "Sila isi semua medan yang diperlukan",
+        loginRequired: "Anda mesti log masuk untuk mencipta catatan",
+      },
+      placeholders: {
+        selectType: "Pilih jenis",
+        provider: "contoh: TNB, SAJ, Petron",
+        usage: "850",
+        unitSelect: "Pilih unit",
+        amount: "320.50",
+        accountNumber: "12345678",
+      },
+      labels: {
+        utilityType: "Jenis Utiliti",
+        provider: "Pembekal",
+        usageAmount: "Jumlah Penggunaan",
+        unit: "Unit",
+        billAmount: "Jumlah Bil (RM)",
+        billingDate: "Tarikh Bil",
+        accountNumberOptional: "Nombor Akaun (Pilihan)",
+      },
+      actions: {
+        saving: "Menyimpan...",
+        saveEntry: "Simpan Catatan",
+        clear: "Kosongkan",
+      },
+      success: {
+        saved: "Masukan manual berjaya disimpan!",
+        viewEntries: "Lihat dalam senarai catatan",
+      },
+    },
+    sidebar: {
+      superadmin: {
+        systemOverview: "Gambaran Keseluruhan Sistem",
+        allTenants: "Semua Penyewa",
+        allUsers: "Semua Pengguna",
+        systemActivity: "Aktiviti Sistem",
+        globalConfig: "Konfigurasi Global",
+        systemAdministration: "Pentadbiran Sistem",
+      },
+      brandName: "SustainChain",
+    },
+    landing: {
+      stats: {
+        enterprises: "Perusahaan",
+        billsAnalyzed: "Bil Dianalisis",
+        accuracy: "Ketepatan",
+      },
+      badges: {
+        features: "Ciri Platform",
+        simpleProcess: "Proses Mudah",
+        currentChallenges: "Cabaran Semasa",
+        ourSolution: "Penyelesaian Kami",
+        unSdgAligned: "Selaras dengan SDG PBB",
+      },
+      buttons: {
+        signIn: "Log Masuk",
+        viewDemo: "Lihat Demo",
+      },
+    },
+  },
 };
+

@@ -59,7 +59,7 @@ export default function LandingPage() {
               </Badge>
               <Link href="/sign-in">
                 <Button variant="ghost" size="sm" className="font-medium">
-                  Sign In
+                  {t.landing.buttons.signIn}
                 </Button>
               </Link>
               <Link href="/sign-up">
@@ -117,7 +117,7 @@ export default function LandingPage() {
               </Link>
               <Link href="/dashboard" className="w-full sm:w-auto">
                 <Button variant="outline" size="lg" className="w-full sm:w-auto h-12 px-8 text-base font-semibold border-border/50 hover:bg-accent hover:border-accent-foreground/20">
-                  {t.hero.ctaDemo}
+                  {t.landing.buttons.viewDemo}
                 </Button>
               </Link>
             </div>
@@ -126,15 +126,15 @@ export default function LandingPage() {
             <div className="grid grid-cols-3 gap-8 pt-12 max-w-2xl mx-auto">
               <div className="space-y-2">
                 <div className="text-3xl md:text-4xl font-bold bg-gradient-to-br from-primary to-primary/60 bg-clip-text text-transparent">50+</div>
-                <div className="text-xs md:text-sm text-muted-foreground font-medium">Enterprises</div>
+                <div className="text-xs md:text-sm text-muted-foreground font-medium">{t.landing.stats.enterprises}</div>
               </div>
               <div className="space-y-2">
                 <div className="text-3xl md:text-4xl font-bold bg-gradient-to-br from-primary to-primary/60 bg-clip-text text-transparent">10k+</div>
-                <div className="text-xs md:text-sm text-muted-foreground font-medium">Bills Analyzed</div>
+                <div className="text-xs md:text-sm text-muted-foreground font-medium">{t.landing.stats.billsAnalyzed}</div>
               </div>
               <div className="space-y-2">
                 <div className="text-3xl md:text-4xl font-bold bg-gradient-to-br from-primary to-primary/60 bg-clip-text text-transparent">99%</div>
-                <div className="text-xs md:text-sm text-muted-foreground font-medium">Accuracy</div>
+                <div className="text-xs md:text-sm text-muted-foreground font-medium">{t.landing.stats.accuracy}</div>
               </div>
             </div>
             
@@ -160,7 +160,7 @@ export default function LandingPage() {
             <div className="space-y-6">
               <div className="space-y-3">
                 <Badge variant="outline" className="border-destructive/20 text-destructive bg-destructive/5 font-semibold">
-                  Current Challenges
+                  {t.landing.badges.currentChallenges}
                 </Badge>
                 <h2 className="text-3xl md:text-4xl font-bold">{t.problem.title}</h2>
               </div>
@@ -210,7 +210,7 @@ export default function LandingPage() {
                       <Leaf className="w-5 h-5 text-primary" />
                     </div>
                     <Badge className="bg-primary/10 text-primary border-primary/20 font-semibold">
-                      Our Solution
+                      {t.landing.badges.ourSolution}
                     </Badge>
                   </div>
                   <CardTitle className="text-2xl md:text-3xl">{t.problem.solutionTitle}</CardTitle>
@@ -239,7 +239,7 @@ export default function LandingPage() {
       <section id="features" className="py-16 md:py-24">
         <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center space-y-4 mb-16">
-            <Badge variant="outline" className="font-semibold">Platform Features</Badge>
+            <Badge variant="outline" className="font-semibold">{t.landing.badges.features}</Badge>
             <h2 className="text-3xl md:text-5xl font-bold">{t.features.title}</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
               {t.features.description}
@@ -299,7 +299,7 @@ export default function LandingPage() {
       <section id="how-it-works" className="py-16 md:py-24 bg-muted/30 border-y border-border/40">
         <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center space-y-4 mb-16">
-            <Badge variant="outline" className="font-semibold">Simple Process</Badge>
+            <Badge variant="outline" className="font-semibold">{t.landing.badges.simpleProcess}</Badge>
             <h2 className="text-3xl md:text-5xl font-bold">{t.howItWorks.title}</h2>
           </div>
           
@@ -335,7 +335,7 @@ export default function LandingPage() {
       <section id="impact" className="py-16 md:py-24">
         <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center space-y-4 mb-16">
-            <Badge variant="outline" className="font-semibold">UN SDG Aligned</Badge>
+            <Badge variant="outline" className="font-semibold">{t.landing.badges.unSdgAligned}</Badge>
             <h2 className="text-3xl md:text-5xl font-bold">{t.impact.title}</h2>
           </div>
           
@@ -388,7 +388,7 @@ export default function LandingPage() {
                 </Link>
                 <Link href="/dashboard">
                   <Button variant="outline" size="lg" className="h-14 px-10 text-lg font-semibold border-border/50">
-                    View Demo
+                    {t.landing.buttons.viewDemo}
                   </Button>
                 </Link>
               </div>

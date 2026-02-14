@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/lib/auth-context";
+import { useLanguage } from "@/lib/language-context";
 import {
   IconCheck,
   IconAlertTriangle,
@@ -37,6 +38,7 @@ interface ManualEntryDialogProps {
 
 const ManualEntryDialog = ({ onEntryCreated }: ManualEntryDialogProps) => {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
 
   // Manual entry form state
@@ -67,13 +69,13 @@ const ManualEntryDialog = ({ onEntryCreated }: ManualEntryDialogProps) => {
         !manualEntry.amount ||
         !manualEntry.billingDate
       ) {
-        setManualError("Please fill in all required fields");
+        setManualError(t.manualEntry.validation.fillRequired);
         return;
       }
 
       // Get user token
       if (!user) {
-        setManualError("You must be logged in to create entries");
+        setManualError(t.manualEntry.validation.loginRequired);
         return;
       }
 
@@ -162,15 +164,14 @@ const ManualEntryDialog = ({ onEntryCreated }: ManualEntryDialogProps) => {
       <DialogTrigger asChild>
         <Button variant="ghost" size="sm" className="text-sm">
           <IconEdit className="w-4 h-4 mr-2" />
-          Input data manually instead
+          {t.manualEntry.trigger}
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-md! w-full max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Manual Data Entry</DialogTitle>
+          <DialogTitle>{t.manualEntry.title}</DialogTitle>
           <DialogDescription>
-            Enter your utility bill data manually. All fields marked with * are
-            required.
+            {t.manualEntry.description}
           </DialogDescription>
         </DialogHeader>
 
@@ -180,7 +181,7 @@ const ManualEntryDialog = ({ onEntryCreated }: ManualEntryDialogProps) => {
             <Alert className="bg-green-50 dark:bg-green-500/10 border-green-200 dark:border-green-500/20">
               <IconCheck className="h-4 w-4 text-green-600" />
               <AlertDescription className="text-green-800 dark:text-green-200">
-                Manual entry saved successfully!
+                {t.manualEntry.success.saved}
               </AlertDescription>
             </Alert>
           )}
@@ -196,7 +197,7 @@ const ManualEntryDialog = ({ onEntryCreated }: ManualEntryDialogProps) => {
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="utility-type">
-                Utility Type <span className="text-destructive">*</span>
+                {t.manualEntry.labels.utilityType} <span className="text-destructive">*</span>
               </Label>
               <Select
                 value={manualEntry.utilityType}
@@ -205,7 +206,7 @@ const ManualEntryDialog = ({ onEntryCreated }: ManualEntryDialogProps) => {
                 }
               >
                 <SelectTrigger id="utility-type" className="w-full">
-                  <SelectValue placeholder="Select type" />
+                  <SelectValue placeholder={t.manualEntry.placeholders.selectType} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="electricity">Electricity</SelectItem>
@@ -217,10 +218,10 @@ const ManualEntryDialog = ({ onEntryCreated }: ManualEntryDialogProps) => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="provider">Provider</Label>
+              <Label htmlFor="provider">{t.manualEntry.labels.provider}</Label>
               <Input
                 id="provider"
-                placeholder="e.g., TNB, SAJ, Petron"
+                placeholder={t.manualEntry.placeholders.provider}
                 value={manualEntry.provider}
                 onChange={(e) =>
                   setManualEntry({ ...manualEntry, provider: e.target.value })
@@ -232,12 +233,12 @@ const ManualEntryDialog = ({ onEntryCreated }: ManualEntryDialogProps) => {
           <div className="grid gap-4 md:grid-cols-3">
             <div className="space-y-2">
               <Label htmlFor="usage">
-                Usage Amount <span className="text-destructive">*</span>
+                {t.manualEntry.labels.usageAmount} <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="usage"
                 type="number"
-                placeholder="850"
+                placeholder={t.manualEntry.placeholders.usage}
                 value={manualEntry.usage}
                 className="w-full"
                 onChange={(e) =>
@@ -250,7 +251,7 @@ const ManualEntryDialog = ({ onEntryCreated }: ManualEntryDialogProps) => {
 
             <div className="space-y-2">
               <Label htmlFor="unit">
-                Unit <span className="text-destructive">*</span>
+                {t.manualEntry.labels.unit} <span className="text-destructive">*</span>
               </Label>
               <Select
                 value={manualEntry.unit}
@@ -259,7 +260,7 @@ const ManualEntryDialog = ({ onEntryCreated }: ManualEntryDialogProps) => {
                 }
               >
                 <SelectTrigger id="unit" className="w-full">
-                  <SelectValue placeholder="Select unit" className="w-full" />
+                  <SelectValue placeholder={t.manualEntry.placeholders.unitSelect} className="w-full" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="kWh">kWh (Electricity)</SelectItem>
@@ -271,12 +272,12 @@ const ManualEntryDialog = ({ onEntryCreated }: ManualEntryDialogProps) => {
 
             <div className="space-y-2">
               <Label htmlFor="amount">
-                Bill Amount (RM) <span className="text-destructive">*</span>
+                {t.manualEntry.labels.billAmount} <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="amount"
                 type="number"
-                placeholder="320.50"
+                placeholder={t.manualEntry.placeholders.amount}
                 value={manualEntry.amount}
                 onChange={(e) =>
                   setManualEntry({ ...manualEntry, amount: e.target.value })
@@ -290,7 +291,7 @@ const ManualEntryDialog = ({ onEntryCreated }: ManualEntryDialogProps) => {
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="billing-date">
-                Billing Date <span className="text-destructive">*</span>
+                {t.manualEntry.labels.billingDate} <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="billing-date"
@@ -307,10 +308,10 @@ const ManualEntryDialog = ({ onEntryCreated }: ManualEntryDialogProps) => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="account-number">Account Number (Optional)</Label>
+              <Label htmlFor="account-number">{t.manualEntry.labels.accountNumberOptional}</Label>
               <Input
                 id="account-number"
-                placeholder="12345678"
+                placeholder={t.manualEntry.placeholders.accountNumber}
                 value={manualEntry.accountNumber}
                 onChange={(e) =>
                   setManualEntry({
@@ -331,12 +332,12 @@ const ManualEntryDialog = ({ onEntryCreated }: ManualEntryDialogProps) => {
               {isSubmitting ? (
                 <>
                   <IconLoader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Saving...
+                  {t.manualEntry.actions.saving}
                 </>
               ) : (
                 <>
                   <IconDeviceFloppy className="w-4 h-4 mr-2" />
-                  Save Entry
+                  {t.manualEntry.actions.saveEntry}
                 </>
               )}
             </Button>
@@ -345,7 +346,7 @@ const ManualEntryDialog = ({ onEntryCreated }: ManualEntryDialogProps) => {
               onClick={handleClearForm}
               disabled={isSubmitting}
             >
-              Clear
+              {t.manualEntry.actions.clear}
             </Button>
           </div>
         </div>

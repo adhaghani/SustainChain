@@ -6,6 +6,7 @@ import {
 } from "@/components/ui/input-group"
 import { Kbd, KbdGroup } from "@/components/ui/kbd"
 import { Search } from "lucide-react"
+import { useLanguage } from "@/lib/language-context"
 
 import {
   Command,
@@ -21,10 +22,11 @@ import {
 
 const SearchCommand = () => {
     const [open, setOpen] = useState(false)
+    const { t } = useLanguage();
   return (
 <div className="flex flex-col gap-4">
 <InputGroup className="max-w-xs" onClick={() => setOpen(true)}>
-      <InputGroupInput placeholder="Search..." />
+      <InputGroupInput placeholder={t.header.search.placeholder} />
       <InputGroupAddon>
         <Search />
       </InputGroupAddon>
@@ -37,13 +39,13 @@ const SearchCommand = () => {
     </InputGroup>
       <CommandDialog open={open} onOpenChange={setOpen}>
         <Command>
-          <CommandInput placeholder="Type a command or search..." />
+          <CommandInput placeholder={t.header.command.placeholder} />
           <CommandList>
-            <CommandEmpty>No results found.</CommandEmpty>
-            <CommandGroup heading="Suggestions">
-              <CommandItem>Calendar</CommandItem>
-              <CommandItem>Search Emoji</CommandItem>
-              <CommandItem>Calculator</CommandItem>
+            <CommandEmpty>{t.header.command.empty}</CommandEmpty>
+            <CommandGroup heading={t.header.command.suggestions.heading}>
+              <CommandItem>{t.header.command.suggestions.items.calendar}</CommandItem>
+              <CommandItem>{t.header.command.suggestions.items.searchEmoji}</CommandItem>
+              <CommandItem>{t.header.command.suggestions.items.calculator}</CommandItem>
             </CommandGroup>
           </CommandList>
         </Command>

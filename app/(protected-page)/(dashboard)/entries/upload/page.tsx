@@ -20,8 +20,10 @@ import {
   IconInfoCircle,
   IconSparkles,
 } from "@tabler/icons-react";
+import { useLanguage } from "@/lib/language-context";
 
 const UploadPage = () => {
+  const { t } = useLanguage();
   const router = useRouter();
   const [recentEntryId, setRecentEntryId] = useState<string | null>(null);
 
@@ -34,14 +36,13 @@ const UploadPage = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Upload Bills</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t.dashboard.pages.uploadBills.title}</h1>
           <p className="text-muted-foreground mt-1">
-            Upload utility bills for AI-powered data extraction and carbon
-            calculation
+            {t.dashboard.pages.uploadBills.subtitle}
           </p>
         </div>
         <Button variant="outline" onClick={() => router.push("/entries")}>
-          View All Entries
+          {t.dashboard.pages.dashboard.viewAllEntries}
         </Button>
       </div>
 
@@ -50,9 +51,9 @@ const UploadPage = () => {
         <Alert className="bg-green-50 dark:bg-green-500/10 border-green-200 dark:border-green-500/20">
           <IconCheck className="h-4 w-4 text-green-600" />
           <AlertDescription className="text-green-800 dark:text-green-200">
-            Entry saved successfully!{" "}
+            {t.manualEntry.success.saved}{" "}
             <a href={`/entries`} className="underline font-medium">
-              View in entries list
+              {t.manualEntry.success.viewEntries}
             </a>
           </AlertDescription>
         </Alert>

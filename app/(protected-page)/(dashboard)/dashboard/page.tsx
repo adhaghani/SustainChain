@@ -163,14 +163,14 @@ const DashboardPage = () => {
           <CardHeader>
             <div className="flex items-center gap-2 text-destructive">
               <IconAlertCircle className="w-5 h-5" />
-              <CardTitle>Failed to Load Dashboard</CardTitle>
+              <CardTitle>{t.dashboard.pages.dashboard.failedToLoad}</CardTitle>
             </div>
             <CardDescription>{analyticsError}</CardDescription>
           </CardHeader>
           <CardContent>
             <Button onClick={refetchAnalytics} className="w-full">
               <IconRefresh className="w-4 h-4 mr-2" />
-              Retry
+              {t.dashboard.pages.dashboard.retry}
             </Button>
           </CardContent>
         </Card>
@@ -193,8 +193,8 @@ const DashboardPage = () => {
           </h1>
           <p className="text-muted-foreground mt-1">
             {role === "viewer"
-              ? `${t.dashboard.subtitle} (Read-only access)`
-              : t.dashboard.subtitle}
+              ? `${t.dashboard.pages.dashboard.subtitle} ${t.dashboard.pages.dashboard.readOnlyAccess}`
+              : t.dashboard.pages.dashboard.subtitle}
           </p>
         </div>
         <div className="flex gap-2">
@@ -222,8 +222,7 @@ const DashboardPage = () => {
         <Card className="bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
           <CardContent className="pt-6">
             <p className="text-sm text-blue-900 dark:text-blue-100">
-              👁️ You have view-only access. Contact your administrator to
-              request additional permissions.
+              {t.dashboard.pages.dashboard.viewerBanner}
             </p>
           </CardContent>
         </Card>
@@ -317,12 +316,12 @@ const DashboardPage = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Data Entries</CardTitle>
-            <Badge variant="outline">This Month</Badge>
+            <CardTitle className="text-sm font-medium">{t.dashboard.pages.dashboard.dataEntries}</CardTitle>
+            <Badge variant="outline">{t.dashboard.pages.dashboard.thisMonth}</Badge>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {recentEntries.length} Bills
+              {recentEntries.length} {t.dashboard.pages.dashboard.bills}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
               {
@@ -332,7 +331,7 @@ const DashboardPage = () => {
                     e.extractionConfidence > 70,
                 ).length
               }{" "}
-              auto-extracted,{" "}
+              {t.dashboard.pages.dashboard.autoExtracted},{" "}
               {
                 recentEntries.filter(
                   (e) =>
@@ -340,7 +339,7 @@ const DashboardPage = () => {
                     e.extractionConfidence <= 70,
                 ).length
               }{" "}
-              manual
+              {t.dashboard.pages.dashboard.manual}
             </p>
           </CardContent>
         </Card>
@@ -351,9 +350,9 @@ const DashboardPage = () => {
         {/* Emission Breakdown */}
         <Card>
           <CardHeader>
-            <CardTitle>Emission Breakdown</CardTitle>
+            <CardTitle>{t.dashboard.pages.dashboard.emissionBreakdown}</CardTitle>
             <CardDescription>
-              Carbon footprint by utility type (Current Month)
+              {t.dashboard.pages.dashboard.emissionBreakdownDesc}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -382,7 +381,7 @@ const DashboardPage = () => {
               })
             ) : (
               <div className="text-center text-muted-foreground py-8">
-                <p>No emission data available yet.</p>
+                <p>{t.dashboard.pages.dashboard.noEmissionData}</p>
                 {canUploadBills && (
                   <Button
                     variant="outline"
@@ -391,7 +390,7 @@ const DashboardPage = () => {
                     onClick={() => router.push("/entries")}
                   >
                     <IconUpload className="w-4 h-4 mr-2" />
-                    Upload Your First Bill
+                    {t.dashboard.pages.dashboard.uploadFirstBill}
                   </Button>
                 )}
               </div>
@@ -402,9 +401,9 @@ const DashboardPage = () => {
         {/* Monthly Trend */}
         <Card>
           <CardHeader>
-            <CardTitle>{t.dashboard.monthlyTrend}</CardTitle>
+            <CardTitle>{t.dashboard.pages.dashboard.monthlyTrend}</CardTitle>
             <CardDescription>
-              Carbon emissions over time (kg CO2e)
+              {t.dashboard.pages.dashboard.monthlyTrendDesc}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -439,7 +438,7 @@ const DashboardPage = () => {
                       <Progress value={percentage} className="h-2" />
                       {canViewDetailedAnalytics && data.sectorAverage && (
                         <div className="text-xs text-muted-foreground">
-                          Sector avg: {data.sectorAverage.toFixed(0)} kg
+                          {t.dashboard.pages.dashboard.sectorAvg}: {data.sectorAverage.toFixed(0)} kg
                         </div>
                       )}
                     </div>
@@ -448,9 +447,9 @@ const DashboardPage = () => {
               </div>
             ) : (
               <div className="text-center text-muted-foreground py-8">
-                <p>No trend data available yet.</p>
+                <p>{t.dashboard.pages.dashboard.noTrendData}</p>
                 <p className="text-xs mt-2">
-                  Upload bills for at least 2 months to see trends.
+                  {t.dashboard.pages.dashboard.uploadForTrends}
                 </p>
               </div>
             )}
@@ -462,17 +461,17 @@ const DashboardPage = () => {
       {role === "viewer" && (
         <Card>
           <CardHeader>
-            <CardTitle>Need More Access?</CardTitle>
+            <CardTitle>{t.dashboard.pages.dashboard.needMoreAccess}</CardTitle>
             <CardDescription>
-              Contact your administrator for additional permissions
+              {t.dashboard.pages.dashboard.contactAdmin}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground mb-4">
-              As a viewer, you can see emission data and reports but cannot
-              upload bills or make changes. If you need to contribute data or
-              generate reports, please contact {userData?.tenantName || "your"}{" "}
-              administrator.
+              {t.dashboard.pages.dashboard.viewerMessage.replace(
+                "{tenantName}",
+                userData?.tenantName || "your",
+              )}
             </p>
             <div className="flex gap-2">
               <Button
@@ -480,14 +479,14 @@ const DashboardPage = () => {
                 size="sm"
                 onClick={() => router.push("/reports")}
               >
-                View Reports
+                {t.dashboard.pages.dashboard.viewReports}
               </Button>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => router.push("/entries")}
               >
-                View All Entries
+                {t.dashboard.pages.dashboard.viewAllEntries}
               </Button>
             </div>
           </CardContent>

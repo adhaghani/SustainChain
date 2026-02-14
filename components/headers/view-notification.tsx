@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 const ViewNotification = () => {
-      const { language } = useLanguage();
+      const { t } = useLanguage();
   return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -24,23 +24,23 @@ const ViewNotification = () => {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-80">
               <DropdownMenuLabel className="font-semibold">
-                {language === 'en' ? 'Notifications' : 'Pemberitahuan'}
+                {t.notifications.title}
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               
               {/* NOTIFICATION DETAILS GOES HERE */}
                 <DropdownMenuItem>
-                    first Notification
+                    {t.notifications.sample.first}
                 </DropdownMenuItem>
                 <DropdownMenuItem>
-                    Second Notification
+                    {t.notifications.sample.second}
                 </DropdownMenuItem>
 
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
                 <Link href="/notifications" className="w-full text-center cursor-pointer">
                   <span className="text-xs font-medium">
-                    {language === 'en' ? 'View All Notifications' : 'Lihat Semua Pemberitahuan'}
+                    {t.notifications.viewAll}
                   </span>
                 </Link>
               </DropdownMenuItem>

@@ -633,118 +633,7 @@ const UsersPage = () => {
         </CardContent>
       </Card>
 
-      {/* Role Permissions Reference */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Role Permissions</CardTitle>
-          <CardDescription>Overview of access levels for each role</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-3">
-            {/* Admin */}
-            <Card className="border-purple-200 dark:border-purple-800">
-              <CardHeader className="pb-3">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center">
-                    <IconShieldCheck className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-                  </div>
-                  <CardTitle className="text-base">Administrator</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-2 text-sm">
-                <div className="flex items-center gap-2">
-                  <IconCheck className="w-4 h-4 text-green-500" />
-                  <span>Full system access</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <IconCheck className="w-4 h-4 text-green-500" />
-                  <span>Manage users & roles</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <IconCheck className="w-4 h-4 text-green-500" />
-                  <span>Create & delete entries</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <IconCheck className="w-4 h-4 text-green-500" />
-                  <span>Generate reports</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <IconCheck className="w-4 h-4 text-green-500" />
-                  <span>Configure settings</span>
-                </div>
-              </CardContent>
-            </Card>
 
-            {/* Clerk */}
-            <Card className="border-gray-200 dark:border-gray-800">
-              <CardHeader className="pb-3">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-900 flex items-center justify-center">
-                    <IconUser className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-                  </div>
-                  <CardTitle className="text-base">Data Entry Clerk</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-2 text-sm">
-                <div className="flex items-center gap-2">
-                  <IconCheck className="w-4 h-4 text-green-500" />
-                  <span>Upload bills</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <IconCheck className="w-4 h-4 text-green-500" />
-                  <span>Create entries</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <IconCheck className="w-4 h-4 text-green-500" />
-                  <span>Edit own entries</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <IconCheck className="w-4 h-4 text-green-500" />
-                  <span>View dashboard</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <IconBan className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-muted-foreground">No admin access</span>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Viewer */}
-            <Card className="border-blue-200 dark:border-blue-800">
-              <CardHeader className="pb-3">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
-                    <IconShield className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                  </div>
-                  <CardTitle className="text-base">Viewer</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-2 text-sm">
-                <div className="flex items-center gap-2">
-                  <IconCheck className="w-4 h-4 text-green-500" />
-                  <span>View dashboard</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <IconCheck className="w-4 h-4 text-green-500" />
-                  <span>View reports</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <IconCheck className="w-4 h-4 text-green-500" />
-                  <span>Download reports</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <IconBan className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-muted-foreground">No edit access</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <IconBan className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-muted-foreground">No data entry</span>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Pending Invitations */}
       <Card>
@@ -862,6 +751,119 @@ const UsersPage = () => {
                 })}
             </div>
           )}
+        </CardContent>
+      </Card>
+
+      {/* Role Permissions Reference */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Role Permissions</CardTitle>
+          <CardDescription>Overview of access levels for each role</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 md:grid-cols-3">
+            {/* Admin */}
+            <Card className="border-purple-200 dark:border-purple-800">
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center">
+                    <IconShieldCheck className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                  </div>
+                  <CardTitle className="text-base">Administrator</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-2 text-sm">
+                <div className="flex items-center gap-2">
+                  <IconCheck className="w-4 h-4 text-green-500" />
+                  <span>Full system access</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <IconCheck className="w-4 h-4 text-green-500" />
+                  <span>Manage users & roles</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <IconCheck className="w-4 h-4 text-green-500" />
+                  <span>Create & delete entries</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <IconCheck className="w-4 h-4 text-green-500" />
+                  <span>Generate reports</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <IconCheck className="w-4 h-4 text-green-500" />
+                  <span>Configure settings</span>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Clerk */}
+            <Card className="border-gray-200 dark:border-gray-800">
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-900 flex items-center justify-center">
+                    <IconUser className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                  </div>
+                  <CardTitle className="text-base">Data Entry Clerk</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-2 text-sm">
+                <div className="flex items-center gap-2">
+                  <IconCheck className="w-4 h-4 text-green-500" />
+                  <span>Upload bills</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <IconCheck className="w-4 h-4 text-green-500" />
+                  <span>Create entries</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <IconCheck className="w-4 h-4 text-green-500" />
+                  <span>Edit own entries</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <IconCheck className="w-4 h-4 text-green-500" />
+                  <span>View dashboard</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <IconBan className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-muted-foreground">No admin access</span>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Viewer */}
+            <Card className="border-blue-200 dark:border-blue-800">
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                    <IconShield className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <CardTitle className="text-base">Viewer</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-2 text-sm">
+                <div className="flex items-center gap-2">
+                  <IconCheck className="w-4 h-4 text-green-500" />
+                  <span>View dashboard</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <IconCheck className="w-4 h-4 text-green-500" />
+                  <span>View reports</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <IconCheck className="w-4 h-4 text-green-500" />
+                  <span>Download reports</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <IconBan className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-muted-foreground">No edit access</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <IconBan className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-muted-foreground">No data entry</span>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </CardContent>
       </Card>
 

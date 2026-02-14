@@ -10,6 +10,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
+import { useLanguage } from "@/lib/language-context"
 
 export function NavMain({
   items,
@@ -20,19 +21,20 @@ export function NavMain({
     icon?: Icon
   }[]
 }) {
+  const { t } = useLanguage();
   return (
     <SidebarGroup>
       <SidebarGroupContent className="flex flex-col gap-2">
         <SidebarMenu>
           <SidebarMenuItem className="flex items-center gap-2">
             <SidebarMenuButton
-              tooltip="Upload Bill"
+              tooltip={t.dashboard.common.uploadBill}
               asChild
               className="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground min-w-8 duration-200 ease-linear"
             >
               <Link href="/entries/upload">
                 <IconCirclePlusFilled />
-                <span>Upload Bill</span>
+                <span>{t.dashboard.common.uploadBill}</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

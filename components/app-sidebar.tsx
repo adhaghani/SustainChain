@@ -98,27 +98,27 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     ],
     navSuperAdmin: [
       {
-        title: "System Overview",
+        title: t.sidebar.superadmin.systemOverview,
         url: "/system-admin",
         icon: IconShield,
       },
       {
-        title: "All Tenants",
+        title: t.sidebar.superadmin.allTenants,
         url: "/system-admin/tenants",
         icon: IconBuilding,
       },
       {
-        title: "All Users",
+        title: t.sidebar.superadmin.allUsers,
         url: "/system-admin/users",
         icon: IconUsers,
       },
       {
-        title: "System Activity",
+        title: t.sidebar.superadmin.systemActivity,
         url: "/system-admin/system-activity",
         icon: IconActivity,
       },
       {
-        title: "Global Config",
+        title: t.sidebar.superadmin.globalConfig,
         url: "/system-admin/global-config",
         icon: IconSettings,
       },
@@ -157,7 +157,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             >
               <Link href="/dashboard">
                 <IconInnerShadowTop className="size-5!" />
-                <span className="text-base font-semibold">SustainChain</span>
+                <span className="text-base font-semibold">{t.sidebar.brandName}</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -166,7 +166,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarContent>
         <NavMain items={data.navMain} />
         {isSuperAdmin && data.navSuperAdmin.length > 0 && (
-          <NavSecondary items={data.navSuperAdmin} title="System Administration" />
+          <NavSecondary items={data.navSuperAdmin} title={t.sidebar.superadmin.systemAdministration} />
         )}
         {!isSuperAdmin && data.navManagement.length > 0 && (
           <NavSecondary items={data.navManagement} title={t.dashboard.sidebar.management} />

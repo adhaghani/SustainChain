@@ -7,6 +7,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { uploadBillImage, validateBillFile } from '@/lib/storage-helpers';
 import { auth } from '@/lib/firebase';
 import EntryReviewForm, { type ExtractedBillData } from './entry-review-form';
+import { useLanguage } from '@/lib/language-context';
 
 type UploadState = 'idle' | 'dragover' | 'uploading' | 'analyzing' | 'review' | 'success' | 'error';
 
@@ -15,6 +16,7 @@ interface BillUploaderProps {
 }
 
 export default function BillUploader({ onEntryCreated }: BillUploaderProps) {
+  const { t } = useLanguage();
   const [state, setState] = useState<UploadState>('idle');
   const [fileName, setFileName] = useState<string>('');
   const [error, setError] = useState<string>('');
@@ -51,7 +53,7 @@ export default function BillUploader({ onEntryCreated }: BillUploaderProps) {
     // Validate file
     const validation = validateBillFile(file);
     if (!validation.valid) {
-      setError(validation.error || 'Invalid file');
+      setError(validation.error || t.upload.error.invalidFile);
       setState('error');
       return;
     }
@@ -59,7 +61,7 @@ export default function BillUploader({ onEntryCreated }: BillUploaderProps) {
     // Check authentication
     const currentUser = auth?.currentUser;
     if (!currentUser) {
-      setError('Please sign in to upload bills');
+      setError(t.upload.error.signInRequired);
       setState('error');
       return;
     }
@@ -79,13 +81,13 @@ export default function BillUploader({ onEntryCreated }: BillUploaderProps) {
     });
     
     if (!tenantId) {
-      setError('No tenant associated with your account. Please sign out and sign back in.');
+      setError(t.upload.error.noTenant);
       setState('error');
       return;
     }
     
     if (!role) {
-      setError('No role assigned. Please sign out and sign back in.');
+      setError(t.upload.error.noRole);
       setState('error');
       return;
     }
@@ -139,7 +141,7 @@ export default function BillUploader({ onEntryCreated }: BillUploaderProps) {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to analyze bill');
+        throw new Error(data.error || t.upload.error.analyzeFailed);
       }
 
       // Step 3: Show review form
@@ -219,13 +221,13 @@ export default function BillUploader({ onEntryCreated }: BillUploaderProps) {
             <CheckCircle className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
           </div>
           <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-1">
-            Entry Saved Successfully!
+            {t.upload.success.entrySavedTitle}
           </h3>
           <p className="text-slate-600 dark:text-slate-400 mb-4">
-            Your bill &quot;{fileName}&quot; has been processed and saved.
+            {t.upload.success.entrySavedDesc.replace('{fileName}', fileName)}
           </p>
           <Button onClick={resetUploader} variant="outline">
-            Upload Another Bill
+            {t.upload.success.uploadAnother}
           </Button>
         </div>
       )}
@@ -237,10 +239,10 @@ export default function BillUploader({ onEntryCreated }: BillUploaderProps) {
             <Loader2 className="w-8 h-8 text-emerald-600 dark:text-emerald-400 animate-spin" />
           </div>
           <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-1">
-            Gemini AI is analyzing your bill...
+            {t.upload.state.analyzingTitle}
           </h3>
           <p className="text-slate-600 dark:text-slate-400">
-            Extracting energy usage, calculating CO2 emissions, and generating insights.
+            {t.upload.state.analyzingDesc}
           </p>
           {imagePreview ? (
             <div className="mt-4 flex justify-center">
@@ -267,7 +269,7 @@ export default function BillUploader({ onEntryCreated }: BillUploaderProps) {
             <Loader2 className="w-8 h-8 text-slate-600 dark:text-slate-400 animate-spin" />
           </div>
           <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-1">
-            Uploading...
+            {t.upload.state.uploadingTitle}
           </h3>
           <p className="text-slate-600 dark:text-slate-400">{fileName}</p>
         </div>
@@ -310,26 +312,26 @@ export default function BillUploader({ onEntryCreated }: BillUploaderProps) {
             <div>
               <p className="text-slate-900 dark:text-white font-medium">
                 {state === 'dragover' ? (
-                  'Drop your bill here'
+                  t.upload.placeholder.dropHere
                 ) : (
                   <>
                     <span className="text-emerald-600 dark:text-emerald-400">
-                      Click to upload
+                      {t.upload.placeholder.clickToUpload}
                     </span>{' '}
                     or drag and drop
                   </>
                 )}
               </p>
               <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                TNB, SAJ, IWK, SESB, SEB bills • PDF or images up to 10MB
+                {t.upload.supportedFormats}
               </p>
             </div>
 
             <div className="flex items-center justify-center gap-2 text-xs text-slate-400">
-              <span className="px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded">PDF</span>
-              <span className="px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded">PNG</span>
-              <span className="px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded">JPG</span>
-              <span className="px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded">HEIC</span>
+              <span className="px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded">{t.upload.formats.PDF}</span>
+              <span className="px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded">{t.upload.formats.PNG}</span>
+              <span className="px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded">{t.upload.formats.JPG}</span>
+              <span className="px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded">{t.upload.formats.HEIC}</span>
             </div>
           </div>
         </div>
