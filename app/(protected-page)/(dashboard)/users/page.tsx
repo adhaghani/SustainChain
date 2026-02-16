@@ -49,8 +49,10 @@ import { InviteUserDialog } from '@/components/users/invite-user-dialog';
 import { EditUserDialog } from '@/components/users/edit-user-dialog';
 import { DeleteUserDialog } from '@/components/users/delete-user-dialog';
 import { useInvitations, type InvitationData } from '@/hooks/use-invitations';
+import { useLanguage } from '@/lib/language-context';
 
 const UsersPage = () => {
+  const { t } = useLanguage();
   const [users, setUsers] = useState<UserDocument[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<UserDocument[]>([]);
   const [loading, setLoading] = useState(true);
@@ -125,7 +127,7 @@ const UsersPage = () => {
 
       const currentUser = auth?.currentUser;
       if (!currentUser) {
-        throw new Error('Not authenticated');
+        throw new Error(t('users.notAuthenticated'));
       }
 
       const token = await currentUser.getIdToken();
@@ -139,7 +141,7 @@ const UsersPage = () => {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to fetch users');
+        throw new Error(data.error || t('users.fetchFailed'));
       }
 
       setUsers(data.data);
@@ -173,7 +175,7 @@ const UsersPage = () => {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to invite user');
+        throw new Error(data.error || t('users.inviteFailed'));
       }
 
       // Show success message
@@ -223,7 +225,7 @@ const UsersPage = () => {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to update user');
+        throw new Error(data.error || t('users.updateFailed'));
       }
 
       setEditDialogOpen(false);
@@ -262,7 +264,7 @@ const UsersPage = () => {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to delete user');
+        throw new Error(data.error || t('users.deleteFailed'));
       }
 
       setDeleteDialogOpen(false);
@@ -295,38 +297,38 @@ const UsersPage = () => {
         return (
           <Badge variant="default" className="bg-purple-500">
             <IconShieldCheck className="w-3 h-3 mr-1" />
-            Admin
+            {t('users.role.admin')}
           </Badge>
         );
       case "clerk":
         return (
           <Badge variant="secondary">
             <IconUser className="w-3 h-3 mr-1" />
-            Clerk
+            {t('users.role.clerk')}
           </Badge>
         );
       case "viewer":
         return (
           <Badge variant="outline">
             <IconShield className="w-3 h-3 mr-1" />
-            Viewer
+            {t('users.role.viewer')}
           </Badge>
         );
       default:
-        return <Badge variant="outline">{role}</Badge>;
+        return <Badge variant="outline">{t('users.role.unknown')}</Badge>;
     }
   };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "active":
-        return <Badge variant="default" className="bg-green-500"><IconCheck className="w-3 h-3 mr-1" />Active</Badge>;
+        return <Badge variant="default" className="bg-green-500"><IconCheck className="w-3 h-3 mr-1" />{t('users.status.active')}</Badge>;
       case "pending":
-        return <Badge variant="secondary"><IconClock className="w-3 h-3 mr-1" />Pending</Badge>;
+        return <Badge variant="secondary"><IconClock className="w-3 h-3 mr-1" />{t('users.status.pending')}</Badge>;
       case "inactive":
-        return <Badge variant="outline"><IconBan className="w-3 h-3 mr-1" />Inactive</Badge>;
+        return <Badge variant="outline"><IconBan className="w-3 h-3 mr-1" />{t('users.status.inactive')}</Badge>;
       default:
-        return <Badge variant="outline">{status}</Badge>;
+        return <Badge variant="outline">{t('users.status.unknown')}</Badge>;
     }
   };
 
@@ -396,7 +398,7 @@ const UsersPage = () => {
         </div>
         <Button onClick={() => setInviteDialogOpen(true)}>
           <IconUserPlus className="w-4 h-4 mr-2" />
-          Invite User
+          {t('users.inviteUser')}
         </Button>
       </div>
 
@@ -404,48 +406,48 @@ const UsersPage = () => {
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Users</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{t('users.summaryCards.totalUsers')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalUsers}</div>
             <p className="text-xs text-muted-foreground mt-1">
-              In your organization
+              {t('users.summaryCards.inYourOrganization')}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Active Users</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{t('users.summaryCards.activeUsers')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{activeUsers}</div>
             <p className="text-xs text-muted-foreground mt-1">
-              {totalUsers > 0 ? ((activeUsers / totalUsers) * 100).toFixed(0) : 0}% of total
+              {totalUsers > 0 ? ((activeUsers / totalUsers) * 100).toFixed(0) : 0}% {t('users.summaryCards.ofTotal')}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Administrators</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{t('users.summaryCards.administrators')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{adminUsers}</div>
             <p className="text-xs text-muted-foreground mt-1">
-              With full access
+              {t('users.summaryCards.withFullAccess')}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Pending Invites</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{t('users.summaryCards.pendingInvites')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{pendingUsers}</div>
             <p className="text-xs text-muted-foreground mt-1">
-              Awaiting activation
+              {t('users.summaryCards.awaitingActivation')}
             </p>
           </CardContent>
         </Card>
@@ -456,8 +458,8 @@ const UsersPage = () => {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>All Users</CardTitle>
-              <CardDescription>Manage user accounts and access control</CardDescription>
+              <CardTitle>{t('users.tableHeaders.allUsers')}</CardTitle>
+              <CardDescription>{t('users.header.manageAccounts')}</CardDescription>
             </div>
           </div>
         </CardHeader>
@@ -467,7 +469,7 @@ const UsersPage = () => {
             <div className="relative flex-1">
               <IconSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input 
-                placeholder="Search by name, email, or tenant..." 
+                placeholder={t('users.searchPlaceholder')} 
                 className="pl-9"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -475,24 +477,24 @@ const UsersPage = () => {
             </div>
             <Select value={roleFilter} onValueChange={setRoleFilter}>
               <SelectTrigger className="w-45">
-                <SelectValue placeholder="Filter by role" />
+                  <SelectValue placeholder={t('users.filters.filterByRole')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Roles</SelectItem>
-                <SelectItem value="admin">Admin</SelectItem>
-                <SelectItem value="clerk">Clerk</SelectItem>
-                <SelectItem value="viewer">Viewer</SelectItem>
+                  <SelectItem value="all">{t('users.filters.allRoles')}</SelectItem>
+                  <SelectItem value="admin">{t('users.role.admin')}</SelectItem>
+                  <SelectItem value="clerk">{t('users.role.clerk')}</SelectItem>
+                  <SelectItem value="viewer">{t('users.role.viewer')}</SelectItem>
               </SelectContent>
             </Select>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-45">
-                <SelectValue placeholder="Filter by status" />
+                  <SelectValue placeholder={t('users.filters.filterByStatus')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all-status">All Status</SelectItem>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="inactive">Inactive</SelectItem>
+                  <SelectItem value="all-status">{t('users.filters.allStatus')}</SelectItem>
+                  <SelectItem value="active">{t('users.status.active')}</SelectItem>
+                  <SelectItem value="pending">{t('users.status.pending')}</SelectItem>
+                  <SelectItem value="inactive">{t('users.status.inactive')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -502,13 +504,13 @@ const UsersPage = () => {
             <table className="w-full">
               <thead>
                 <tr className="border-b bg-muted/50">
-                  <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">User</th>
-                  <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Contact</th>
-                  <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Tenant</th>
-                  <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Role</th>
-                  <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Status</th>
-                  <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Last Login</th>
-                  <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Actions</th>
+                  <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">{t('users.tableHeaders.name')}</th>
+                  <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">{t('users.tableHeaders.contact')}</th>
+                  <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">{t('users.tableHeaders.tenant')}</th>
+                  <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">{t('users.tableHeaders.role')}</th>
+                  <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">{t('users.tableHeaders.status')}</th>
+                  <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">{t('users.tableHeaders.lastActive')}</th>
+                  <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">{t('users.tableHeaders.actions')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -525,7 +527,7 @@ const UsersPage = () => {
                         <div>
                           <p className="font-medium text-sm">{user.name}</p>
                           <p className="text-xs text-muted-foreground">
-                            Joined {formatDate(user.createdAt as unknown as FirestoreTimestamp)}
+                              {t('users.joined')} {formatDate(user.createdAt as unknown as FirestoreTimestamp)}
                           </p>
                         </div>
                       </div>
@@ -558,7 +560,7 @@ const UsersPage = () => {
                     </td>
                     <td className="p-4 align-middle">
                       <div className="text-sm">
-                        {user.lastLogin ? formatDateTime(user.lastLogin as unknown as FirestoreTimestamp) : 'Never'}
+                        {user.lastLogin ? formatDateTime(user.lastLogin as unknown as FirestoreTimestamp) : t('users.never')}
                       </div>
                     </td>
                     <td className="p-4 align-middle">
@@ -569,14 +571,14 @@ const UsersPage = () => {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-48">
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          <DropdownMenuLabel>{t('users.actions.actions')}</DropdownMenuLabel>
                           <DropdownMenuItem onClick={() => openEditDialog(user)}>
                             <IconEdit className="w-4 h-4 mr-2" />
-                            Edit User
+                            {t('users.actions.edit')}
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => openEditDialog(user)}>
                             <IconShield className="w-4 h-4 mr-2" />
-                            Change Role
+                            {t('users.actions.changeRole')}
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           {user.status === "active" && (
@@ -586,7 +588,7 @@ const UsersPage = () => {
                               handleUpdateUser();
                             }}>
                               <IconBan className="w-4 h-4 mr-2" />
-                              Deactivate
+                              {t('users.actions.deactivate')}
                             </DropdownMenuItem>
                           )}
                           {user.status === "inactive" && (
@@ -596,7 +598,7 @@ const UsersPage = () => {
                               handleUpdateUser();
                             }}>
                               <IconCheck className="w-4 h-4 mr-2" />
-                              Reactivate
+                              {t('users.actions.reactivate')}
                             </DropdownMenuItem>
                           )}
                           <DropdownMenuSeparator />
@@ -605,7 +607,7 @@ const UsersPage = () => {
                             onClick={() => openDeleteDialog(user)}
                           >
                             <IconTrash className="w-4 h-4 mr-2" />
-                            Delete User
+                            {t('users.actions.delete')}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -619,14 +621,14 @@ const UsersPage = () => {
           {/* Pagination */}
           <div className="flex items-center justify-between mt-4">
             <p className="text-sm text-muted-foreground">
-              Showing {displayUsers.length} of {displayUsers.length} users
+              {t('users.pagination.showing')} {displayUsers.length} {t('users.pagination.of')} {displayUsers.length} {t('users.pagination.users')}
             </p>
             <div className="flex gap-2">
               <Button variant="outline" size="sm" disabled>
-                Previous
+                {t('users.pagination.previous')}
               </Button>
               <Button variant="outline" size="sm" disabled>
-                Next
+                {t('users.pagination.next')}
               </Button>
             </div>
           </div>

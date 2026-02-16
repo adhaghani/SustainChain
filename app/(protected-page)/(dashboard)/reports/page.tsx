@@ -28,9 +28,11 @@ import {
 import { useTenantQuota } from "@/hooks/use-tenant-quota";
 import { useCompletedReports } from "@/hooks/use-reports";
 import { useEntries } from "@/hooks/use-entries";
+import { useLanguage } from "@/lib/language-context";
 import { toast } from "sonner";
 
 const ReportsPage = () => {
+  const { t } = useLanguage();
   const { data: quotaData, loading: quotaLoading } = useTenantQuota();
   const { reports, loading: reportsLoading, error: reportsError, refetch: refetchReports } = useCompletedReports(20);
   const { entries, loading: entriesLoading } = useEntries({ limitCount: 100 });
@@ -153,37 +155,37 @@ const ReportsPage = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">ESG Reports</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t('dashboard.pages.reports.title')}</h1>
           <p className="text-muted-foreground mt-1">
-            Generate and download compliance-ready ESG reports
+            {t('dashboard.pages.reports.subtitle')}
           </p>
         </div>
         <Button 
           disabled={reportQuotaExceeded || quotaLoading}
           onClick={() => {
             if (reportQuotaExceeded) {
-              toast.error("Cannot Generate Report", {
-                description: "You have exceeded your monthly report generation quota.",
+              toast.error(t('dashboard.pages.reports.cannotGenerate'), {
+                description: t('dashboard.pages.reports.quotaExceededDesc'),
               });
             }
           }}
         >
           <IconDownload className="w-4 h-4 mr-2" />
-          {reportQuotaExceeded ? 'Quota Exceeded' : 'Generate New Report'}
+          {reportQuotaExceeded ? t('dashboard.pages.reports.quotaExceeded') : t('dashboard.pages.reports.generateReport')}
         </Button>
       </div>
 
       {/* Report Preview Card */}
       <Card>
         <CardHeader>
-          <CardTitle>Generate ESG Report</CardTitle>
-          <CardDescription>Create a comprehensive carbon footprint report for stakeholders</CardDescription>
+          <CardTitle>{t('dashboard.pages.reports.generateReport')}</CardTitle>
+          <CardDescription>{t('dashboard.pages.reports.subtitle')}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Report Configuration */}
           <div className="grid gap-4 md:grid-cols-3">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Reporting Period</label>
+              <label className="text-sm font-medium">{t('dashboard.pages.reports.reportingPeriod', { defaultValue: 'Reporting Period' })}</label>
               <Select defaultValue="jan2026">
                 <SelectTrigger>
                   <SelectValue placeholder="Select period" />
@@ -199,7 +201,7 @@ const ReportsPage = () => {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Report Language</label>
+              <label className="text-sm font-medium">{t('dashboard.pages.reports.reportLanguage')}</label>
               <Select defaultValue="en">
                 <SelectTrigger>
                   <SelectValue placeholder="Select language" />
@@ -213,7 +215,7 @@ const ReportsPage = () => {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Report Format</label>
+              <label className="text-sm font-medium">{t('dashboard.pages.reports.reportFormat')}</label>
               <Select defaultValue="pdf">
                 <SelectTrigger>
                   <SelectValue placeholder="Select format" />
@@ -231,21 +233,20 @@ const ReportsPage = () => {
 
           {/* Report Preview Sections */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Report Contents</h3>
-            
+              <h3 className="text-lg font-semibold">{t('dashboard.pages.reports.includedSections')}</h3>
             <div className="grid gap-4 md:grid-cols-2">
               {/* Executive Summary */}
               <Card>
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-sm">Executive Summary</CardTitle>
+                  <CardTitle className="text-sm">{t('dashboard.pages.reports.executiveSummary')}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Total Emissions</span>
+                    <span className="text-sm text-muted-foreground">{t('dashboard.pages.reports.totalEmissions')}</span>
                     <span className="font-bold">{emissionTrend.current} kg CO2e</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Trend</span>
+                    <span className="text-sm text-muted-foreground">{t('dashboard.pages.reports.trend')}</span>
                     <div className="flex items-center gap-1">
                       {emissionTrend.change < 0 ? (
                         <>
@@ -271,17 +272,17 @@ const ReportsPage = () => {
               {/* Sector Benchmarking */}
               <Card>
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-sm">Sector Benchmarking</CardTitle>
+                  <CardTitle className="text-sm">{t('dashboard.pages.reports.sectorBenchmarking')}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Your Performance</span>
+                    <span className="text-sm text-muted-foreground">{t('dashboard.pages.reports.yourPerformance')}</span>
                     <Badge variant="default">Top 32%</Badge>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">vs. {sectorComparison.sector}</span>
+                    <span className="text-sm text-muted-foreground">{t('dashboard.pages.reports.vsSector', { sector: sectorComparison.sector })}</span>
                     <span className="text-sm font-medium text-green-500">
-                      -{((1 - sectorComparison.yourEmissions / sectorComparison.sectorAverage) * 100).toFixed(0)}% below avg
+                      -{((1 - sectorComparison.yourEmissions / sectorComparison.sectorAverage) * 100).toFixed(0)}% {t('dashboard.pages.reports.belowAvg')}
                     </span>
                   </div>
                   <Progress value={sectorComparison.percentile} className="h-2" />
@@ -292,9 +293,9 @@ const ReportsPage = () => {
             {/* SDG Alignment */}
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm">UN SDG Alignment</CardTitle>
-                <CardDescription className="text-xs">
-                  Your contribution to Sustainable Development Goals
+                  <CardTitle className="text-sm">{t('dashboard.pages.reports.unSdgAlignment')}</CardTitle>
+                  <CardDescription className="text-xs">
+                    {t('dashboard.pages.reports.contribution')}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
@@ -318,7 +319,7 @@ const ReportsPage = () => {
             {/* Additional Sections Checklist */}
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm">Included Sections</CardTitle>
+                <CardTitle className="text-sm">{t('dashboard.pages.reports.includedSections')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 gap-2 text-sm">
@@ -326,37 +327,37 @@ const ReportsPage = () => {
                     <div className="w-4 h-4 rounded-sm bg-green-500 flex items-center justify-center">
                       <IconLeaf className="w-3 h-3 text-white" />
                     </div>
-                    <span>Emission Breakdown (Scope 1 & 2)</span>
+                    <span>{t('dashboard.pages.reports.emissionBreakdown')}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 rounded-sm bg-green-500 flex items-center justify-center">
                       <IconLeaf className="w-3 h-3 text-white" />
                     </div>
-                    <span>Monthly Trend Charts</span>
+                    <span>{t('dashboard.pages.reports.monthlyTrendCharts')}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 rounded-sm bg-green-500 flex items-center justify-center">
                       <IconLeaf className="w-3 h-3 text-white" />
                     </div>
-                    <span>Sector Comparison Analysis</span>
+                    <span>{t('dashboard.pages.reports.sectorComparison')}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 rounded-sm bg-green-500 flex items-center justify-center">
                       <IconLeaf className="w-3 h-3 text-white" />
                     </div>
-                    <span>Bill Evidence Appendix</span>
+                    <span>{t('dashboard.pages.reports.billEvidence')}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 rounded-sm bg-green-500 flex items-center justify-center">
                       <IconLeaf className="w-3 h-3 text-white" />
                     </div>
-                    <span>Compliance Statement</span>
+                    <span>{t('dashboard.pages.reports.complianceStatement')}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 rounded-sm bg-green-500 flex items-center justify-center">
                       <IconLeaf className="w-3 h-3 text-white" />
                     </div>
-                    <span>Recommendations</span>
+                    <span>{t('dashboard.pages.reports.recommendations')}</span>
                   </div>
                 </div>
               </CardContent>
@@ -419,8 +420,8 @@ const ReportsPage = () => {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Previous Reports</CardTitle>
-              <CardDescription>Access previously generated ESG reports</CardDescription>
+              <CardTitle>{t('dashboard.pages.reports.previousReports')}</CardTitle>
+              <CardDescription>{t('dashboard.pages.reports.accessPrevious')}</CardDescription>
             </div>
             <Button 
               variant="outline" 
@@ -429,7 +430,7 @@ const ReportsPage = () => {
               disabled={reportsLoading}
             >
               <IconRefresh className={`w-4 h-4 mr-2 ${reportsLoading ? 'animate-spin' : ''}`} />
-              Refresh
+              {t('common.retry')}
             </Button>
           </div>
         </CardHeader>
@@ -438,15 +439,15 @@ const ReportsPage = () => {
             <div className="flex items-center justify-center py-8">
               <div className="text-center space-y-2">
                 <IconRefresh className="w-8 h-8 animate-spin mx-auto text-muted-foreground" />
-                <p className="text-sm text-muted-foreground">Loading reports...</p>
+                <p className="text-sm text-muted-foreground">{t('dashboard.pages.reports.loadingReports')}</p>
               </div>
             </div>
           ) : reports.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 px-4 border rounded-lg bg-muted/20">
               <IconFileTypePdf className="w-12 h-12 text-muted-foreground mb-3" />
-              <h3 className="font-semibold text-lg mb-1">No Reports Yet</h3>
+              <h3 className="font-semibold text-lg mb-1">{t('dashboard.pages.reports.noReportsYet')}</h3>
               <p className="text-sm text-muted-foreground text-center max-w-sm">
-                Generate your first ESG report to see it here. Reports help you track your emissions progress over time.
+                {t('dashboard.pages.reports.firstReportDesc')}
               </p>
             </div>
           ) : (
@@ -482,11 +483,11 @@ const ReportsPage = () => {
                     </Badge>
                     <Button variant="outline" size="sm">
                       <IconEye className="w-4 h-4 mr-2" />
-                      View
+                      {t('dashboard.pages.reports.view')}
                     </Button>
                     <Button size="sm" disabled={!report.pdfUrl}>
                       <IconDownload className="w-4 h-4 mr-2" />
-                      Download
+                      {t('dashboard.common.download')}
                     </Button>
                     <Button variant="ghost" size="sm">
                       <IconShare className="w-4 h-4" />

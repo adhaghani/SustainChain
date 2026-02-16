@@ -279,6 +279,8 @@ export const translations = {
           subtitle: "Manage and review all uploaded utility bills",
           filters: {
             all: "All",
+            allTypes: "All Types",
+            allStatus: "All Status",
             electricity: "Electricity",
             fuel: "Fuel",
             water: "Water",
@@ -288,20 +290,37 @@ export const translations = {
           table: {
             date: "Date",
             type: "Type",
+            provider: "Provider",
             amount: "Amount",
             usage: "Usage",
             emissions: "Emissions",
             status: "Status",
             actions: "Actions"
           },
+          uploaded: "Uploaded {date}",
+          confidence: "{percent}% confidence",
           status: {
             verified: "Verified",
             pending: "Pending",
-            flagged: "Flagged"
-          }
+            flagged: "Flagged",
+            rejected: "Rejected"
+          },
+          noEntriesFound: "No entries found",
+          tryAdjustingFilters: "Try adjusting your filters",
+          uploadFirstBill: "Upload Your First Bill",
+          uploadBill: "Upload Bill",
+          showingEntries: "Showing {count} of {total} entries",
+          billSingular: "bill",
+          billPlural: "bills",
+          fromAllEntries: "From all entries",
+          completion: "completion",
+          searchPlaceholder: "Search by provider, date, or amount...",
+          totalEntries: "Total Entries",
+          totalCO2e: "Total CO2e",
+          kg: "kg"
         },
         analytics: {
-          title: "Analytics",
+          title: "Analytics & Benchmarking",
           subtitle: "Benchmark your performance against industry peers",
           sectorComparison: "Sector Comparison",
           emissionsTrend: "Emissions Trend",
@@ -309,15 +328,99 @@ export const translations = {
           recommendations: "Recommendations",
           yourCompany: "Your Company",
           industryAverage: "Industry Average",
-          topQuartile: "Top 25%"
+          topQuartile: "Top 25%",
+          yourRanking: "Your Ranking",
+          rank: "Rank #{rank} of {total} companies",
+          notEnoughData: "Not enough data",
+          vsSectorAverage: "vs Sector Average",
+          belowSectorAvg: "below sector average",
+          aboveSectorAvg: "above sector average",
+          betterThanAvg: "Better than average",
+          aboveAvg: "Above average",
+          monthlyImprovement: "Monthly Improvement",
+          fromTo: "From {from} to {to} kg",
+          onTrackToTarget: "On track to target",
+          increasing: "Increasing",
+          sector: "Sector",
+          companiesTracked: "{count} companies tracked",
+          sme: "SME",
+          noAnalyticsData: "No Analytics Data Available Yet",
+          analyticsDataDesc: "The system either does not have enough data to generate analytics or your sector is not represented sufficiently for benchmarking. Do not worry, it will be available the more company/entries you uploaded.",
+          refreshData: "Refresh Data",
+          exportReport: "Export Report",
+          timePeriod: "Time Period",
+          selectPeriod: "Select period",
+          monthly: "Monthly",
+          quarterly: "Quarterly",
+          yearly: "Yearly",
+          sectorLabel: "Sector",
+          yourSector: "Your Sector",
+          keyMetrics: "Key Metrics",
+          performanceHighlight: "Performance Highlight",
+          excellentPerformance: "Excellent Performance!",
+          keepUpGreatWork: "Keep up the great work to maintain your competitive advantage.",
+          sectorBenchmarking: "Sector Benchmarking - {sector}",
+          positionRelative: "Your position relative to industry peers (kg CO2e/month)",
+          emissionTrends: "Emission Trends",
+          yourEmissionsVsSector: "Your emissions vs sector average over time",
+          regionalComparison: "Regional Comparison",
+          avgEmissionsByRegion: "Average emissions by state/region",
+          topPerformersTitle: "Top Performers - {sector}",
+          bestEmissionReduction: "Companies with the best emission reduction rates",
+          aiGeneratedInsights: "AI-Generated Insights",
+          personalizedRecommendations: "Personalized recommendations based on benchmarking data",
+          competitiveAdvantage: "Competitive Advantage",
+          advantageDesc: "Your low carbon footprint is a strong selling point for ESG-conscious buyers. Highlight your top {percent}% ranking in proposals to showcase your sustainability commitment.",
+          targetTop25: "Target for Top 25%",
+          targetDesc: "You're close to breaking into the top 25% of {sector} companies. Focus on optimizing electricity usage during peak hours to reach this milestone.",
+          consistentImprovement: "Consistent Improvement",
+          improvementDesc: "You've reduced emissions by {percent}% this month. This trend puts you on track to achieve sustainability targets faster.",
+          emissionsIncrease: "Emissions Increase Detected",
+          increaseDesc: "Your emissions increased by {percent}% this month. Review recent activities and consider implementing energy-saving measures."
         },
         reports: {
           title: "ESG Reports",
           subtitle: "Generate comprehensive sustainability reports",
           generateReport: "Generate New Report",
+          generateDownload: "Generate & Download Report",
           reportHistory: "Report History",
           downloadPDF: "Download PDF",
           shareReport: "Share Report",
+          view: "View",
+          preview: "Preview",
+          previousReports: "Previous Reports",
+          accessPrevious: "Access previously generated ESG reports",
+          loadingReports: "Loading reports...",
+          noReportsYet: "No Reports Yet",
+          firstReportDesc: "Generate your first ESG report to see it here. Reports help you track your emissions progress over time.",
+          executiveSummary: "Executive Summary",
+          totalEmissions: "Total Emissions",
+          trend: "Trend",
+          sectorBenchmarking: "Sector Benchmarking",
+          yourPerformance: "Your Performance",
+          vsSector: "vs. {sector}",
+          belowAvg: "below avg",
+          unSdgAlignment: "UN SDG Alignment",
+          contribution: "Your contribution to Sustainable Development Goals",
+          includedSections: "Included Sections",
+          emissionBreakdown: "Emission Breakdown (Scope 1 & 2)",
+          monthlyTrendCharts: "Monthly Trend Charts",
+          sectorComparison: "Sector Comparison Analysis",
+          billEvidence: "Bill Evidence Appendix",
+          complianceStatement: "Compliance Statement",
+          recommendations: "Recommendations",
+          monthlyQuotaExceeded: "Monthly Report Quota Exceeded",
+          lowQuota: "Low Report Quota",
+          remainingReports: "Only {count} report generation{plural} remaining this month.",
+          usedAllQuota: "You have used all {limit} report generations. Quota resets on {date}.",
+          cannotGenerate: "Cannot Generate Report",
+          quotaExceededDesc: "You have exceeded your monthly report generation quota.",
+          reportingPeriod: "Reporting Period",
+          selectPeriod: "Select period",
+          reportLanguage: "Report Language",
+          selectLanguage: "Select language",
+          reportFormat: "Report Format",
+          selectFormat: "Select format",
           reportTypes: {
             monthly: "Monthly Summary",
             quarterly: "Quarterly Report",
@@ -348,15 +451,80 @@ export const translations = {
           roles: {
             admin: "Admin",
             editor: "Editor",
-            viewer: "Viewer"
+            viewer: "Viewer",
+            clerk: "Clerk"
           },
           table: {
             name: "Name",
             email: "Email",
             role: "Role",
             lastActive: "Last Active",
-            status: "Status"
-          }
+            status: "Status",
+            phone: "Phone",
+            actions: "Actions",
+            tenant: "Organization"
+          },
+          status: {
+            active: "Active",
+            inactive: "Inactive",
+            suspended: "Suspended",
+            pending: "Pending"
+          },
+          filters: {
+            allRoles: "All Roles",
+            allStatus: "All Status"
+          },
+          searchPlaceholder: "Search users...",
+          loadingUsers: "Loading users...",
+          noUsersFound: "No users found",
+          inviteSent: "Invitation sent successfully",
+          userAdded: "User added successfully",
+          userUpdated: "User updated successfully",
+          userDeleted: "User deleted successfully",
+          confirmDelete: "Are you sure you want to delete this user?",
+          editUser: "Edit User",
+          deleteUser: "Delete User",
+          resendInvite: "Resend Invitation",
+          cancelInvite: "Cancel Invitation",
+          summaryCards: {
+            totalUsers: "Total Users",
+            inYourOrganization: "In your organization",
+            activeUsers: "Active Users",
+            ofTotal: "of total",
+            administrators: "Administrators",
+            withFullAccess: "With full access",
+            pendingInvites: "Pending Invites",
+            awaitingActivation: "Awaiting activation"
+          },
+          header: {
+            manageAccounts: "Manage user accounts, roles, and permissions"
+          },
+          tableHeaders: {
+            name: "Name",
+            email: "Email",
+            role: "Role",
+            status: "Status",
+            lastActive: "Last Active",
+            actions: "Actions"
+          },
+          roleBadges: {
+            admin: "Admin",
+            clerk: "Clerk",
+            viewer: "Viewer"
+          },
+          statusBadges: {
+            active: "Active",
+            pending: "Pending",
+            inactive: "Inactive"
+          },
+          actions: {
+            edit: "Edit",
+            delete: "Delete",
+            resendInvite: "Resend Invite",
+            cancelInvite: "Cancel Invite"
+          },
+          errorPrefix: "Error:",
+          notAuthenticated: "Not authenticated"
         },
         tenants: {
           title: "Tenant Management",
@@ -367,8 +535,26 @@ export const translations = {
             industry: "Industry",
             users: "Users",
             emissions: "Total Emissions",
-            status: "Status"
-          }
+            status: "Status",
+            createdAt: "Created",
+            actions: "Actions"
+          },
+          status: {
+            active: "Active",
+            inactive: "Inactive",
+            suspended: "Suspended",
+            trial: "Trial"
+          },
+          searchPlaceholder: "Search tenants...",
+          loadingTenants: "Loading tenants...",
+          noTenantsFound: "No tenants found",
+          tenantAdded: "Tenant added successfully",
+          tenantUpdated: "Tenant updated successfully",
+          tenantDeleted: "Tenant deleted successfully",
+          confirmDelete: "Are you sure you want to delete this tenant?",
+          editTenant: "Edit Tenant",
+          deleteTenant: "Delete Tenant",
+          viewDetails: "View Details"
         },
         systemConfig: {
           title: "System Configuration",
@@ -389,14 +575,38 @@ export const translations = {
             action: "Action",
             resource: "Resource",
             ipAddress: "IP Address",
-            details: "Details"
+            details: "Details",
+            status: "Status"
           },
           actions: {
             created: "Created",
             updated: "Updated",
             deleted: "Deleted",
             viewed: "Viewed",
-            exported: "Exported"
+            exported: "Exported",
+            login: "Login",
+            logout: "Logout",
+            upload: "Upload",
+            download: "Download",
+            aiExtraction: "AI Extraction",
+            autoBackup: "Auto Backup"
+          },
+          status: {
+            success: "Success",
+            failure: "Failed",
+            warning: "Warning"
+          },
+          filters: {
+            allActions: "All Actions",
+            allStatus: "All Status"
+          },
+          searchPlaceholder: "Search audit logs...",
+          loadingLogs: "Loading audit logs...",
+          noLogsFound: "No audit logs found",
+          stats: {
+            totalActivities: "Total Activities",
+            uniqueUsers: "Unique Users",
+            failedAttempts: "Failed Attempts"
           }
         },
         settings: {
@@ -424,7 +634,22 @@ export const translations = {
           },
           videoTutorials: "Video Tutorials",
           faq: "Frequently Asked Questions",
-          contactSupport: "Contact Support"
+          contactSupport: "Contact Support",
+          popularArticles: "Popular Articles",
+          articleViews: "{count} views",
+          helpful: "Helpful",
+          getStartedGuide: "New to SustainChain? Start here",
+          aiFeatures: "Learn about AI-powered extraction",
+          understandingConfidence: "Understanding AI extraction confidence scores",
+          confidenceDesc: "Learn what confidence scores mean and when to manually verify data",
+          generatingReports: "Generating ESG-compliant PDF reports",
+          reportsDesc: "Create professional reports for stakeholders and corporate buyers",
+          benchmarking: "How sector benchmarking works",
+          benchmarkingDesc: "Compare your emissions against industry peers and improve rankings",
+          userManagement: "Adding team members and setting roles",
+          userManagementDesc: "Invite users and assign Admin, Clerk, or Viewer permissions",
+          complianceInfo: "PDPA compliance and data privacy",
+          complianceDesc: "How SustainChain protects your data under Malaysian law"
         },
         changelog: {
           title: "Changelog",
@@ -435,7 +660,13 @@ export const translations = {
           releaseDate: "Release Date",
           features: "Features",
           improvements: "Improvements",
-          bugFixes: "Bug Fixes"
+          bugFixes: "Bug Fixes",
+          security: "Security",
+          status: {
+            latest: "Latest",
+            upcoming: "Upcoming",
+            released: "Released"
+          }
         },
         billing: {
           title: "Billing & Subscription",
@@ -450,7 +681,41 @@ export const translations = {
             starter: "Starter",
             professional: "Professional",
             enterprise: "Enterprise"
-          }
+          },
+          planDetails: {
+            price: "Price",
+            period: "per month",
+            description: "Description",
+            features: "Features",
+            included: "Included",
+            notIncluded: "Not Included",
+            current: "Current Plan",
+            popular: "Most Popular"
+          },
+          usageStats: {
+            billsUploaded: "Bills Uploaded",
+            billsLimit: "Bills Limit",
+            reportsGenerated: "Reports Generated",
+            reportsLimit: "Reports Limit",
+            storageUsed: "Storage Used",
+            storageLimit: "Storage Limit",
+            users: "Users",
+            usersLimit: "Users Limit"
+          },
+          billingCycle: "Billing Cycle",
+          nextBillingDate: "Next Billing Date",
+          status: "Status",
+          active: "Active",
+          trial: "Trial",
+          expired: "Expired",
+          downloadInvoice: "Download Invoice",
+          paymentMethods: "Payment Methods",
+          addPaymentMethod: "Add Payment Method",
+          billingHistoryTitle: "Billing History",
+          date: "Date",
+          amount: "Amount",
+          download: "Download",
+          receipt: "Receipt"
         },
         notifications: {
           title: "Notifications",
@@ -463,7 +728,31 @@ export const translations = {
             reports: "Reports",
             team: "Team"
           },
-          empty: "No notifications"
+          empty: "No notifications",
+          types: {
+            success: "Success",
+            info: "Info",
+            warning: "Warning",
+            error: "Error"
+          },
+          sampleNotifications: {
+            reportGenerated: "Report Generated Successfully",
+            reportGeneratedDesc: "Your ESG Compliance Report (Q4 2025) is ready for download",
+            aiExtraction: "AI Extraction Completed",
+            aiExtractionDesc: "3 new bills have been processed with 95% confidence score",
+            usageLimit: "Approaching Usage Limit",
+            usageLimitDesc: "You've used 450/500 bill uploads this month. Consider upgrading your plan.",
+            teamMemberAdded: "New Team Member Added",
+            teamMemberAddedDesc: "Sarah Ahmad has been added to your workspace as a Clerk",
+            rankingImproved: "Sector Ranking Improved",
+            rankingImprovedDesc: "Your company moved up to Top 28% in the Manufacturing sector",
+            monthlyReminder: "Monthly Report Reminder",
+            monthlyReminderDesc: "Don't forget to generate your monthly ESG report by January 25th",
+            maintenance: "System Maintenance Scheduled",
+            maintenanceDesc: "Planned maintenance on January 20th, 2AM-4AM MYT. No downtime expected.",
+            onboardingComplete: "Onboarding Completed",
+            onboardingDesc: "Welcome to SustainChain! Your account setup is complete."
+          }
         },
         export: {
           title: "Export Data",
@@ -474,7 +763,39 @@ export const translations = {
           generateExport: "Generate Export",
           exportHistory: "Export History",
           templates: "Export Templates",
-          customBuilder: "Custom Export Builder"
+          customBuilder: "Custom Export Builder",
+          exportTypes: {
+            allData: "All Data",
+            billsOnly: "Bills Only",
+            reportsOnly: "Reports Only",
+            usersOnly: "Users Only",
+            auditLogsOnly: "Audit Logs Only"
+          },
+          formats: {
+            csv: "CSV",
+            excel: "Excel",
+            pdf: "PDF",
+            json: "JSON",
+            zip: "ZIP Archive"
+          },
+          dateRangePresets: {
+            last30Days: "Last 30 days",
+            last90Days: "Last 90 days",
+            thisYear: "This Year",
+            lastYear: "Last Year",
+            custom: "Custom Range"
+          },
+          generating: "Generating export...",
+          exportReady: "Export ready for download",
+          exportFailed: "Export failed",
+          downloadExport: "Download Export",
+          deleteExport: "Delete Export",
+          confirmDelete: "Are you sure you want to delete this export?",
+          noExportsFound: "No exports found",
+          exportSize: "Size",
+          rows: "rows",
+          exportCreated: "Export created",
+          exportDeleted: "Export deleted"
         }
       }
     },
@@ -924,6 +1245,8 @@ export const translations = {
           subtitle: "Urus dan semak semua bil utiliti yang dimuat naik",
           filters: {
             all: "Semua",
+            allTypes: "Semua Jenis",
+            allStatus: "Semua Status",
             electricity: "Elektrik",
             fuel: "Bahan Api",
             water: "Air",
@@ -933,6 +1256,7 @@ export const translations = {
           table: {
             date: "Tarikh",
             type: "Jenis",
+            provider: "Pembekal",
             amount: "Jumlah",
             usage: "Penggunaan",
             emissions: "Pelepasan",
@@ -942,11 +1266,27 @@ export const translations = {
           status: {
             verified: "Disahkan",
             pending: "Menunggu",
-            flagged: "Ditanda"
-          }
+            flagged: "Ditanda",
+            rejected: "Ditolak"
+          },
+          noEntriesFound: "Tiada catatan ditemui",
+          tryAdjustingFilters: "Cuba ubah penapis anda",
+          uploadFirstBill: "Muat Naik Bil Pertama Anda",
+          uploadBill: "Muat Naik Bil",
+          showingEntries: "Menunjukkan {count} daripada {total} catatan",
+          billSingular: "bil",
+          billPlural: "bil",
+          fromAllEntries: "Daripada semua catatan",
+          completion: "pengambilan",
+          searchPlaceholder: "Cari mengikut pembekal, tarikh, atau amaun...",
+          uploaded: "Dimuat naik {date}",
+          confidence: "{percent}% keyakinan",
+          totalEntries: "Jumlah Catatan",
+          totalCO2e: "Jumlah CO2e",
+          kg: "kg"
         },
         analytics: {
-          title: "Analitik",
+          title: "Analitik & Penanda Aras",
           subtitle: "Bandingkan prestasi anda dengan rakan industri",
           sectorComparison: "Perbandingan Sektor",
           emissionsTrend: "Trend Pelepasan",
@@ -954,7 +1294,55 @@ export const translations = {
           recommendations: "Cadangan",
           yourCompany: "Syarikat Anda",
           industryAverage: "Purata Industri",
-          topQuartile: "25% Teratas"
+          topQuartile: "25% Teratas",
+          yourRanking: "Kedudukan Anda",
+          rank: "Kedudulan #{rank} daripada {total} syarikat",
+          notEnoughData: "Tidak cukup data",
+          vsSectorAverage: "vs Purata Sektor",
+          belowSectorAvg: "di bawah purata sektor",
+          aboveSectorAvg: "di atas purata sektor",
+          betterThanAvg: "Lebih baik daripada purata",
+          aboveAvg: "Di atas purata",
+          monthlyImprovement: "Peningkatan Bulanan",
+          fromTo: "Dari {from} kepada {to} kg",
+          onTrackToTarget: "Dalam track untuk mencapai sasaran",
+          increasing: "Meningkat",
+          sector: "Sektor",
+          companiesTracked: "{count} syarikat dijejaki",
+          sme: "PKS",
+          noAnalyticsData: "Tiada Data Analitik Tersedia",
+          analyticsDataDesc: "Sistem tidak mempunyai cukup data untuk menjana analitik atau sektor anda tidak cukup terwakili untuk penanda aras. Jangan risau, ia akan tersedia apabila lebih banyak syarikat/catatan dimuat naik.",
+          refreshData: "Segar Semula Data",
+          exportReport: "Eksport Laporan",
+          timePeriod: "Tempoh Masa",
+          selectPeriod: "Pilih tempoh",
+          monthly: "Bulanan",
+          quarterly: "Suku Tahun",
+          yearly: "Tahunan",
+          sectorLabel: "Sektor",
+          yourSector: "Sektor Anda",
+          keyMetrics: "Metrik Utama",
+          performanceHighlight: "Highlight Prestasi",
+          excellentPerformance: "Prestasi Cemerlang!",
+          keepUpGreatWork: "Teruskan kerja hebat untuk mengekalkan kelebihan kompetitif anda.",
+          sectorBenchmarking: "Penanda Aras Sektor - {sector}",
+          positionRelative: "Kedudukan anda relatif kepada rakan industri (kg CO2e/bulan)",
+          emissionTrends: "Trend Pelepasan",
+          yourEmissionsVsSector: "Pelepasan anda vs purata sektor sepanjang masa",
+          regionalComparison: "Perbandingan Wilayah",
+          avgEmissionsByRegion: "Pelepasan purata mengikut negeri/wilayah",
+          topPerformersTitle: "Prestasi Terbaik - {sector}",
+          bestEmissionReduction: "Syarikat dengan kadar pengurangan pelepasan terbaik",
+          aiGeneratedInsights: "Wawasan Dijana AI",
+          personalizedRecommendations: "Cadangan peribadi berdasarkan data penanda aras",
+          competitiveAdvantage: "Kelebihan Kompetitif",
+          advantageDesc: "Jejak karbon yang rendah anda adalah kelebihan jualan yang kuat untuk pembeli yang peka ESG. Sorot kedudukan anda di peringkat {percent}% dalam cadangan untuk menunjukkan komitmen kemampanan anda.",
+          targetTop25: "Sasaran untuk 25% Teratas",
+          targetDesc: "Anda hampir mencapai 25% teratas syarikat {sector}. Fokus pada pengoptimuman penggunaan elektrik pada waktu puncak untuk mencapai pencapaian ini.",
+          consistentImprovement: "Peningkatan Konsisten",
+          improvementDesc: "Anda telah mengurangkan pelepasan sebanyak {percent}% bulan ini. Trend ini menempatkan anda dalam track untuk mencapai sasaran kemampanan dengan lebih cepat.",
+          emissionsIncrease: "Peningkatan Pelepasan Dikesan",
+          increaseDesc: "Pelepasan anda meningkat sebanyak {percent}% bulan ini. Semak aktiviti terkini dan pertimbangkan untuk melaksanakan langkah penjimatan tenaga."
         },
         reports: {
           title: "Laporan ESG",
@@ -993,15 +1381,80 @@ export const translations = {
           roles: {
             admin: "Pentadbir",
             editor: "Editor",
-            viewer: "Penonton"
+            viewer: "Penonton",
+            clerk: "Klerk"
           },
           table: {
             name: "Nama",
             email: "E-mel",
             role: "Peranan",
             lastActive: "Aktif Terakhir",
-            status: "Status"
-          }
+            status: "Status",
+            phone: "Telefon",
+            actions: "Tindakan",
+            tenant: "Organisasi"
+          },
+          status: {
+            active: "Aktif",
+            inactive: "Tidak Aktif",
+            suspended: "Digantung",
+            pending: "Menunggu"
+          },
+          filters: {
+            allRoles: "Semua Peranan",
+            allStatus: "Semua Status"
+          },
+          searchPlaceholder: "Cari pengguna...",
+          loadingUsers: "Memuatkan pengguna...",
+          noUsersFound: "Tiada pengguna ditemui",
+          inviteSent: "Jemputan berjaya dihantar",
+          userAdded: "Pengguna berjaya ditambah",
+          userUpdated: "Pengguna berjaya dikemas kini",
+          userDeleted: "Pengguna berjaya dipadam",
+          confirmDelete: "Adakah anda pasti mahu memadam pengguna ini?",
+          editUser: "Edit Pengguna",
+          deleteUser: "Padam Pengguna",
+          resendInvite: "Hantar Semula Jemputan",
+          cancelInvite: "Batalkan Jemputan",
+          summaryCards: {
+            totalUsers: "Jumlah Pengguna",
+            inYourOrganization: "Dalam organisasi anda",
+            activeUsers: "Pengguna Aktif",
+            ofTotal: "daripada jumlah",
+            administrators: "Pentadbir",
+            withFullAccess: "Dengan akses penuh",
+            pendingInvites: "Jemputan Tertunggu",
+            awaitingActivation: "Menunggu pengaktifan"
+          },
+          header: {
+            manageAccounts: "Urus akaun pengguna, peranan, dan kebenaran"
+          },
+          tableHeaders: {
+            name: "Nama",
+            email: "E-mel",
+            role: "Peranan",
+            status: "Status",
+            lastActive: "Aktif Terakhir",
+            actions: "Tindakan"
+          },
+          roleBadges: {
+            admin: "Pentadbir",
+            clerk: "Klerk",
+            viewer: "Penonton"
+          },
+          statusBadges: {
+            active: "Aktif",
+            pending: "Menunggu",
+            inactive: "Tidak Aktif"
+          },
+          actions: {
+            edit: "Edit",
+            delete: "Padam",
+            resendInvite: "Hantar Semula",
+            cancelInvite: "Batalkan"
+          },
+          errorPrefix: "Ralat:",
+          notAuthenticated: "Tidak diautentikasi"
         },
         tenants: {
           title: "Pengurusan Syarikat",
@@ -1012,8 +1465,26 @@ export const translations = {
             industry: "Industri",
             users: "Pengguna",
             emissions: "Jumlah Pelepasan",
-            status: "Status"
-          }
+            status: "Status",
+            createdAt: "Dicipta",
+            actions: "Tindakan"
+          },
+          status: {
+            active: "Aktif",
+            inactive: "Tidak Aktif",
+            suspended: "Digantung",
+            trial: "Percubaan"
+          },
+          searchPlaceholder: "Cari syarikat...",
+          loadingTenants: "Memuatkan syarikat...",
+          noTenantsFound: "Tiada syarikat ditemui",
+          tenantAdded: "Syarikat berjaya ditambah",
+          tenantUpdated: "Syarikat berjaya dikemas kini",
+          tenantDeleted: "Syarikat berjaya dipadam",
+          confirmDelete: "Adakah anda pasti mahu memadam syarikat ini?",
+          editTenant: "Edit Syarikat",
+          deleteTenant: "Padam Syarikat",
+          viewDetails: "Lihat Butiran"
         },
         systemConfig: {
           title: "Konfigurasi Sistem",
@@ -1034,14 +1505,38 @@ export const translations = {
             action: "Tindakan",
             resource: "Sumber",
             ipAddress: "Alamat IP",
-            details: "Butiran"
+            details: "Butiran",
+            status: "Status"
           },
           actions: {
             created: "Dicipta",
             updated: "Dikemas kini",
             deleted: "Dipadam",
             viewed: "Dilihat",
-            exported: "Dieksport"
+            exported: "Dieksport",
+            login: "Log Masuk",
+            logout: "Log Keluar",
+            upload: "Muat Naik",
+            download: "Muat Turun",
+            aiExtraction: "Pengekstrakan AI",
+            autoBackup: "Sandaran Automatik"
+          },
+          status: {
+            success: "Berjaya",
+            failure: "Gagal",
+            warning: "Amaran"
+          },
+          filters: {
+            allActions: "Semua Tindakan",
+            allStatus: "Semua Status"
+          },
+          searchPlaceholder: "Cari log audit...",
+          loadingLogs: "Memuatkan log audit...",
+          noLogsFound: "Tiada log audit ditemui",
+          stats: {
+            totalActivities: "Jumlah Aktiviti",
+            uniqueUsers: "Pengguna Unik",
+            failedAttempts: "Percubaan Gagal"
           }
         },
         settings: {
@@ -1069,7 +1564,22 @@ export const translations = {
           },
           videoTutorials: "Tutorial Video",
           faq: "Soalan Lazim",
-          contactSupport: "Hubungi Sokongan"
+          contactSupport: "Hubungi Sokongan",
+          popularArticles: "Artikel Popular",
+          articleViews: "{count} paparan",
+          helpful: "Berguna",
+          getStartedGuide: "Baru ke SustainChain? Mula di sini",
+          aiFeatures: "Belajar tentang pengekstrakan berkuasa AI",
+          understandingConfidence: "Memahami skor keyakinan pengekstrakan AI",
+          confidenceDesc: "Pelajari apa yang dimaksudkan dengan skor keyakinan dan bila untuk mengesahkan data secara manual",
+          generatingReports: "Menerbitkan laporan PDF yang mematuhi ESG",
+          reportsDesc: "Cipta laporan profesional untuk pemegang saham dan pembeli korporat",
+          benchmarking: "Bagaimana penanda aras sektor berfungsi",
+          benchmarkingDesc: "Bandingkan pelepasan anda terhadap rakan industri dan tingkatkan kedudukan",
+          userManagement: "Menambah ahli pasukan dan menetapkan peranan",
+          userManagementDesc: "Jemput pengguna dan tetapkan kebenaran Pentadbir, Klerk, atau Penonton",
+          complianceInfo: "Pematuhan PDPA dan privasi data",
+          complianceDesc: "Bagaimana SustainChain melindungi data anda di bawah undang-undang Malaysia"
         },
         changelog: {
           title: "Log Perubahan",
@@ -1095,7 +1605,41 @@ export const translations = {
             starter: "Permulaan",
             professional: "Profesional",
             enterprise: "Enterprise"
-          }
+          },
+          planDetails: {
+            price: "Harga",
+            period: "sebulan",
+            description: "Penerangan",
+            features: "Ciri",
+            included: "Termasuk",
+            notIncluded: "Tidak Termasuk",
+            current: "Pelan Semasa",
+            popular: "Paling Popular"
+          },
+          usageStats: {
+            billsUploaded: "Bil Dimuat Naik",
+            billsLimit: "Had Bil",
+            reportsGenerated: "Laporan Dijana",
+            reportsLimit: "Had Laporan",
+            storageUsed: "Storan Digunakan",
+            storageLimit: "Had Stor",
+            users: "Pengguna",
+            usersLimit: "Had Pengguna"
+          },
+          billingCycle: "Kitaran Bil",
+          nextBillingDate: "Tarikh Bil Seterusnya",
+          status: "Status",
+          active: "Aktif",
+          trial: "Percubaan",
+          expired: "Tamat Tempoh",
+          downloadInvoice: "Muat Turun Invois",
+          paymentMethods: "Kaedah Pembayaran",
+          addPaymentMethod: "Tambah Kaedah Pembayaran",
+          billingHistoryTitle: "Sejarah Bil",
+          date: "Tarikh",
+          amount: "Amaun",
+          download: "Muat Turun",
+          receipt: "Resit"
         },
         notifications: {
           title: "Pemberitahuan",
@@ -1108,7 +1652,31 @@ export const translations = {
             reports: "Laporan",
             team: "Pasukan"
           },
-          empty: "Tiada pemberitahuan"
+          empty: "Tiada pemberitahuan",
+          types: {
+            success: "Kejayaan",
+            info: "Makluman",
+            warning: "Amaran",
+            error: "Ralat"
+          },
+          sampleNotifications: {
+            reportGenerated: "Laporan Berjaya Dijana",
+            reportGeneratedDesc: "Laporan ESG (Q4 2025) anda sedia untuk dimuat turun",
+            aiExtraction: "Pengekstrakan AI Selesai",
+            aiExtractionDesc: "3 bil baru telah diproses dengan skor keyakinan 95%",
+            usageLimit: "Mendekati Had Penggunaan",
+            usageLimitDesc: "Anda telah menggunakan 450/500 muat naik bil bulan ini. Pertimbangkan untuk menaik taraf pelan.",
+            teamMemberAdded: "Ahli Pasukan Baru Ditambah",
+            teamMemberAddedDesc: "Sarah Ahmad telah ditambah ke ruang kerja anda sebagai Klerk",
+            rankingImproved: "Kedudukan Sektor Meningkat",
+            rankingImprovedDesc: "Syarikat anda naik ke Top 28% dalam sektor Pengilangan",
+            monthlyReminder: "Pengingat Bulanan",
+            monthlyReminderDesc: "Jangan lupajana laporan ESG bulanan sebelum 25 Januari",
+            maintenance: "Penyelenggaraan Sistem Dijadualkan",
+            maintenanceDesc: "Penyelenggaraan dijadualkan pada 20 Januari, 2AM-4AM MYT. Tidak ada downtime dijangka.",
+            onboardingComplete: "Penyertaan Selesai",
+            onboardingDesc: "Selamat datang ke SustainChain! Persediaan akaun anda selesai."
+          }
         },
         export: {
           title: "Eksport Data",
@@ -1119,7 +1687,39 @@ export const translations = {
           generateExport: "Jana Eksport",
           exportHistory: "Sejarah Eksport",
           templates: "Templat Eksport",
-          customBuilder: "Pembina Eksport Tersuai"
+          customBuilder: "Pembina Eksport Tersuai",
+          exportTypes: {
+            allData: "Semua Data",
+            billsOnly: "Bil Sahaja",
+            reportsOnly: "Laporan Sahaja",
+            usersOnly: "Pengguna Sahaja",
+            auditLogsOnly: "Log Audit Sahaja"
+          },
+          formats: {
+            csv: "CSV",
+            excel: "Excel",
+            pdf: "PDF",
+            json: "JSON",
+            zip: "Arkib ZIP"
+          },
+          dateRangePresets: {
+            last30Days: "30 Hari Terakhir",
+            last90Days: "90 Hari Terakhir",
+            thisYear: "Tahun Ini",
+            lastYear: "Tahun Lepas",
+            custom: "Julat Tersuai"
+          },
+          generating: "Menjana eksport...",
+          exportReady: "Eksport sedia untuk dimuat turun",
+          exportFailed: "Eksport gagal",
+          downloadExport: "Muat Turun Eksport",
+          deleteExport: "Padam Eksport",
+          confirmDelete: "Adakah anda pasti mahu memadam eksport ini?",
+          noExportsFound: "Tiada eksport ditemui",
+          exportSize: "Saiz",
+          rows: "baris",
+          exportCreated: "Eksport berjaya dijana",
+          exportDeleted: "Eksport berjaya dipadam"
         }
       }
     },
