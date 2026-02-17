@@ -155,37 +155,37 @@ const ReportsPage = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t('dashboard.pages.reports.title')}</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t.dashboard.pages.reports.title}</h1>
           <p className="text-muted-foreground mt-1">
-            {t('dashboard.pages.reports.subtitle')}
+            {t.dashboard.pages.reports.subtitle}
           </p>
         </div>
         <Button 
           disabled={reportQuotaExceeded || quotaLoading}
           onClick={() => {
             if (reportQuotaExceeded) {
-              toast.error(t('dashboard.pages.reports.cannotGenerate'), {
-                description: t('dashboard.pages.reports.quotaExceededDesc'),
+              toast.error(t.dashboard.pages.reports.cannotGenerate, {
+                description: t.dashboard.pages.reports.quotaExceededDesc,
               });
             }
           }}
         >
           <IconDownload className="w-4 h-4 mr-2" />
-          {reportQuotaExceeded ? t('dashboard.pages.reports.quotaExceeded') : t('dashboard.pages.reports.generateReport')}
+          {reportQuotaExceeded ? t.dashboard.pages.reports.quotaExceeded : t.dashboard.pages.reports.generateReport}
         </Button>
       </div>
 
       {/* Report Preview Card */}
       <Card>
         <CardHeader>
-          <CardTitle>{t('dashboard.pages.reports.generateReport')}</CardTitle>
-          <CardDescription>{t('dashboard.pages.reports.subtitle')}</CardDescription>
+          <CardTitle>{t.dashboard.pages.reports.generateReport}</CardTitle>
+          <CardDescription>{t.dashboard.pages.reports.subtitle}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Report Configuration */}
           <div className="grid gap-4 md:grid-cols-3">
             <div className="space-y-2">
-              <label className="text-sm font-medium">{t('dashboard.pages.reports.reportingPeriod', { defaultValue: 'Reporting Period' })}</label>
+              <label className="text-sm font-medium">{t.dashboard.pages.reports.reportingPeriod}</label>
               <Select defaultValue="jan2026">
                 <SelectTrigger>
                   <SelectValue placeholder="Select period" />
@@ -201,7 +201,7 @@ const ReportsPage = () => {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">{t('dashboard.pages.reports.reportLanguage')}</label>
+              <label className="text-sm font-medium">{t.dashboard.pages.reports.reportLanguage}</label>
               <Select defaultValue="en">
                 <SelectTrigger>
                   <SelectValue placeholder="Select language" />
@@ -215,7 +215,7 @@ const ReportsPage = () => {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">{t('dashboard.pages.reports.reportFormat')}</label>
+              <label className="text-sm font-medium">{t.dashboard.pages.reports.reportFormat}</label>
               <Select defaultValue="pdf">
                 <SelectTrigger>
                   <SelectValue placeholder="Select format" />
@@ -233,20 +233,20 @@ const ReportsPage = () => {
 
           {/* Report Preview Sections */}
           <div className="space-y-4">
-              <h3 className="text-lg font-semibold">{t('dashboard.pages.reports.includedSections')}</h3>
+              <h3 className="text-lg font-semibold">{t.dashboard.pages.reports.includedSections}</h3>
             <div className="grid gap-4 md:grid-cols-2">
               {/* Executive Summary */}
               <Card>
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-sm">{t('dashboard.pages.reports.executiveSummary')}</CardTitle>
+                  <CardTitle className="text-sm">{t.dashboard.pages.reports.executiveSummary}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">{t('dashboard.pages.reports.totalEmissions')}</span>
+                    <span className="text-sm text-muted-foreground">{t.dashboard.pages.reports.totalEmissions}</span>
                     <span className="font-bold">{emissionTrend.current} kg CO2e</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">{t('dashboard.pages.reports.trend')}</span>
+                    <span className="text-sm text-muted-foreground">{t.dashboard.pages.reports.trend}</span>
                     <div className="flex items-center gap-1">
                       {emissionTrend.change < 0 ? (
                         <>
@@ -272,17 +272,17 @@ const ReportsPage = () => {
               {/* Sector Benchmarking */}
               <Card>
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-sm">{t('dashboard.pages.reports.sectorBenchmarking')}</CardTitle>
+                  <CardTitle className="text-sm">{t.dashboard.pages.reports.sectorBenchmarking}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">{t('dashboard.pages.reports.yourPerformance')}</span>
+                    <span className="text-sm text-muted-foreground">{t.dashboard.pages.reports.yourPerformance}</span>
                     <Badge variant="default">Top 32%</Badge>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">{t('dashboard.pages.reports.vsSector', { sector: sectorComparison.sector })}</span>
+                    <span className="text-sm text-muted-foreground">{t.dashboard.pages.reports.vsSector}</span>
                     <span className="text-sm font-medium text-green-500">
-                      -{((1 - sectorComparison.yourEmissions / sectorComparison.sectorAverage) * 100).toFixed(0)}% {t('dashboard.pages.reports.belowAvg')}
+                      -{((1 - sectorComparison.yourEmissions / sectorComparison.sectorAverage) * 100).toFixed(0)}% {t.dashboard.pages.reports.belowAvg}
                     </span>
                   </div>
                   <Progress value={sectorComparison.percentile} className="h-2" />
@@ -293,9 +293,9 @@ const ReportsPage = () => {
             {/* SDG Alignment */}
             <Card>
               <CardHeader className="pb-3">
-                  <CardTitle className="text-sm">{t('dashboard.pages.reports.unSdgAlignment')}</CardTitle>
+                  <CardTitle className="text-sm">{t.dashboard.pages.reports.unSdgAlignment}</CardTitle>
                   <CardDescription className="text-xs">
-                    {t('dashboard.pages.reports.contribution')}
+                    {t.dashboard.pages.reports.contribution}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
@@ -319,7 +319,7 @@ const ReportsPage = () => {
             {/* Additional Sections Checklist */}
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm">{t('dashboard.pages.reports.includedSections')}</CardTitle>
+                <CardTitle className="text-sm">{t.dashboard.pages.reports.includedSections}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 gap-2 text-sm">
@@ -327,37 +327,37 @@ const ReportsPage = () => {
                     <div className="w-4 h-4 rounded-sm bg-green-500 flex items-center justify-center">
                       <IconLeaf className="w-3 h-3 text-white" />
                     </div>
-                    <span>{t('dashboard.pages.reports.emissionBreakdown')}</span>
+                    <span>{t.dashboard.pages.reports.emissionBreakdown}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 rounded-sm bg-green-500 flex items-center justify-center">
                       <IconLeaf className="w-3 h-3 text-white" />
                     </div>
-                    <span>{t('dashboard.pages.reports.monthlyTrendCharts')}</span>
+                    <span>{t.dashboard.pages.reports.monthlyTrendCharts}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 rounded-sm bg-green-500 flex items-center justify-center">
                       <IconLeaf className="w-3 h-3 text-white" />
                     </div>
-                    <span>{t('dashboard.pages.reports.sectorComparison')}</span>
+                    <span>{t.dashboard.pages.reports.sectorComparison}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 rounded-sm bg-green-500 flex items-center justify-center">
                       <IconLeaf className="w-3 h-3 text-white" />
                     </div>
-                    <span>{t('dashboard.pages.reports.billEvidence')}</span>
+                    <span>{t.dashboard.pages.reports.billEvidence}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 rounded-sm bg-green-500 flex items-center justify-center">
                       <IconLeaf className="w-3 h-3 text-white" />
                     </div>
-                    <span>{t('dashboard.pages.reports.complianceStatement')}</span>
+                    <span>{t.dashboard.pages.reports.complianceStatement}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 rounded-sm bg-green-500 flex items-center justify-center">
                       <IconLeaf className="w-3 h-3 text-white" />
                     </div>
-                    <span>{t('dashboard.pages.reports.recommendations')}</span>
+                    <span>{t.dashboard.pages.reports.recommendations}</span>
                   </div>
                 </div>
               </CardContent>
@@ -420,8 +420,8 @@ const ReportsPage = () => {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>{t('dashboard.pages.reports.previousReports')}</CardTitle>
-              <CardDescription>{t('dashboard.pages.reports.accessPrevious')}</CardDescription>
+              <CardTitle>{t.dashboard.pages.reports.previousReports}</CardTitle>
+              <CardDescription>{t.dashboard.pages.reports.accessPrevious}</CardDescription>
             </div>
             <Button 
               variant="outline" 
@@ -430,7 +430,7 @@ const ReportsPage = () => {
               disabled={reportsLoading}
             >
               <IconRefresh className={`w-4 h-4 mr-2 ${reportsLoading ? 'animate-spin' : ''}`} />
-              {t('common.retry')}
+              {t.common.retry}
             </Button>
           </div>
         </CardHeader>
@@ -439,15 +439,15 @@ const ReportsPage = () => {
             <div className="flex items-center justify-center py-8">
               <div className="text-center space-y-2">
                 <IconRefresh className="w-8 h-8 animate-spin mx-auto text-muted-foreground" />
-                <p className="text-sm text-muted-foreground">{t('dashboard.pages.reports.loadingReports')}</p>
+                <p className="text-sm text-muted-foreground">{t.dashboard.pages.reports.loadingReports}</p>
               </div>
             </div>
           ) : reports.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 px-4 border rounded-lg bg-muted/20">
               <IconFileTypePdf className="w-12 h-12 text-muted-foreground mb-3" />
-              <h3 className="font-semibold text-lg mb-1">{t('dashboard.pages.reports.noReportsYet')}</h3>
+              <h3 className="font-semibold text-lg mb-1">{t.dashboard.pages.reports.noReportsYet}</h3>
               <p className="text-sm text-muted-foreground text-center max-w-sm">
-                {t('dashboard.pages.reports.firstReportDesc')}
+                {t.dashboard.pages.reports.firstReportDesc}
               </p>
             </div>
           ) : (
@@ -483,11 +483,11 @@ const ReportsPage = () => {
                     </Badge>
                     <Button variant="outline" size="sm">
                       <IconEye className="w-4 h-4 mr-2" />
-                      {t('dashboard.pages.reports.view')}
+                      {t.dashboard.pages.reports.view}
                     </Button>
                     <Button size="sm" disabled={!report.pdfUrl}>
                       <IconDownload className="w-4 h-4 mr-2" />
-                      {t('dashboard.common.download')}
+                      {t.dashboard.common.download}
                     </Button>
                     <Button variant="ghost" size="sm">
                       <IconShare className="w-4 h-4" />

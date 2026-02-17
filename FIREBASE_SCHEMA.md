@@ -535,7 +535,7 @@ interface EntryDocument {
   
   // Gemini Raw Output (for debugging/reprocessing)
   rawGeminiResponse?: {
-    modelVersion: string;        // "gemini-1.5-flash"
+    modelVersion: string;        // "gemini-2.5-flash"
     responseJson: Record<string, unknown>;
     tokensUsed: number;
   };

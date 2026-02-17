@@ -77,9 +77,9 @@ const AnalyticsPage = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t('dashboard.pages.analytics.title')}</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t.dashboard.pages.analytics.title}</h1>
           <p className="text-muted-foreground mt-1">
-            {t('dashboard.pages.analytics.subtitle')}
+            {t.dashboard.pages.analytics.subtitle}
           </p>
         </div>
       </div>
@@ -88,9 +88,9 @@ const AnalyticsPage = () => {
             <div className="flex flex-col items-center gap-4">
               <IconChartBar className="w-16 h-16 text-muted-foreground opacity-50" />
               <div>
-                <h3 className="font-semibold text-lg">{t('dashboard.pages.analytics.noAnalyticsData')}</h3>
+                <h3 className="font-semibold text-lg">{t.dashboard.pages.analytics.noAnalyticsData}</h3>
                 <p className="text-sm text-muted-foreground max-w-lg mt-1">
-                  {t('dashboard.pages.analytics.analyticsDataDesc')}
+                  {t.dashboard.pages.analytics.analyticsDataDesc}
                 </p>
               </div>
             </div>
@@ -105,19 +105,19 @@ const AnalyticsPage = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t('dashboard.pages.analytics.title')}</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t.dashboard.pages.analytics.title}</h1>
           <p className="text-muted-foreground mt-1">
-            {t('dashboard.pages.analytics.subtitle')}
+            {t.dashboard.pages.analytics.subtitle}
           </p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={() => debouncedRefetch()} disabled={loading}>
             <IconRefresh className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-            {t('common.retry')}
+            {t.common.retry}
           </Button>
           <Button size="sm" disabled={loading || !data}>
             <IconDownload className="w-4 h-4 mr-2" />
-            {t('dashboard.pages.reports.exportReport')}
+            {t.dashboard.pages.reports.exportReport}
           </Button>
         </div>
       </div>
@@ -137,9 +137,9 @@ const AnalyticsPage = () => {
             <div className="flex flex-col items-center gap-4">
               <IconChartBar className="w-16 h-16 text-muted-foreground opacity-50" />
               <div>
-                <h3 className="font-semibold text-lg">{t('dashboard.pages.analytics.noAnalyticsData')}</h3>
+                <h3 className="font-semibold text-lg">{t.dashboard.pages.analytics.noAnalyticsData}</h3>
                 <p className="text-sm text-muted-foreground max-w-lg mt-1">
-                  {t('dashboard.pages.analytics.analyticsDataDesc')}
+                  {t.dashboard.pages.analytics.analyticsDataDesc}
                 </p>
               </div>
             </div>
@@ -158,22 +158,22 @@ const AnalyticsPage = () => {
                 disabled={loading}
               >
                 <SelectTrigger className="w-45">
-                  <SelectValue placeholder={t('dashboard.pages.analytics.timePeriod')} />
+                  <SelectValue placeholder={t.dashboard.pages.analytics.timePeriod} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="monthly">{t('dashboard.pages.analytics.monthly')}</SelectItem>
-                  <SelectItem value="quarterly">{t('dashboard.pages.analytics.quarterly')}</SelectItem>
-                  <SelectItem value="yearly">{t('dashboard.pages.analytics.yearly')}</SelectItem>
+                  <SelectItem value="monthly">{t.dashboard.pages.analytics.monthly}</SelectItem>
+                  <SelectItem value="quarterly">{t.dashboard.pages.analytics.quarterly}</SelectItem>
+                  <SelectItem value="yearly">{t.dashboard.pages.analytics.yearly}</SelectItem>
                 </SelectContent>
               </Select>
 
               <Select defaultValue={yourPerformance.sector} disabled={loading}>
                 <SelectTrigger className="w-50">
-                  <SelectValue placeholder={t('dashboard.pages.analytics.sectorLabel')} />
+                  <SelectValue placeholder={t.dashboard.pages.analytics.sectorLabel} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value={yourPerformance.sector ? yourPerformance.sector : 'NULL'} disabled={!yourPerformance.sector}>
-                    {yourPerformance.sector || t('dashboard.pages.analytics.yourSector')}
+                    {yourPerformance.sector || t.dashboard.pages.analytics.yourSector}
                   </SelectItem>
                 </SelectContent> 
               </Select>
@@ -202,18 +202,18 @@ const AnalyticsPage = () => {
         <div className="grid gap-4 md:grid-cols-4">
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">{t('dashboard.pages.analytics.yourRanking')}</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">{t.dashboard.pages.analytics.yourRanking}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
                 {yourPerformance.totalCompanies > 0 
-                  ? t('dashboard.pages.analytics.rank', { rank: 100 - yourPerformance.percentile, total: yourPerformance.totalCompanies })
-                  : t('dashboard.pages.analytics.notEnoughData')}
+                  ? t.dashboard.pages.analytics.rank({ rank: 100 - yourPerformance.percentile, total: yourPerformance.totalCompanies })
+                  : t.dashboard.pages.analytics.notEnoughData}
               </div>
               <p className="text-xs text-muted-foreground mt-1">
                 {yourPerformance.rank > 0 
-                  ? t('dashboard.pages.analytics.rank', { rank: yourPerformance.rank, total: yourPerformance.totalCompanies })
-                  : t('dashboard.pages.analytics.notEnoughData')}
+                  ? t.dashboard.pages.analytics.rank({ rank: yourPerformance.rank, total: yourPerformance.totalCompanies })
+                  : t.dashboard.pages.analytics.notEnoughData}
               </p>
               <Progress value={yourPerformance.percentile} className="mt-2 h-2" />
             </CardContent>
@@ -221,50 +221,50 @@ const AnalyticsPage = () => {
 
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">{t('dashboard.pages.analytics.vsSectorAverage')}</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">{t.dashboard.pages.analytics.vsSectorAverage}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className={`text-2xl font-bold ${yourPerformance.belowAverage > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                 {yourPerformance.belowAverage > 0 ? '-' : '+'}{Math.abs(yourPerformance.belowAverage).toFixed(0)}%
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                {t('dashboard.pages.analytics.belowSectorAvg', { percent: yourPerformance.belowAverage.toFixed(0) })}
+                {t.dashboard.pages.analytics.belowSectorAvg({ percent: yourPerformance.belowAverage.toFixed(0) })}
               </p>
               <div className={`flex items-center gap-1 mt-2 text-xs ${yourPerformance.belowAverage > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                 <IconTrendingDown className="w-4 h-4" />
-                <span>{t('dashboard.pages.analytics.betterThanAvg')}</span>
+                <span>{t.dashboard.pages.analytics.betterThanAvg}</span>
               </div>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">{t('dashboard.pages.analytics.monthlyImprovement')}</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">{t.dashboard.pages.analytics.monthlyImprovement}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className={`text-2xl font-bold ${yourPerformance.improvement > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                 {yourPerformance.improvement > 0 ? '-' : '+'}{Math.abs(yourPerformance.improvement).toFixed(1)}%
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                {t('dashboard.pages.analytics.fromTo', { from: yourPerformance.previousEmissions.toFixed(0), to: yourPerformance.currentEmissions.toFixed(0) })}
+                {t.dashboard.pages.analytics.fromTo({ from: yourPerformance.previousEmissions.toFixed(0), to: yourPerformance.currentEmissions.toFixed(0) })}
               </p>
               <div className={`flex items-center gap-1 mt-2 text-xs ${yourPerformance.improvement > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                 <IconArrowDown className="w-4 h-4" />
-                <span>{t('dashboard.pages.analytics.onTrackToTarget')}</span>
+                <span>{t.dashboard.pages.analytics.onTrackToTarget}</span>
               </div>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">{t('dashboard.pages.analytics.sector')}</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">{t.dashboard.pages.analytics.sector}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{yourPerformance.sector}</div>
               <p className="text-xs text-muted-foreground mt-1">
-                {t('dashboard.pages.analytics.companiesTracked', { count: yourPerformance.totalCompanies })}
+                {t.dashboard.pages.analytics.companiesTracked({ count: yourPerformance.totalCompanies })}
               </p>
-              <Badge variant="outline" className="mt-2">{t('dashboard.pages.analytics.sme')}</Badge>
+              <Badge variant="outline" className="mt-2">{t.dashboard.pages.analytics.sme}</Badge>
             </CardContent>
           </Card>
         </div>
@@ -280,10 +280,10 @@ const AnalyticsPage = () => {
               </div>
               <div>
                 <CardTitle className="text-green-900 dark:text-green-100">
-                  {t('dashboard.pages.analytics.excellentPerformance')}
+                    {t.dashboard.pages.analytics.excellentPerformance}
                 </CardTitle>
                 <CardDescription className="text-green-700 dark:text-green-300">
-                  {t('dashboard.pages.analytics.advantageDesc', { percent: 100 - yourPerformance.percentile })}
+                    {t.dashboard.pages.analytics.advantageDesc({ percent: 100 - yourPerformance.percentile })}
                 </CardDescription>
               </div>
             </div>
@@ -312,8 +312,8 @@ const AnalyticsPage = () => {
       ) : data && sectorComparison.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>{t('dashboard.pages.analytics.sectorBenchmarking', { sector: yourPerformance.sector })}</CardTitle>
-            <CardDescription>{t('dashboard.pages.analytics.positionRelative')}</CardDescription>
+              <CardTitle>{t.dashboard.pages.analytics.sectorBenchmarking({ sector: yourPerformance.sector })}</CardTitle>
+              <CardDescription>{t.dashboard.pages.analytics.positionRelative}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {sectorComparison.map((item) => {
@@ -361,8 +361,8 @@ const AnalyticsPage = () => {
         ) : data && emissionTrends.length > 0 && (
           <Card>
             <CardHeader>
-              <CardTitle>{t('dashboard.pages.analytics.emissionTrends')}</CardTitle>
-              <CardDescription>{t('dashboard.pages.analytics.yourEmissionsVsSector')}</CardDescription>
+              <CardTitle>{t.dashboard.pages.analytics.emissionTrends}</CardTitle>
+              <CardDescription>{t.dashboard.pages.analytics.yourEmissionsVsSector}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
               {emissionTrends.map((trend) => {
@@ -375,8 +375,8 @@ const AnalyticsPage = () => {
                     <div className="flex items-center justify-between text-xs font-medium">
                       <span>{trend.month}</span>
                       <div className="flex gap-4">
-                        <span className="text-primary">{t('dashboard.pages.analytics.yourCompany')}: {trend.tenantEmissions.toFixed(0)} kg</span>
-                        <span className="text-muted-foreground">{t('dashboard.pages.analytics.industryAverage')}: {trend.sectorAverage.toFixed(0)} kg</span>
+                        <span className="text-primary">{t.dashboard.pages.analytics.yourCompany}: {trend.tenantEmissions.toFixed(0)} kg</span>
+                        <span className="text-muted-foreground">{t.dashboard.pages.analytics.industryAverage}: {trend.sectorAverage.toFixed(0)} kg</span>
                       </div>
                     </div>
                     <div className="relative h-6">
@@ -411,8 +411,8 @@ const AnalyticsPage = () => {
         ) : data && regionalComparison.length > 0 && (
           <Card>
             <CardHeader>
-              <CardTitle>{t('dashboard.pages.analytics.regionalComparison')}</CardTitle>
-              <CardDescription>{t('dashboard.pages.analytics.avgEmissionsByRegion')}</CardDescription>
+              <CardTitle>{t.dashboard.pages.analytics.regionalComparison}</CardTitle>
+              <CardDescription>{t.dashboard.pages.analytics.avgEmissionsByRegion}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {regionalComparison.map((region) => {
@@ -425,7 +425,7 @@ const AnalyticsPage = () => {
                       <span className="text-sm font-medium">{region.region}</span>
                       <div className="text-right">
                         <p className="text-sm font-bold">{region.avgEmissions.toFixed(1)} kg</p>
-                        <p className="text-xs text-muted-foreground">{region.companyCount} {t('dashboard.pages.analytics.companiesTracked', { count: region.companyCount })}</p>
+                        <p className="text-xs text-muted-foreground">{region.companyCount} {t.dashboard.pages.analytics.companiesTracked({ count: region.companyCount })}</p>
                       </div>
                     </div>
                     <Progress value={percentage} className="h-2" />
@@ -457,9 +457,9 @@ const AnalyticsPage = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <IconAward className="w-5 h-5 text-yellow-500" />
-              {t('dashboard.pages.analytics.topPerformersTitle', { sector: yourPerformance.sector })}
+                {t.dashboard.pages.analytics.topPerformersTitle({ sector: yourPerformance.sector })}
             </CardTitle>
-            <CardDescription>{t('dashboard.pages.analytics.bestEmissionReduction')}</CardDescription>
+              <CardDescription>{t.dashboard.pages.analytics.bestEmissionReduction}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
@@ -505,17 +505,17 @@ const AnalyticsPage = () => {
       {!loading && data && (
         <Card>
           <CardHeader>
-            <CardTitle>{t('dashboard.pages.analytics.aiGeneratedInsights')}</CardTitle>
-            <CardDescription>{t('dashboard.pages.analytics.personalizedRecommendations')}</CardDescription>
+              <CardTitle>{t.dashboard.pages.analytics.aiGeneratedInsights}</CardTitle>
+              <CardDescription>{t.dashboard.pages.analytics.personalizedRecommendations}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {yourPerformance.belowAverage > 0 && (
               <div className="flex gap-3 p-4 border rounded-lg bg-blue-50 dark:bg-blue-950">
                 <IconLeaf className="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
                 <div>
-                  <h4 className="font-semibold text-sm mb-1">{t('dashboard.pages.analytics.competitiveAdvantage')}</h4>
+                  <h4 className="font-semibold text-sm mb-1">{t.dashboard.pages.analytics.competitiveAdvantage}</h4>
                   <p className="text-sm text-muted-foreground">
-                    {t('dashboard.pages.analytics.advantageDesc', { percent: 100 - yourPerformance.percentile })}
+                    {t.dashboard.pages.analytics.advantageDesc({ percent: 100 - yourPerformance.percentile })}
                   </p>
                 </div>
               </div>
@@ -525,9 +525,9 @@ const AnalyticsPage = () => {
               <div className="flex gap-3 p-4 border rounded-lg">
                 <IconTarget className="w-5 h-5 text-purple-600 dark:text-purple-400 shrink-0 mt-0.5" />
                 <div>
-                  <h4 className="font-semibold text-sm mb-1">{t('dashboard.pages.analytics.targetTop25')}</h4>
+                  <h4 className="font-semibold text-sm mb-1">{t.dashboard.pages.analytics.targetTop25}</h4>
                   <p className="text-sm text-muted-foreground">
-                    {t('dashboard.pages.analytics.targetDesc', { sector: yourPerformance.sector })}
+                    {t.dashboard.pages.analytics.targetDesc({ sector: yourPerformance.sector })}
                   </p>
                 </div>
               </div>
@@ -537,9 +537,9 @@ const AnalyticsPage = () => {
               <div className="flex gap-3 p-4 border rounded-lg">
                 <IconChartBar className="w-5 h-5 text-green-600 dark:text-green-400 shrink-0 mt-0.5" />
                 <div>
-                  <h4 className="font-semibold text-sm mb-1">{t('dashboard.pages.analytics.consistentImprovement')}</h4>
+                  <h4 className="font-semibold text-sm mb-1">{t.dashboard.pages.analytics.consistentImprovement}</h4>
                   <p className="text-sm text-muted-foreground">
-                    {t('dashboard.pages.analytics.improvementDesc', { percent: yourPerformance.improvement.toFixed(1) })}
+                    {t.dashboard.pages.analytics.improvementDesc({ percent: yourPerformance.improvement.toFixed(1) })}
                   </p>
                 </div>
               </div>
@@ -549,9 +549,9 @@ const AnalyticsPage = () => {
               <div className="flex gap-3 p-4 border rounded-lg bg-yellow-50 dark:bg-yellow-950">
                 <IconAlertTriangle className="w-5 h-5 text-yellow-600 dark:text-yellow-400 shrink-0 mt-0.5" />
                 <div>
-                  <h4 className="font-semibold text-sm mb-1">{t('dashboard.pages.analytics.emissionsIncrease')}</h4>
+                  <h4 className="font-semibold text-sm mb-1">{t.dashboard.pages.analytics.emissionsIncrease}</h4>
                   <p className="text-sm text-muted-foreground">
-                    {t('dashboard.pages.analytics.increaseDesc', { percent: Math.abs(yourPerformance.improvement).toFixed(1) })}
+                    {t.dashboard.pages.analytics.increaseDesc({ percent: Math.abs(yourPerformance.improvement).toFixed(1) })}
                   </p>
                 </div>
               </div>

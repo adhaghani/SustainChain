@@ -166,6 +166,14 @@ const DashboardPage = () => {
             </Card>
           ))}
         </div>
+          <Card>
+            <CardHeader>
+              <Skeleton className="h-6 w-48" />
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="h-40 w-full" />
+            </CardContent>
+          </Card>
         <div className="grid gap-4 md:grid-cols-2">
           <Card>
             <CardHeader>
@@ -461,7 +469,7 @@ const DashboardPage = () => {
             </div>
 
             {/* Report Generation Usage */}
-            <div className="space-y-2">
+            <div className={`space-y-2 ${quotaData.reportGeneration.limit === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}>
               <div className="flex items-center justify-between text-sm">
                 <div className="flex items-center gap-2">
                   <IconDownload className="w-4 h-4 text-primary" />
@@ -474,7 +482,7 @@ const DashboardPage = () => {
               {!quotaData.reportGeneration.unlimited && (
                 <>
                   <Progress 
-                    value={quotaData.reportGeneration.limit === 0 ? 100 : quotaData.reportGeneration.percentUsed} 
+                    value={quotaData.reportGeneration.limit === 0 ? 0 : quotaData.reportGeneration.percentUsed} 
                     className="h-2"
                   />
                   <div className="flex justify-between text-xs text-muted-foreground">

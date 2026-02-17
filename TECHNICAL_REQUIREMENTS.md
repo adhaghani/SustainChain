@@ -364,7 +364,7 @@
 
 // gemini.config.ts
 {
-  model: "gemini-1.5-flash",
+  model: "gemini-2.5-flash",
   generationConfig: {
     temperature: 0.1, // Low temp for factual extraction
     responseMimeType: "application/json",

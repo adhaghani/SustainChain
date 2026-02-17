@@ -72,13 +72,13 @@ const EntriesPage = () => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "verified":
-        return <Badge variant="default" className="bg-green-500"><IconCheck className="w-3 h-3 mr-1" />{t('dashboard.pages.entries.status.verified')}</Badge>;
+        return <Badge variant="default" className="bg-green-500"><IconCheck className="w-3 h-3 mr-1" />{t.dashboard.pages.entries.status.verified}</Badge>;
       case "pending":
-        return <Badge variant="secondary"><IconClock className="w-3 h-3 mr-1" />{t('dashboard.pages.entries.status.pending')}</Badge>;
+        return <Badge variant="secondary"><IconClock className="w-3 h-3 mr-1" />{t.dashboard.pages.entries.status.pending}</Badge>;
       case "flagged":
-        return <Badge variant="outline" className="border-yellow-500 text-yellow-600">{t('dashboard.pages.entries.status.flagged')}</Badge>;
+        return <Badge variant="outline" className="border-yellow-500 text-yellow-600">{t.dashboard.pages.entries.status.flagged}</Badge>;
       case "rejected":
-        return <Badge variant="destructive">{t('dashboard.pages.entries.status.rejected')}</Badge>;
+        return <Badge variant="destructive">{t.dashboard.pages.entries.status.rejected}</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -136,18 +136,18 @@ const EntriesPage = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t('dashboard.pages.entries.title')}</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t.dashboard.pages.entries.title}</h1>
           <p className="text-muted-foreground mt-1">
-            {t('dashboard.pages.entries.subtitle')}
+            {t.dashboard.pages.entries.subtitle}
           </p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={refetch} disabled={loading}>
-            {t('common.retry')}
+            {t.common.retry}
           </Button>
           <Button onClick={() => router.push('/entries/upload')}>
             <IconUpload className="w-4 h-4 mr-2" />
-            {t('dashboard.pages.uploadBills.title')}
+            {t.dashboard.pages.uploadBills.title}
           </Button>
         </div>
       </div>
@@ -156,7 +156,7 @@ const EntriesPage = () => {
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">{t('dashboard.pages.entries.totalEntries')}</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{t.dashboard.pages.entries.totalEntries}</CardTitle>
           </CardHeader>
           <CardContent>
             {loading ? (
@@ -165,7 +165,7 @@ const EntriesPage = () => {
               <>
                 <div className="text-2xl font-bold">{allEntries.length}</div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  {autoExtractedCount} {t('dashboard.pages.dashboard.autoExtracted')}
+                  {autoExtractedCount} {t.dashboard.pages.dashboard.autoExtracted}
                 </p>
               </>
             )}
@@ -174,16 +174,16 @@ const EntriesPage = () => {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">{t('dashboard.pages.entries.totalCO2e')}</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{t.dashboard.pages.entries.totalCO2e}</CardTitle>
           </CardHeader>
           <CardContent>
             {loading ? (
               <Skeleton className="h-8 w-24" />
             ) : (
               <>
-                <div className="text-2xl font-bold">{totalEmissions.toFixed(2)} {t('dashboard.pages.entries.kg')}</div>
+                <div className="text-2xl font-bold">{totalEmissions.toFixed(2)} {t.dashboard.pages.entries.kg}</div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  {t('dashboard.pages.entries.fromAllEntries')}
+                  {t.dashboard.pages.entries.fromAllEntries}
                 </p>
               </>
             )}
@@ -192,7 +192,7 @@ const EntriesPage = () => {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">{t('dashboard.pages.entries.status.verified')}</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{t.dashboard.pages.entries.status.verified}</CardTitle>
           </CardHeader>
           <CardContent>
             {loading ? (
@@ -201,7 +201,7 @@ const EntriesPage = () => {
               <>
                 <div className="text-2xl font-bold">{verifiedCount}/{allEntries.length}</div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  {allEntries.length > 0 ? ((verifiedCount / allEntries.length) * 100).toFixed(0) : 0}% {t('dashboard.pages.entries.completion')}
+                  {allEntries.length > 0 ? ((verifiedCount / allEntries.length) * 100).toFixed(0) : 0}% {t.dashboard.pages.entries.completion}
                 </p>
               </>
             )}
@@ -210,14 +210,14 @@ const EntriesPage = () => {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">{t('dashboard.pages.dashboard.thisMonth')}</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{t.dashboard.pages.dashboard.thisMonth}</CardTitle>
           </CardHeader>
           <CardContent>
             {loading ? (
               <Skeleton className="h-8 w-20" />
             ) : (
               <>
-                <div className="text-2xl font-bold">{currentMonthEntries} {currentMonthEntries === 1 ? t('dashboard.pages.entries.billSingular') : t('dashboard.pages.entries.billPlural')}</div>
+                <div className="text-2xl font-bold">{currentMonthEntries} {currentMonthEntries === 1 ? t.dashboard.pages.entries.billSingular : t.dashboard.pages.entries.billPlural}</div>
                 <p className="text-xs text-muted-foreground mt-1">
                   {new Date().toLocaleDateString('en-MY', { month: 'long', year: 'numeric' })}
                 </p>
@@ -232,13 +232,13 @@ const EntriesPage = () => {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>{t('dashboard.pages.entries.title')}</CardTitle>
-              <CardDescription>{t('dashboard.pages.entries.subtitle')}</CardDescription>
+              <CardTitle>{t.dashboard.pages.entries.title}</CardTitle>
+              <CardDescription>{t.dashboard.pages.entries.subtitle}</CardDescription>
             </div>
             <div className="flex gap-2">
               <Button variant="outline" size="sm">
                 <IconDownload className="w-4 h-4 mr-2" />
-                {t('dashboard.common.export')} CSV
+                {t.dashboard.common.export} CSV
               </Button>
             </div>
           </div>
@@ -249,7 +249,7 @@ const EntriesPage = () => {
             <div className="relative flex-1">
               <IconSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input 
-                placeholder={t('dashboard.pages.entries.searchPlaceholder')}
+                placeholder={t.dashboard.pages.entries.searchPlaceholder}
                 className="pl-9"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -259,22 +259,22 @@ const EntriesPage = () => {
               <DropdownMenuTrigger asChild>
                 <Button variant="outline">
                   <IconFilter className="w-4 h-4 mr-2" />
-                {t('dashboard.common.filter')}{(utilityFilter || statusFilter) && ' (Active)'}
+                {t.dashboard.common.filter}{(utilityFilter || statusFilter) && ' (Active)'}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuLabel>{t('dashboard.pages.entries.filters.status')}</DropdownMenuLabel>
-                <DropdownMenuItem onClick={() => setUtilityFilter('')}>{t('dashboard.pages.entries.filters.allTypes')}</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setUtilityFilter('electricity')}>{t('dashboard.pages.entries.filters.electricity')}</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setUtilityFilter('water')}>{t('dashboard.pages.entries.filters.water')}</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setUtilityFilter('fuel')}>{t('dashboard.pages.entries.filters.fuel')}</DropdownMenuItem>
+                <DropdownMenuLabel>{t.dashboard.pages.entries.filters.status}</DropdownMenuLabel>
+                <DropdownMenuItem onClick={() => setUtilityFilter('')}>{t.dashboard.pages.entries.filters.allTypes}</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setUtilityFilter('electricity')}>{t.dashboard.pages.entries.filters.electricity}</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setUtilityFilter('water')}>{t.dashboard.pages.entries.filters.water}</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setUtilityFilter('fuel')}>{t.dashboard.pages.entries.filters.fuel}</DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuLabel>{t('dashboard.pages.entries.filters.status')}</DropdownMenuLabel>
-                <DropdownMenuItem onClick={() => setStatusFilter('')}>{t('dashboard.pages.entries.filters.allStatus')}</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setStatusFilter('verified')}>{t('dashboard.pages.entries.status.verified')}</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setStatusFilter('pending')}>{t('dashboard.pages.entries.status.pending')}</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setStatusFilter('flagged')}>{t('dashboard.pages.entries.status.flagged')}</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setStatusFilter('rejected')}>{t('dashboard.pages.entries.status.rejected')}</DropdownMenuItem>
+                <DropdownMenuLabel>{t.dashboard.pages.entries.filters.status}</DropdownMenuLabel>
+                <DropdownMenuItem onClick={() => setStatusFilter('')}>{t.dashboard.pages.entries.filters.allStatus}</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setStatusFilter('verified')}>{t.dashboard.pages.entries.status.verified}</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setStatusFilter('pending')}>{t.dashboard.pages.entries.status.pending}</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setStatusFilter('flagged')}>{t.dashboard.pages.entries.status.flagged}</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setStatusFilter('rejected')}>{t.dashboard.pages.entries.status.rejected}</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
@@ -293,21 +293,21 @@ const EntriesPage = () => {
             </div>
           ) : error ? (
             <Alert variant="destructive">
-              <AlertDescription>{t('dashboard.common.error')}</AlertDescription>
+              <AlertDescription>{t.dashboard.common.error}</AlertDescription>
             </Alert>
           ) : entries.length === 0 ? (
             <div className="text-center py-12 border rounded-lg">
               <IconUpload className="mx-auto h-12 w-12 text-muted-foreground" />
-              <h3 className="mt-4 text-lg font-semibold">{t('dashboard.pages.entries.noEntriesFound')}</h3>
+              <h3 className="mt-4 text-lg font-semibold">{t.dashboard.pages.entries.noEntriesFound}</h3>
               <p className="text-sm text-muted-foreground mt-2">
                 {searchQuery || utilityFilter || statusFilter
-                  ? t('dashboard.pages.entries.tryAdjustingFilters')
-                  : t('dashboard.pages.dashboard.uploadFirstBill')}
+                  ? t.dashboard.pages.entries.tryAdjustingFilters
+                  : t.dashboard.pages.dashboard.uploadFirstBill}
               </p>
               {!searchQuery && !utilityFilter && !statusFilter && (
                 <Button onClick={() => router.push('/entries/upload')} className="mt-4">
                   <IconUpload className="w-4 h-4 mr-2" />
-                  {t('dashboard.common.uploadBill')}
+                  {t.dashboard.common.uploadBill}
                 </Button>
               )}
             </div>
@@ -316,14 +316,14 @@ const EntriesPage = () => {
               <table className="w-full">
                 <thead>
                   <tr className="border-b bg-muted/50">
-                    <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">{t('dashboard.pages.entries.table.type')}</th>
-                    <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">{t('dashboard.pages.entries.table.provider')}</th>
-                    <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">{t('dashboard.pages.entries.table.usage')}</th>
-                    <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">{t('dashboard.pages.entries.table.amount')}</th>
-                    <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">CO2e ({t('dashboard.pages.entries.kg')})</th>
-                    <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">{t('dashboard.pages.entries.table.date')}</th>
-                    <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">{t('dashboard.pages.entries.table.status')}</th>
-                    <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">{t('dashboard.pages.entries.table.actions')}</th>
+                    <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">{t.dashboard.pages.entries.table.type}</th>
+                    <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">{t.dashboard.pages.entries.table.provider}</th>
+                    <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">{t.dashboard.pages.entries.table.usage}</th>
+                    <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">{t.dashboard.pages.entries.table.amount}</th>
+                    <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">CO2e ({t.dashboard.pages.entries.kg})</th>
+                    <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">{t.dashboard.pages.entries.table.date}</th>
+                    <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">{t.dashboard.pages.entries.table.status}</th>
+                    <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">{t.dashboard.pages.entries.table.actions}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -365,10 +365,10 @@ const EntriesPage = () => {
                       </td>
                       <td className="p-4 align-middle">
                         <div className="flex gap-1">
-                          <Button variant="ghost" size="sm" title={t('common.edit')}>
+                          <Button variant="ghost" size="sm" title={t.common.edit}>
                             <IconEdit className="w-4 h-4" />
                           </Button>
-                          <Button variant="ghost" size="sm" title={t('common.delete')}>
+                          <Button variant="ghost" size="sm" title={t.common.delete}>
                             <IconTrash className="w-4 h-4 text-red-500" />
                           </Button>
                         </div>
@@ -383,14 +383,14 @@ const EntriesPage = () => {
           {/* Pagination */}
           <div className="flex items-center justify-between mt-4">
             <p className="text-sm text-muted-foreground">
-              {t('dashboard.pages.entries.showingEntries', { count: entries.length, total: entries.length })}
+              showing {entries.length} of {allEntries.length} entries
             </p>
             <div className="flex gap-2">
               <Button variant="outline" size="sm" disabled>
-                {t('dashboard.common.previous')}
+                {t.dashboard.common.previous}
               </Button>
               <Button variant="outline" size="sm" disabled>
-                {t('dashboard.common.next')}
+                {t.dashboard.common.next}
               </Button>
             </div>
           </div>
